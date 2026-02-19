@@ -24,22 +24,6 @@ const navItems = [
   { path: '/analysis', label: 'Analysis', icon: Brain },
 ]
 
-// Glyph dot pattern component
-function GlyphPattern({ className = '' }: { className?: string }) {
-  return (
-    <div className={`absolute inset-0 opacity-30 pointer-events-none ${className}`}>
-      <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="glyph-dots" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1" fill="currentColor" className="text-cream/20" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#glyph-dots)" />
-      </svg>
-    </div>
-  )
-}
-
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -61,17 +45,12 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-void text-text-primary font-sans">
-      {/* Ambient background glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[40%] -right-[20%] w-[80%] h-[80%] bg-cream/[0.02] rounded-full blur-[120px]" />
-        <div className="absolute -bottom-[40%] -left-[20%] w-[60%] h-[60%] bg-cream/[0.01] rounded-full blur-[100px]" />
-      </div>
 
       {/* Header */}
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled 
-            ? 'bg-void/80 backdrop-blur-xl border-b border-border' 
+            ? 'bg-void/95 border-b border-border' 
             : 'bg-transparent'
         }`}
       >
@@ -81,7 +60,6 @@ export default function Layout({ children }: LayoutProps) {
             <Link to="/" className="flex items-center gap-3 group">
               <div className="relative w-9 h-9 flex items-center justify-center">
                 <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20 group-hover:border-cream/40 transition-colors" />
-                <GlyphPattern className="rounded-xl opacity-50" />
                 <img 
                   src="/favinv.png" 
                   alt="FavInv" 
@@ -151,7 +129,7 @@ export default function Layout({ children }: LayoutProps) {
         }`}
       >
         <div 
-          className="absolute inset-0 bg-void/95 backdrop-blur-xl"
+          className="absolute inset-0 bg-void/95"
           onClick={() => setMobileMenuOpen(false)}
         />
         <nav className={`absolute top-16 left-0 right-0 p-4 transition-transform duration-300 ${

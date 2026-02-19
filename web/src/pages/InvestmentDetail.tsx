@@ -356,7 +356,7 @@ export default function InvestmentDetail() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <div className="absolute inset-0 glyph-pattern opacity-5" />
+
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
                 <Upload className="h-4 w-4 text-cream" />

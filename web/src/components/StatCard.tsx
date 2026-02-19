@@ -89,23 +89,7 @@ export default function StatCard({
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       }`}
     >
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cream/[0.02] to-transparent pointer-events-none" />
-      
-      {/* Glyph pattern for accent variant */}
-      {variant === 'accent' && (
-        <div className="absolute top-0 right-0 w-24 h-24 opacity-10">
-          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id={`glyph-${title}`} x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
-                <circle cx="1.5" cy="1.5" r="1" fill="currentColor" className="text-cream" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill={`url(#glyph-${title})`} />
-          </svg>
-        </div>
-      )}
-      
+ 
       <div className="relative">
         <div className="flex items-start justify-between mb-3">
           <div className={`p-2.5 rounded-xl ${variant === 'accent' ? 'bg-cream/10' : 'bg-surface-elevated'}`}>
@@ -160,19 +144,7 @@ export function FeaturedStat({ label, value, sublabel, icon: Icon, className = '
   const animatedValue = useAnimatedValue(value, 1200)
   
   return (
-    <div className={`relative overflow-hidden rounded-3xl border border-cream/10 bg-gradient-to-br from-surface to-surface-elevated p-8 ${className}`}>
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="featured-glyph" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1.5" fill="currentColor" className="text-cream" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#featured-glyph)" />
-        </svg>
-      </div>
-      
+    <div className={`relative overflow-hidden rounded-3xl border border-cream/10 bg-surface p-8 ${className}`}>
       <div className="relative">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 rounded-2xl bg-cream/10 border border-cream/20">
@@ -194,8 +166,6 @@ export function FeaturedStat({ label, value, sublabel, icon: Icon, className = '
         )}
       </div>
       
-      {/* Decorative corner */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-cream/5 rounded-full blur-3xl" />
     </div>
   )
 }

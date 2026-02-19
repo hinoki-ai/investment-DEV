@@ -99,21 +99,17 @@
 }
 
 @layer components {
-  /* Glass Card - Subtle frosted effect */
+  /* Glass Card */
   .glass-card {
     background: var(--surface);
     border: 1px solid var(--border-default);
     border-radius: 12px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
   }
   
   .glass-card-elevated {
     background: var(--surface-elevated);
     border: 1px solid var(--border-default);
     border-radius: 16px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
   }
   
   /* Glyph Button - Nothing Phone inspired */
@@ -180,17 +176,7 @@
     border-color: var(--border-default);
   }
   
-  /* Dot pattern - Nothing Phone glyph aesthetic */
-  .glyph-pattern {
-    background-image: radial-gradient(circle, var(--border-strong) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-  
-  .glyph-pattern-dense {
-    background-image: radial-gradient(circle, var(--border-default) 1px, transparent 1px);
-    background-size: 12px 12px;
-  }
-  
+
   /* Input fields */
   .input-field {
     width: 100%;

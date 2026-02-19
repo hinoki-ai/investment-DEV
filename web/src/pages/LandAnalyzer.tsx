@@ -206,7 +206,7 @@ export default function LandAnalyzer() {
     <div className="space-y-6 fade-in">
       {/* Header */}
       <div className="relative overflow-hidden rounded-2xl border border-cream/10 bg-gradient-to-br from-surface to-surface-elevated p-6 sm:p-8">
-        <div className="absolute inset-0 glyph-pattern opacity-5" />
+
         <div className="relative">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
