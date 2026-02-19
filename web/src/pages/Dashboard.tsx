@@ -5,11 +5,61 @@ import {
   FileText, 
   Brain,
   TrendingUp,
-  Clock
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  ChevronRight
 } from 'lucide-react'
-import StatCard from '../components/StatCard'
+import StatCard, { FeaturedStat, MiniStat } from '../components/StatCard'
 import { dashboardApi, investmentsApi } from '../lib/api'
 import { formatCurrency, formatNumber } from '../lib/utils'
+import { Link } from 'react-router-dom'
+
+// Category icon mapping
+const categoryIcons: Record<string, string> = {
+  land: '🏞️',
+  stocks: '📈',
+  gold: '🪙',
+  crypto: '₿',
+  real_estate: '🏢',
+  bonds: '📜',
+  other: '📦'
+}
+
+// Category labels
+const categoryLabels: Record<string, string> = {
+  land: 'Land',
+  stocks: 'Stocks',
+  gold: 'Gold',
+  crypto: 'Crypto',
+  real_estate: 'Real Estate',
+  bonds: 'Bonds',
+  other: 'Other'
+}
+
+// Skeleton loader component
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      {/* Header skeleton */}
+      <div className="space-y-2">
+        <div className="h-8 w-48 bg-surface-elevated rounded-lg" />
+        <div className="h-4 w-72 bg-surface rounded-lg" />
+      </div>
+      
+      {/* Featured stat skeleton */}
+      <div className="h-48 bg-surface-elevated rounded-3xl" />
+      
+      {/* Stats grid skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-32 bg-surface rounded-2xl" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -23,145 +73,233 @@ export default function Dashboard() {
   })
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="card h-32 animate-pulse bg-gray-100" />
-          ))}
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
+  const totalValue = stats?.total_value || 0
+  const totalInvestments = stats?.total_investments || 0
+  const totalFiles = stats?.total_files || 0
+  const completedAnalyses = stats?.completed_analyses || 0
+  const pendingAnalyses = stats?.pending_analyses || 0
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">
-          Overview of your family's investment portfolio
-        </p>
+    <div className="space-y-8 fade-in">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Activity className="h-4 w-4 text-cream-muted" />
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Dashboard</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">
+            Portfolio Overview
+          </h1>
+          <p className="text-text-secondary mt-1">
+            Track and manage your family's investment portfolio
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2 text-xs text-text-muted">
+          <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+          <span>Live Data</span>
+          <span className="text-border-strong">|</span>
+          <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        </div>
       </div>
 
+      {/* Featured Total Value */}
+      <FeaturedStat
+        label="Total Portfolio Value"
+        value={formatCurrency(totalValue)}
+        sublabel="Combined value across all investment categories"
+        icon={DollarSign}
+      />
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         <StatCard
-          title="Total Investments"
-          value={formatNumber(stats?.total_investments || 0)}
-          description="Across all categories"
+          title="Investments"
+          value={formatNumber(totalInvestments)}
+          description="Active assets tracked"
           icon={Trees}
-          color="green"
-        />
-        <StatCard
-          title="Portfolio Value"
-          value={formatCurrency(stats?.total_value || 0)}
-          description="Current estimated value"
-          icon={DollarSign}
-          color="blue"
+          variant="default"
+          delay={0}
         />
         <StatCard
           title="Files Stored"
-          value={formatNumber(stats?.total_files || 0)}
+          value={formatNumber(totalFiles)}
           description="Documents & media"
           icon={FileText}
-          color="purple"
+          variant="default"
+          delay={50}
         />
         <StatCard
           title="AI Analyses"
-          value={formatNumber(stats?.completed_analyses || 0)}
-          description={`${stats?.pending_analyses || 0} pending`}
+          value={formatNumber(completedAnalyses)}
+          description={`${pendingAnalyses} pending`}
           icon={Brain}
-          color="orange"
+          variant="accent"
+          delay={100}
+        />
+        <StatCard
+          title="Categories"
+          value={Object.keys(stats?.investments_by_category || {}).length}
+          description="Asset types diversified"
+          icon={TrendingUp}
+          variant="default"
+          delay={150}
         />
       </div>
 
       {/* Category Breakdown */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          Investments by Category
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {Object.entries(stats?.investments_by_category || {}).map(([category, count]) => (
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Categories</span>
+          </div>
+          <Link 
+            to="/investments" 
+            className="text-xs text-cream-muted hover:text-cream transition-colors flex items-center gap-1"
+          >
+            View All <ChevronRight className="h-3 w-3" />
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {Object.entries(stats?.investments_by_category || {}).map(([category, count], index) => (
             <div 
               key={category}
-              className="bg-gray-50 rounded-lg p-4 text-center"
+              className="group relative overflow-hidden rounded-xl border border-border bg-surface p-4 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5"
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <p className="text-2xl font-bold text-primary-600">{count}</p>
-              <p className="text-sm text-gray-600 capitalize">{category}</p>
+              {/* Hover glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cream/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xl">{categoryIcons[category] || '📦'}</span>
+                  <span className="font-mono text-lg font-semibold text-cream">{count}</span>
+                </div>
+                <p className="text-xs text-text-secondary capitalize">{categoryLabels[category] || category}</p>
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Recent Activity */}
+      {/* Recent Activity Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Uploads */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Recent Uploads</h2>
+        <section className="glass-card-elevated">
+          <div className="flex items-center justify-between p-5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-surface-elevated">
+                <Clock className="h-4 w-4 text-cream-muted" />
+              </div>
+              <span className="text-sm font-semibold text-text-primary">Recent Uploads</span>
+            </div>
+            <Link 
+              to="/files"
+              className="glyph-btn glyph-btn-ghost py-1.5 px-3 text-xs"
+            >
+              View All
+            </Link>
           </div>
-          <div className="space-y-3">
+          
+          <div className="p-2">
             {stats?.recent_uploads?.length ? (
-              stats.recent_uploads.map((file) => (
-                <div 
-                  key={file.id}
-                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <FileText className="h-5 w-5 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm text-gray-700 truncate">
-                      {file.original_filename}
+              <div className="space-y-1">
+                {stats.recent_uploads.slice(0, 5).map((file, index) => (
+                  <div 
+                    key={file.id}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-surface transition-colors group"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="p-2 rounded-lg bg-surface-elevated group-hover:bg-cream/10 transition-colors">
+                        <FileText className="h-4 w-4 text-text-muted group-hover:text-cream transition-colors" />
+                      </div>
+                      <span className="text-sm text-text-secondary truncate group-hover:text-text-primary transition-colors">
+                        {file.original_filename}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full ${
+                      file.status === 'completed' 
+                        ? 'bg-success-dim text-success' 
+                        : file.status === 'processing'
+                        ? 'bg-info-dim text-info'
+                        : 'bg-warning-dim text-warning'
+                    }`}>
+                      {file.status}
                     </span>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full flex-shrink-0 ${
-                    file.status === 'completed' 
-                      ? 'bg-green-100 text-green-700'
-                      : file.status === 'processing'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {file.status}
-                  </span>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
-              <p className="text-gray-500 text-sm">No recent uploads</p>
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-elevated flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-text-muted" />
+                </div>
+                <p className="text-sm text-text-muted">No recent uploads</p>
+              </div>
             )}
           </div>
-        </div>
+        </section>
 
         {/* Recent Investments */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Recent Investments</h2>
-          </div>
-          <div className="space-y-3">
-            {(investments as any[])?.slice(0, 5).map((inv) => (
-              <div 
-                key={inv.id}
-                className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {inv.name}
-                  </p>
-                  <p className="text-xs text-gray-500 capitalize">
-                    {inv.category} • {inv.city || 'No location'}
-                  </p>
-                </div>
-                <span className="text-sm font-medium text-gray-900 flex-shrink-0">
-                  {inv.current_value ? formatCurrency(inv.current_value) : '—'}
-                </span>
+        <section className="glass-card-elevated">
+          <div className="flex items-center justify-between p-5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-surface-elevated">
+                <TrendingUp className="h-4 w-4 text-cream-muted" />
               </div>
-            ))}
-            {!investments?.length && (
-              <p className="text-gray-500 text-sm">No investments yet</p>
+              <span className="text-sm font-semibold text-text-primary">Recent Investments</span>
+            </div>
+            <Link 
+              to="/investments"
+              className="glyph-btn glyph-btn-ghost py-1.5 px-3 text-xs"
+            >
+              View All
+            </Link>
+          </div>
+          
+          <div className="p-2">
+            {(investments as any[])?.length ? (
+              <div className="space-y-1">
+                {(investments as any[]).slice(0, 5).map((inv, index) => (
+                  <Link
+                    key={inv.id}
+                    to={`/investments/${inv.id}`}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-surface transition-colors group"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-text-primary truncate group-hover:text-cream transition-colors">
+                        {inv.name}
+                      </p>
+                      <p className="text-xs text-text-muted capitalize flex items-center gap-1 mt-0.5">
+                        <span>{categoryIcons[inv.category] || '📦'}</span>
+                        <span>{categoryLabels[inv.category] || inv.category}</span>
+                        <span className="text-border-strong">•</span>
+                        <span>{inv.city || 'No location'}</span>
+                      </p>
+                    </div>
+                    <span className="font-mono text-sm text-cream ml-4">
+                      {inv.current_value ? formatCurrency(inv.current_value) : '—'}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-elevated flex items-center justify-center">
+                  <Trees className="h-5 w-5 text-text-muted" />
+                </div>
+                <p className="text-sm text-text-muted">No investments yet</p>
+              </div>
             )}
           </div>
-        </div>
+        </section>
       </div>
     </div>
   )

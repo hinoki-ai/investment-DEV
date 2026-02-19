@@ -7,162 +7,261 @@ import {
   MapPin, 
   DollarSign,
   Filter,
-  ChevronRight
+  ChevronRight,
+  ArrowUpRight,
+  ArrowDownRight,
+  Trees,
+  Grid3X3,
+  List
 } from 'lucide-react'
 import { investmentsApi } from '../lib/api'
-import { formatCurrency, categoryColors, categoryLabels } from '../lib/utils'
+import { formatCurrency, categoryLabels } from '../lib/utils'
 
 const categories = [
   { value: '', label: 'All Categories' },
-  { value: 'land', label: 'Land' },
-  { value: 'stocks', label: 'Stocks' },
-  { value: 'gold', label: 'Gold' },
-  { value: 'crypto', label: 'Crypto' },
-  { value: 'real_estate', label: 'Real Estate' },
-  { value: 'bonds', label: 'Bonds' },
-  { value: 'other', label: 'Other' },
+  { value: 'land', label: '🏞️ Land' },
+  { value: 'stocks', label: '📈 Stocks' },
+  { value: 'gold', label: '🪙 Gold' },
+  { value: 'crypto', label: '₿ Crypto' },
+  { value: 'real_estate', label: '🏢 Real Estate' },
+  { value: 'bonds', label: '📜 Bonds' },
+  { value: 'other', label: '📦 Other' },
 ]
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  active: { 
+    label: 'Active', 
+    className: 'bg-success-dim text-success border-success/20' 
+  },
+  sold: { 
+    label: 'Sold', 
+    className: 'bg-surface text-text-muted border-border' 
+  },
+  pending: { 
+    label: 'Pending', 
+    className: 'bg-warning-dim text-warning border-warning/20' 
+  },
+  under_contract: { 
+    label: 'Contract', 
+    className: 'bg-info-dim text-info border-info/20' 
+  },
+}
+
+const categoryIcons: Record<string, string> = {
+  land: '🏞️',
+  stocks: '📈',
+  gold: '🪙',
+  crypto: '₿',
+  real_estate: '🏢',
+  bonds: '📜',
+  other: '📦'
+}
 
 export default function Investments() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
 
   const { data: investments, isLoading } = useQuery({
     queryKey: ['investments'],
     queryFn: () => investmentsApi.list(),
   })
 
+  const filteredInvestments = investments?.filter((inv: any) => {
+    const matchesSearch = inv.name.toLowerCase().includes(search.toLowerCase()) ||
+                         inv.city?.toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = !category || inv.category === category
+    return matchesSearch && matchesCategory
+  })
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Investments</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your investment portfolio
+          <div className="flex items-center gap-2 mb-2">
+            <Trees className="h-4 w-4 text-cream-muted" />
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Portfolio</span>
+          </div>
+          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Investments</h1>
+          <p className="text-text-secondary mt-1">
+            Manage and track your investment assets
           </p>
         </div>
-        <Link to="/investments/new" className="btn-primary flex items-center justify-center gap-2">
+        <Link 
+          to="/investments/new" 
+          className="glyph-btn glyph-btn-primary"
+        >
           <Plus className="h-4 w-4" />
           Add Investment
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="card">
+      <div className="glass-card p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
             <input
               type="text"
               placeholder="Search investments..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="input pl-10 w-full"
+              className="input-field pl-11"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-gray-400" />
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="input w-full sm:w-48"
-            >
-              {categories.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-text-muted" />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="input-field py-2.5 pr-10"
+              >
+                {categories.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {/* View Toggle */}
+            <div className="flex items-center bg-surface rounded-lg p-1 border border-border">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-cream/10 text-cream' : 'text-text-muted hover:text-text-primary'}`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-cream/10 text-cream' : 'text-text-muted hover:text-text-primary'}`}
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Results Count */}
+      <div className="flex items-center justify-between text-xs text-text-muted">
+        <span>
+          {filteredInvestments?.length || 0} investment{filteredInvestments?.length !== 1 ? 's' : ''}
+        </span>
+        {(search || category) && (
+          <button 
+            onClick={() => { setSearch(''); setCategory('') }}
+            className="text-cream-muted hover:text-cream transition-colors"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+
       {/* Investment List */}
       {isLoading ? (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="card h-24 animate-pulse bg-gray-100" />
+            <div key={i} className="h-28 bg-surface rounded-2xl animate-pulse" />
           ))}
         </div>
-      ) : investments?.length ? (
-        <div className="space-y-4">
-          {investments.map((investment) => (
+      ) : filteredInvestments?.length ? (
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : 'space-y-3'}>
+          {filteredInvestments.map((investment: any) => (
             <Link
               key={investment.id}
               to={`/investments/${investment.id}`}
-              className="card block hover:shadow-md transition-shadow"
+              className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5 card-hover"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      {investment.name}
-                    </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${categoryColors[investment.category]}`}>
-                      {categoryLabels[investment.category]}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      investment.status === 'active' 
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {investment.status}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                    {investment.city && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {investment.city}, {investment.state}
-                      </span>
-                    )}
-                    {investment.land_area_hectares && (
-                      <span>{investment.land_area_hectares} ha</span>
-                    )}
-                    {investment.document_count !== undefined && (
-                      <span>{investment.document_count} documents</span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {investment.current_value 
-                        ? formatCurrency(investment.current_value)
-                        : '—'
-                      }
-                    </p>
-                    {investment.return_percentage !== undefined && (
-                      <p className={`text-sm ${
-                        investment.return_percentage >= 0 
-                          ? 'text-green-600' 
-                          : 'text-red-600'
+              {/* Hover glow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cream/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              
+              <div className="relative">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <span className="text-lg">{categoryIcons[investment.category] || '📦'}</span>
+                      <h3 className="text-base font-semibold text-text-primary group-hover:text-cream transition-colors">
+                        {investment.name}
+                      </h3>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full border ${
+                        statusConfig[investment.status]?.className || statusConfig.active.className
                       }`}>
-                        {investment.return_percentage >= 0 ? '+' : ''}
-                        {investment.return_percentage.toFixed(1)}%
-                      </p>
-                    )}
+                        {statusConfig[investment.status]?.label || investment.status}
+                      </span>
+                      
+                      {investment.city && (
+                        <span className="flex items-center gap-1 text-xs text-text-muted">
+                          <MapPin className="h-3 w-3" />
+                          {investment.city}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-4 mt-3 text-xs text-text-muted">
+                      {investment.land_area_hectares && (
+                        <span className="font-mono">{investment.land_area_hectares} ha</span>
+                      )}
+                      {investment.document_count !== undefined && (
+                        <span>{investment.document_count} docs</span>
+                      )}
+                    </div>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400" />
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-mono text-lg font-semibold text-cream">
+                        {investment.current_value 
+                          ? formatCurrency(investment.current_value)
+                          : '—'
+                        }
+                      </p>
+                      {investment.return_percentage !== undefined && (
+                        <p className={`text-xs font-mono flex items-center justify-end gap-1 ${
+                          investment.return_percentage >= 0 
+                            ? 'text-success' 
+                            : 'text-error'
+                        }`}>
+                          {investment.return_percentage >= 0 
+                            ? <ArrowUpRight className="h-3 w-3" />
+                            : <ArrowDownRight className="h-3 w-3" />
+                          }
+                          {Math.abs(investment.return_percentage).toFixed(1)}%
+                        </p>
+                      )}
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-text-muted group-hover:text-cream transition-colors" />
+                  </div>
                 </div>
               </div>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="card text-center py-12">
-          <DollarSign className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No investments found</h3>
-          <p className="text-gray-600 mt-1">
-            Get started by adding your first investment
+        <div className="text-center py-16 border border-dashed border-border rounded-3xl">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface flex items-center justify-center">
+            <DollarSign className="h-8 w-8 text-text-muted" />
+          </div>
+          <h3 className="text-lg font-medium text-text-primary mb-1">
+            {search || category ? 'No matches found' : 'No investments yet'}
+          </h3>
+          <p className="text-sm text-text-muted mb-6">
+            {search || category 
+              ? 'Try adjusting your search or filters'
+              : 'Get started by adding your first investment'
+            }
           </p>
-          <Link to="/investments/new" className="btn-primary inline-flex items-center gap-2 mt-4">
-            <Plus className="h-4 w-4" />
-            Add Investment
-          </Link>
+          {!(search || category) && (
+            <Link to="/investments/new" className="glyph-btn glyph-btn-primary">
+              <Plus className="h-4 w-4" />
+              Add Investment
+            </Link>
+          )}
         </div>
       )}
     </div>

@@ -5,23 +5,32 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Sparkles,
+  Activity
 } from 'lucide-react'
 import { analysisApi } from '../lib/api'
 import { formatDate } from '../lib/utils'
+import StatCard from '../components/StatCard'
 
-const jobStatusIcons: Record<string, React.ReactNode> = {
-  queued: <Clock className="h-5 w-5 text-yellow-500" />,
-  running: <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />,
-  completed: <CheckCircle className="h-5 w-5 text-green-500" />,
-  failed: <XCircle className="h-5 w-5 text-red-500" />,
-}
-
-const jobStatusColors: Record<string, string> = {
-  queued: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  running: 'bg-blue-50 text-blue-700 border-blue-200',
-  completed: 'bg-green-50 text-green-700 border-green-200',
-  failed: 'bg-red-50 text-red-700 border-red-200',
+const jobStatusConfig: Record<string, { icon: React.ReactNode; className: string }> = {
+  queued: { 
+    icon: <Clock className="h-4 w-4" />, 
+    className: 'bg-warning-dim text-warning border-warning/20' 
+  },
+  running: { 
+    icon: <Loader2 className="h-4 w-4 animate-spin" />, 
+    className: 'bg-info-dim text-info border-info/20' 
+  },
+  completed: { 
+    icon: <CheckCircle className="h-4 w-4" />, 
+    className: 'bg-success-dim text-success border-success/20' 
+  },
+  failed: { 
+    icon: <XCircle className="h-4 w-4" />, 
+    className: 'bg-error-dim text-error border-error/20' 
+  },
 }
 
 export default function Analysis() {
@@ -40,144 +49,220 @@ export default function Analysis() {
     queryFn: analysisApi.getQueueStats,
   })
 
+  const totalJobs = queueStats?.total || 0
+  const queuedJobs = queueStats?.by_status?.queued || 0
+  const runningJobs = queueStats?.by_status?.running || 0
+  const completedJobs = queueStats?.by_status?.completed || 0
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">AI Analysis</h1>
-        <p className="text-gray-600 mt-1">
-          Kimi K2.5-powered document analysis and insights
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-cream-muted" />
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">AI Powered</span>
+          </div>
+          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Analysis</h1>
+          <p className="text-text-secondary mt-1">
+            Kimi K2.5-powered document analysis and insights
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2 text-xs text-text-muted">
+          <Zap className="h-4 w-4 text-cream" />
+          <span className="text-cream">Kimi K2.5</span>
+          <span className="text-border-strong">|</span>
+          <span>Multi-provider AI</span>
+        </div>
       </div>
 
       {/* Queue Stats */}
       {queueStats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="card py-4">
-            <p className="text-2xl font-bold text-gray-900">{queueStats.total}</p>
-            <p className="text-sm text-gray-600">Total Jobs</p>
-          </div>
-          <div className="card py-4">
-            <p className="text-2xl font-bold text-yellow-600">
-              {queueStats.by_status?.queued || 0}
-            </p>
-            <p className="text-sm text-gray-600">Queued</p>
-          </div>
-          <div className="card py-4">
-            <p className="text-2xl font-bold text-blue-600">
-              {queueStats.by_status?.running || 0}
-            </p>
-            <p className="text-sm text-gray-600">Running</p>
-          </div>
-          <div className="card py-4">
-            <p className="text-2xl font-bold text-green-600">
-              {queueStats.by_status?.completed || 0}
-            </p>
-            <p className="text-sm text-gray-600">Completed</p>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 stagger-children">
+          <StatCard
+            title="Total Jobs"
+            value={totalJobs}
+            description="All time analyses"
+            icon={Brain}
+            variant="default"
+            delay={0}
+          />
+          <StatCard
+            title="Queued"
+            value={queuedJobs}
+            description="Waiting to process"
+            icon={Clock}
+            variant={queuedJobs > 0 ? 'accent' : 'default'}
+            delay={50}
+          />
+          <StatCard
+            title="Running"
+            value={runningJobs}
+            description="Currently processing"
+            icon={Activity}
+            variant={runningJobs > 0 ? 'accent' : 'default'}
+            delay={100}
+          />
+          <StatCard
+            title="Completed"
+            value={completedJobs}
+            description="Successfully analyzed"
+            icon={CheckCircle}
+            variant="default"
+            delay={150}
+          />
         </div>
       )}
 
-      {/* Processing Jobs */}
-      <div className="card">
-        <div className="flex items-center gap-2 mb-4">
-          <Brain className="h-5 w-5 text-primary-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Processing Queue</h2>
-        </div>
-        
-        {jobsLoading ? (
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-100 animate-pulse rounded-lg" />
-            ))}
-          </div>
-        ) : (jobs as any[])?.length ? (
-          <div className="space-y-3">
-            {jobs.slice(0, 10).map((job: any) => (
-              <div 
-                key={job.id}
-                className={`flex items-center gap-4 p-4 rounded-lg border ${jobStatusColors[job.status]}`}
-              >
-                {jobStatusIcons[job.status]}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">
-                    {job.filename}
-                  </p>
-                  <p className="text-sm opacity-75">
-                    {job.job_type} • Retry {job.retry_count} • {formatDate(job.created_at)}
-                  </p>
-                </div>
-                {job.error_message && (
-                  <div className="group relative">
-                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 cursor-help" />
-                    <div className="absolute right-0 top-full mt-2 w-64 p-2 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-10">
-                      {job.error_message}
-                    </div>
-                  </div>
-                )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Processing Jobs */}
+        <section className="glass-card-elevated">
+          <div className="flex items-center justify-between p-5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-surface-elevated">
+                <Activity className="h-4 w-4 text-cream-muted" />
               </div>
-            ))}
+              <span className="text-sm font-semibold text-text-primary">Processing Queue</span>
+            </div>
+            {runningJobs > 0 && (
+              <span className="flex items-center gap-1.5 text-xs text-info">
+                <span className="w-1.5 h-1.5 rounded-full bg-info animate-pulse" />
+                Processing
+              </span>
+            )}
           </div>
-        ) : (
-          <p className="text-gray-500 text-center py-8">No jobs in queue</p>
-        )}
-      </div>
-
-      {/* Analysis Results */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Results</h2>
-        
-        {resultsLoading ? (
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-100 animate-pulse rounded-lg" />
-            ))}
-          </div>
-        ) : results && (results as any[]).length ? (
-          <div className="space-y-4">
-            {results.map((result: any) => (
-              <div key={result.id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-primary-600 capitalize">
-                        {result.analysis_type}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {formatDate(result.created_at)}
-                      </span>
-                    </div>
-                    {result.summary && (
-                      <p className="text-gray-700 mt-1 line-clamp-2">
-                        {result.summary}
-                      </p>
-                    )}
-                    {result.raw_text && !result.summary && (
-                      <p className="text-gray-700 mt-1 line-clamp-2">
-                        {result.raw_text.substring(0, 200)}...
-                      </p>
-                    )}
-                  </div>
-                  {result.confidence_score !== undefined && (
-                    <div className="text-right flex-shrink-0">
-                      <div className={`text-sm font-medium ${
-                        result.confidence_score >= 0.8 ? 'text-green-600' :
-                        result.confidence_score >= 0.5 ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {Math.round(result.confidence_score * 100)}% confidence
+          
+          <div className="p-2">
+            {jobsLoading ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-16 bg-surface rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : (jobs as any[])?.length ? (
+              <div className="space-y-2">
+                {(jobs as any[]).slice(0, 8).map((job: any, index: number) => {
+                  const config = jobStatusConfig[job.status] || jobStatusConfig.queued
+                  return (
+                    <div 
+                      key={job.id}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className={`p-2 rounded-lg ${config.className}`}>
+                        {config.icon}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-text-primary truncate">
+                          {job.filename || 'Unknown file'}
+                        </p>
+                        <p className="text-xs text-text-muted">
+                          {job.job_type} • Retry {job.retry_count} • {formatDate(job.created_at)}
+                        </p>
+                      </div>
+                      {job.error_message && (
+                        <div className="group relative">
+                          <AlertCircle className="h-4 w-4 text-error flex-shrink-0 cursor-help" />
+                          <div className="absolute right-0 top-full mt-2 w-64 p-3 bg-surface-elevated text-text-primary text-xs rounded-xl border border-border shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                            {job.error_message}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  )
+                })}
               </div>
-            ))}
+            ) : (
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-success" />
+                </div>
+                <p className="text-sm text-text-muted">No jobs in queue</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <p className="text-gray-500 text-center py-8">
-            No analysis results yet. Upload documents and they will be analyzed automatically.
-          </p>
-        )}
+        </section>
+
+        {/* Analysis Results */}
+        <section className="glass-card-elevated">
+          <div className="flex items-center justify-between p-5 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-surface-elevated">
+                <Sparkles className="h-4 w-4 text-cream-muted" />
+              </div>
+              <span className="text-sm font-semibold text-text-primary">Recent Results</span>
+            </div>
+          </div>
+          
+          <div className="p-2">
+            {resultsLoading ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-24 bg-surface rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : results && (results as any[]).length ? (
+              <div className="space-y-3">
+                {(results as any[]).map((result: any, index: number) => (
+                  <div 
+                    key={result.id} 
+                    className="p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-medium text-cream capitalize">
+                            {result.analysis_type}
+                          </span>
+                          <span className="text-border-strong">•</span>
+                          <span className="text-xs text-text-muted">
+                            {formatDate(result.created_at)}
+                          </span>
+                        </div>
+                        {result.summary && (
+                          <p className="text-sm text-text-secondary line-clamp-2">
+                            {result.summary}
+                          </p>
+                        )}
+                        {result.raw_text && !result.summary && (
+                          <p className="text-sm text-text-secondary line-clamp-2">
+                            {result.raw_text.substring(0, 150)}...
+                          </p>
+                        )}
+                      </div>
+                      {result.confidence_score !== undefined && (
+                        <div className="flex-shrink-0 text-right">
+                          <div className={`text-sm font-mono font-semibold ${
+                            result.confidence_score >= 0.8 ? 'text-success' :
+                            result.confidence_score >= 0.5 ? 'text-warning' :
+                            'text-error'
+                          }`}>
+                            {Math.round(result.confidence_score * 100)}%
+                          </div>
+                          <div className="text-[10px] text-text-muted uppercase tracking-wider">confidence</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface flex items-center justify-center">
+                  <Brain className="h-5 w-5 text-text-muted" />
+                </div>
+                <p className="text-sm text-text-muted">
+                  No analysis results yet
+                </p>
+                <p className="text-xs text-text-muted mt-1">
+                  Upload documents and they will be analyzed automatically
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   )

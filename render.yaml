@@ -29,6 +29,12 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
+      - key: KIMI_API_KEY
+        sync: false  # Set this manually in Render dashboard
+      - key: AI_API_KEY
+        sync: false  # Alternative: Generic AI API key
+      - key: AI_PROVIDER
+        value: kimi  # Options: kimi, openai, anthropic, gemini
     healthCheckPath: /health
 
 databases:
