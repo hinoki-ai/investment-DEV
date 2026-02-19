@@ -253,6 +253,8 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                 # Capture push output to temp file for error display
                 push_tmp_out=$(mktemp)
                 spinner_start=$(date +%s)
+                # Disable ERR trap temporarily so we can handle errors ourselves
+                trap '' ERR
                 git push origin "$CURRENT_BRANCH" > "$push_tmp_out" 2>&1 &
                 push_pid=$!
                 # Give spinner at least 0.5s to be visible even for fast pushes
@@ -280,10 +282,14 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                         done < "$push_tmp_out"
                     fi
                     rm -f "$push_tmp_out"
+                    # Re-enable ERR trap before exiting
+                    trap on_error ERR
                     # Abort deployment on push failure
                     ui_segment_close
                     exit 1
                 fi
+                # Re-enable ERR trap after successful handling
+                trap on_error ERR
             else
                 ui_warn "Remote: $commits_ahead commits ahead"
             fi
