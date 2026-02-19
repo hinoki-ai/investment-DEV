@@ -16,49 +16,54 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val DarkColorScheme = darkColorScheme(
-    primary = ElectricViolet,
-    onPrimary = Color.White,
-    primaryContainer = CosmicPurple,
-    onPrimaryContainer = ElectricViolet,
-    secondary = CyanGlow,
-    onSecondary = Color.White,
-    secondaryContainer = GlassWhite,
-    onSecondaryContainer = CyanGlow,
-    tertiary = MintGreen,
-    onTertiary = Color.White,
-    error = ErrorRose,
-    onError = Color.White,
-    background = DeepSpace,
+// Warm Dark Color Scheme - FAMINV Brand
+private val WarmDarkColorScheme = darkColorScheme(
+    primary = Cream,
+    onPrimary = Void,
+    primaryContainer = SurfaceElevated,
+    onPrimaryContainer = Cream,
+    secondary = CreamDark,
+    onSecondary = Void,
+    secondaryContainer = Surface,
+    onSecondaryContainer = CreamMuted,
+    tertiary = Success,
+    onTertiary = Void,
+    error = Error,
+    onError = Void,
+    background = Void,
     onBackground = TextPrimary,
-    surface = Midnight,
+    surface = Surface,
     onSurface = TextPrimary,
     surfaceVariant = SurfaceElevated,
     onSurfaceVariant = TextSecondary,
-    outline = GlassBorder,
-    surfaceTint = ElectricViolet
+    outline = BorderDefault,
+    surfaceTint = Cream
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = ElectricViolet,
-    onPrimary = Color.White,
-    primaryContainer = CosmicPurple.copy(alpha = 0.1f),
-    onPrimaryContainer = ElectricViolet,
-    secondary = ElectricBlue,
-    onSecondary = Color.White,
-    tertiary = MintGreen,
-    background = Color(0xFFF8FAFC),
-    onBackground = Color(0xFF0F172A),
+// Light theme (for completeness, though we default to dark)
+private val WarmLightColorScheme = lightColorScheme(
+    primary = CreamDark,
+    onPrimary = Void,
+    primaryContainer = Color(0xFFF8F6F3),
+    onPrimaryContainer = Void,
+    secondary = CreamMuted,
+    onSecondary = Void,
+    tertiary = Success,
+    onTertiary = Void,
+    error = Error,
+    onError = Color.White,
+    background = Color(0xFFF8F6F3),
+    onBackground = Void,
     surface = Color.White,
-    onSurface = Color(0xFF0F172A),
-    surfaceVariant = Color(0xFFF1F5F9),
-    onSurfaceVariant = Color(0xFF64748B)
+    onSurface = Void,
+    surfaceVariant = Color(0xFFF0EDE8),
+    onSurfaceVariant = Color(0xFF5C554D)
 )
 
 @Composable
 fun InvestmentPortalTheme(
-    darkTheme: Boolean = true, // Default to dark theme for premium look
-    dynamicColor: Boolean = false,
+    darkTheme: Boolean = true, // Always default to warm dark for premium feel
+    dynamicColor: Boolean = false, // Disable dynamic color to maintain brand consistency
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -66,16 +71,17 @@ fun InvestmentPortalTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> WarmDarkColorScheme
+        else -> WarmLightColorScheme
     }
     
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = DeepSpace.toArgb()
-            window.navigationBarColor = DeepSpace.toArgb()
+            // Set navigation and status bar to match void background
+            window.statusBarColor = Void.toArgb()
+            window.navigationBarColor = Void.toArgb()
             WindowCompat.getInsetsController(window, view).apply {
                 isAppearanceLightStatusBars = !darkTheme
                 isAppearanceLightNavigationBars = !darkTheme
