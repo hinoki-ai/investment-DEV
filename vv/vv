@@ -205,33 +205,19 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
     # Auto-commit if needed
     if [[ -n $(git status --porcelain) ]]; then
         if [[ "$VV_AUTOCOMMIT" == true ]]; then
-            # Show spinner frame first, then start git commit
-            ui_spinner_advance
-            ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Committing changes..."
+            ui_box_line "${C_TEXT}Committing changes..."
             
             # Capture commit output to temp file for error display
             commit_tmp_out=$(mktemp)
-            spinner_start=$(date +%s)
             git add -A
-            git commit -m "chore(vv): auto-commit $DEPLOYMENT_ID" > "$commit_tmp_out" 2>&1 &
-            commit_pid=$!
-            # Give spinner at least 0.5s to be visible even for fast commits
-            while kill -0 $commit_pid 2>/dev/null || [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
-                ui_spinner_advance
-                ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Committing changes..."
-                sleep 0.08
-            done
-            wait $commit_pid
+            git commit -m "chore(vv): auto-commit $DEPLOYMENT_ID" > "$commit_tmp_out" 2>&1
             commit_exit=$?
             if [[ $commit_exit -eq 0 ]]; then
                 rm -f "$commit_tmp_out"
-                ui_spinner_reset
-                ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Commit: ${C_SUCCESS}Complete" "${C_TEXT}"
+                ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Commit: ${C_SUCCESS}Complete"
             else
                 rm -f "$commit_tmp_out"
-                ui_spinner_reset
-                ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Commit: ${C_ERROR}Failed" "${C_TEXT}"
-                # Don't abort on commit failure - it might be nothing to commit
+                ui_warn "Commit failed (possibly nothing to commit)"
             fi
         else
             ui_warn "Uncommitted changes present"
@@ -246,32 +232,18 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
         commits_behind=$(git rev-list --count origin/"$CURRENT_BRANCH" ^HEAD 2>/dev/null || echo "0")
         if [[ "$commits_ahead" -gt 0 ]]; then
             if [[ "$VV_AUTOCOMMIT" == true ]]; then
-                # Show spinner frame first, then start git push
-                ui_spinner_advance
-                ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Pushing $commits_ahead commit(s)..."
+                ui_box_line "${C_TEXT}Pushing $commits_ahead commit(s)..."
                 
                 # Capture push output to temp file for error display
                 push_tmp_out=$(mktemp)
-                spinner_start=$(date +%s)
                 # Disable ERR trap temporarily so we can handle errors ourselves
                 trap '' ERR
-                git push origin "$CURRENT_BRANCH" > "$push_tmp_out" 2>&1 &
-                push_pid=$!
-                # Give spinner at least 0.5s to be visible even for fast pushes
-                while kill -0 $push_pid 2>/dev/null || [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
-                    ui_spinner_advance
-                    ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Pushing $commits_ahead commit(s)..."
-                    sleep 0.08
-                done
-                wait $push_pid
+                git push origin "$CURRENT_BRANCH" > "$push_tmp_out" 2>&1
                 push_exit=$?
                 if [[ $push_exit -eq 0 ]]; then
                     rm -f "$push_tmp_out"
-                    ui_spinner_reset
-                    ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Pushed: ${C_SUCCESS}Success" "${C_TEXT}"
                     ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Remote: ${C_HIGHLIGHT}Synced"
                 else
-                    ui_spinner_reset
                     ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Push: ${C_ERROR}Failed" "${C_TEXT}"
                     ui_error "Git push failed with exit code $push_exit"
                     # Display the actual error
