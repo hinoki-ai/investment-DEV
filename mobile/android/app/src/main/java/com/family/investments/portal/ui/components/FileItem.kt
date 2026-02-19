@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,6 +32,9 @@ import com.family.investments.portal.data.model.UploadStatus
 import com.family.investments.portal.ui.theme.*
 import java.text.DecimalFormat
 
+/**
+ * File Item - Warm minimal card for uploads
+ */
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun FileItem(
@@ -42,20 +44,17 @@ fun FileItem(
     modifier: Modifier = Modifier
 ) {
     val statusColor = when (file.status) {
-        UploadStatus.COMPLETED -> SuccessEmerald
-        UploadStatus.FAILED -> ErrorRose
-        UploadStatus.UPLOADING, UploadStatus.CONFIRMING -> CyanGlow
+        UploadStatus.COMPLETED -> Success
+        UploadStatus.FAILED -> Error
+        UploadStatus.UPLOADING, UploadStatus.CONFIRMING -> Cream
         else -> TextSecondary
     }
     
-    GlassCard(
+    WarmCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 6.dp),
-        cornerRadius = 20.dp,
-        elevation = 4.dp,
-        borderAlpha = 0.2f,
-        backgroundAlpha = 0.06f
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        cornerRadius = 12.dp
     ) {
         Row(
             modifier = Modifier
@@ -63,7 +62,7 @@ fun FileItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Animated file icon container
+            // File icon with warm muted background
             FileIconContainer(mimeType = file.mimeType, status = file.status)
             
             Spacer(modifier = Modifier.width(16.dp))
@@ -74,7 +73,7 @@ fun FileItem(
             ) {
                 Text(
                     text = file.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = TextPrimary
@@ -92,13 +91,13 @@ fun FileItem(
                         color = TextSecondary
                     )
                     
-                    // Status dot
+                    // Status indicator
                     if (file.status == UploadStatus.UPLOADING || file.status == UploadStatus.CONFIRMING) {
-                        PulsingDot(color = CyanGlow)
+                        PulsingDot(color = Cream)
                     } else {
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
+                                .size(5.dp)
                                 .background(statusColor, CircleShape)
                         )
                     }
@@ -113,24 +112,22 @@ fun FileItem(
                 // Progress bar for uploading
                 if (file.status == UploadStatus.UPLOADING) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    AnimatedProgressBar(
+                    WarmProgressBar(
                         progress = file.progress,
-                        color = Brush.horizontalGradient(
-                            colors = listOf(CyanGlow, ElectricBlue)
-                        )
+                        color = Cream
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${(file.progress * 100).toInt()}%",
                         style = MaterialTheme.typography.labelSmall,
-                        color = CyanGlow
+                        color = CreamMuted
                     )
                 }
             }
             
             Spacer(modifier = Modifier.width(12.dp))
             
-            // Animated action button
+            // Action button
             AnimatedContent(
                 targetState = file.status,
                 transitionSpec = {
@@ -145,14 +142,14 @@ fun FileItem(
                             IconButton(
                                 onClick = onRetry,
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                                    .size(36.dp)
+                                    .background(SurfaceHigher, CircleShape)
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Refresh,
                                     contentDescription = "Retry",
-                                    tint = WarningAmber,
-                                    modifier = Modifier.size(20.dp)
+                                    tint = Warning,
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                             
@@ -161,14 +158,14 @@ fun FileItem(
                             IconButton(
                                 onClick = onRemove,
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                                    .size(36.dp)
+                                    .background(SurfaceHigher, CircleShape)
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Close,
                                     contentDescription = "Remove",
-                                    tint = ErrorRose,
-                                    modifier = Modifier.size(20.dp)
+                                    tint = Error,
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -176,51 +173,46 @@ fun FileItem(
                     UploadStatus.COMPLETED -> {
                         Box(
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(36.dp)
                                 .background(
-                                    brush = Brush.radialGradient(
-                                        colors = listOf(
-                                            SuccessEmerald.copy(alpha = 0.2f),
-                                            SuccessEmerald.copy(alpha = 0f)
-                                        )
-                                    ),
+                                    Success.copy(alpha = 0.1f),
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.CheckCircle,
+                                imageVector = Icons.Rounded.Check,
                                 contentDescription = "Completed",
-                                tint = SuccessEmerald,
-                                modifier = Modifier.size(28.dp)
+                                tint = Success,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                     else -> {
                         if (status == UploadStatus.UPLOADING || status == UploadStatus.CONFIRMING) {
                             Box(
-                                modifier = Modifier.size(44.dp),
+                                modifier = Modifier.size(36.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.size(28.dp),
-                                    strokeWidth = 2.5.dp,
-                                    color = CyanGlow,
-                                    trackColor = SurfaceGlass
+                                    modifier = Modifier.size(22.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Cream,
+                                    trackColor = SurfaceHigher
                                 )
                             }
                         } else {
                             IconButton(
                                 onClick = onRemove,
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                                    .size(36.dp)
+                                    .background(SurfaceHigher, CircleShape)
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.Close,
                                     contentDescription = "Remove",
                                     tint = TextSecondary,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -242,41 +234,104 @@ private fun FileIconContainer(mimeType: String, status: UploadStatus) {
         else -> Icons.Rounded.InsertDriveFile
     }
     
-    val gradientColors = when {
-        mimeType.startsWith("image/") -> listOf(ElectricViolet, ElectricBlue)
-        mimeType.startsWith("video/") -> listOf(ErrorRose, WarningAmber)
-        mimeType.startsWith("audio/") -> listOf(CyanGlow, ElectricBlue)
-        else -> listOf(Nebula, CosmicPurple)
+    // Warm muted icon backgrounds
+    val iconBackground = when {
+        mimeType.startsWith("image/") -> SurfaceElevated
+        mimeType.startsWith("video/") -> SurfaceElevated
+        mimeType.startsWith("audio/") -> SurfaceElevated
+        else -> SurfaceElevated
     }
     
     val scale by animateFloatAsState(
-        targetValue = if (status == UploadStatus.COMPLETED) 1.05f else 1f,
+        targetValue = if (status == UploadStatus.COMPLETED) 1.02f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "scale"
     )
     
     Box(
         modifier = Modifier
-            .size(56.dp)
+            .size(48.dp)
             .scale(scale)
-            .shadow(
-                elevation = 12.dp,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = gradientColors[0].copy(alpha = 0.5f)
-            )
             .background(
-                brush = Brush.linearGradient(gradientColors),
-                shape = RoundedCornerShape(16.dp)
+                color = iconBackground,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = BorderDefault,
+                shape = RoundedCornerShape(12.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(28.dp)
+            tint = CreamMuted,
+            modifier = Modifier.size(24.dp)
         )
     }
+}
+
+/**
+ * Warm Progress Bar - Subtle cream progress indicator
+ */
+@Composable
+fun WarmProgressBar(
+    progress: Float,
+    color: Color = Cream,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(3.dp)
+            .background(SurfaceHigher, RoundedCornerShape(2.dp))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(progress)
+                .background(color, RoundedCornerShape(2.dp))
+        )
+    }
+}
+
+/**
+ * Pulsing Dot - For active states
+ */
+@Composable
+fun PulsingDot(
+    color: Color = Cream,
+    size: Dp = 6.dp
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.5f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+    
+    Box(
+        modifier = Modifier
+            .size(size)
+            .scale(scale)
+            .background(color.copy(alpha = alpha), CircleShape)
+    )
 }
 
 private fun getStatusText(status: UploadStatus): String = when (status) {
