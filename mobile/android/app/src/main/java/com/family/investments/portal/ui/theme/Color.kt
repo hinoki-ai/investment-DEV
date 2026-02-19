@@ -2,39 +2,61 @@ package com.family.investments.portal.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Premium Dark Palette - Deep purples with electric accents
-val DeepSpace = Color(0xFF0F0F1A)
-val Midnight = Color(0xFF1A1A2E)
-val CosmicPurple = Color(0xFF2D1B4E)
-val Nebula = Color(0xFF3D2C5E)
+// ============================================================
+// FAMINV - Warm Dark Minimalism
+// Inspired by: Nothing Phone, Linear.app, Brutalist Typography
+// Palette: Warm cream accents on deep charcoal
+// ============================================================
 
-// Electric Accents
-val ElectricViolet = Color(0xFF8B5CF6)
-val ElectricBlue = Color(0xFF3B82F6)
-val CyanGlow = Color(0xFF06B6D4)
-val MintGreen = Color(0xFF10B981)
+// Core Palette - Warm Dark
+val Void = Color(0xFF0A0A0A)           // Main background - deepest black
+val VoidDeep = Color(0xFF070707)       // Deepest void
+val Surface = Color(0xFF111111)        // Card surfaces
+val SurfaceElevated = Color(0xFF161616) // Elevated surfaces
+val SurfaceHigher = Color(0xFF1C1C1C)  // Higher elevation
 
-// Gradients
-val GradientStart = Color(0xFF8B5CF6)
-val GradientEnd = Color(0xFF3B82F6)
-val SuccessGradientStart = Color(0xFF10B981)
-val SuccessGradientEnd = Color(0xFF06B6D4)
+// Accent - Warm Cream (from favicon)
+val Cream = Color(0xFFE8D5C4)          // Primary accent
+val CreamLight = Color(0xFFF5E6D3)     // Hover states
+val CreamDark = Color(0xFFC9B296)      // Muted accent
+val CreamMuted = Color(0xFFA89482)     // Secondary text
 
-// Glassmorphism
-val GlassWhite = Color(0x1AFFFFFF)
-val GlassWhiteStrong = Color(0x33FFFFFF)
-val GlassBorder = Color(0x1AFFFFFF)
+// Functional
+val TextPrimary = Color(0xFFF5F2ED)    // Main text - warm white
+val TextSecondary = Color(0xFF8A8279)  // Body text
+val TextMuted = Color(0xFF5C554D)      // Hints, captions
+val TextInverse = Color(0xFF0A0A0A)    // Text on light backgrounds
 
-// Semantic Colors
-val ErrorRose = Color(0xFFF43F5E)
-val WarningAmber = Color(0xFFF59E0B)
-val SuccessEmerald = Color(0xFF10B981)
+// States - Muted earth tones
+val Success = Color(0xFF7FB069)        // Muted sage green
+val SuccessDim = Color(0x147FB069)     // 20% opacity
+val Warning = Color(0xFFD4A373)        // Warm amber
+val WarningDim = Color(0x14D4A373)
+val Error = Color(0xFFC76B6B)          // Muted rose
+val ErrorDim = Color(0x14C76B6B)
+val Info = Color(0xFF6B8CAE)           // Muted blue
+val InfoDim = Color(0x146B8CAE)
 
-// Text Colors
-val TextPrimary = Color(0xFFF8FAFC)
-val TextSecondary = Color(0xFF94A3B8)
-val TextTertiary = Color(0xFF64748B)
+// Borders
+val BorderSubtle = Color(0x0FE8D5C4)   // 6% cream
+val BorderDefault = Color(0x1AE8D5C4)  // 10% cream
+val BorderStrong = Color(0x26E8D5C4)   // 15% cream
 
-// Surface Colors
-val SurfaceElevated = Color(0xFF1E1E2E)
-val SurfaceGlass = Color(0x14FFFFFF)
+// Glow
+val GlowCream = Color(0x26E8D5C4)      // 15% cream glow
+val GlowCreamStrong = Color(0x40E8D5C4) // 25% cream glow
+
+// Legacy aliases for gradual migration (deprecated)
+@Deprecated("Use Void instead", ReplaceWith("Void"))
+val DeepSpace = Void
+@Deprecated("Use Surface instead", ReplaceWith("Surface"))
+val Midnight = Surface
+@Deprecated("Use Cream instead", ReplaceWith("Cream"))
+val ElectricViolet = Cream
+@Deprecated("Use CreamDark instead", ReplaceWith("CreamDark"))
+val ElectricBlue = CreamDark
+
+// Legacy glassmorphism colors (now subtle)
+val GlassWhite = BorderDefault
+val GlassWhiteStrong = BorderStrong
+val GlassBorder = BorderDefault
