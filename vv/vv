@@ -262,14 +262,12 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                         done < "$push_tmp_out"
                     fi
                     rm -f "$push_tmp_out"
-                    # Re-enable ERR trap before exiting
-                    trap on_error ERR
-                    # Abort deployment on push failure
+                    # Close segment before exiting
                     ui_segment_close
+                    # Disable error trap to prevent double error display
+                    trap '' ERR
                     exit 1
                 fi
-                # Re-enable ERR trap after successful handling
-                trap on_error ERR
             else
                 ui_warn "Remote: $commits_ahead commits ahead"
             fi
