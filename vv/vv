@@ -103,6 +103,7 @@ load_vv_config() {
                     PREBUILD) [[ "$val" == "true" ]] && VV_PREBUILD=true || VV_PREBUILD=false ;;
                     OPEN) [[ "$val" == "true" ]] && VV_OPEN=true || VV_OPEN=false ;;
                     PROD) [[ "$val" == "true" ]] && VV_PROD=true || VV_PROD=false ;;
+                    AUTOCOMMIT) [[ "$val" == "true" ]] && VV_AUTOCOMMIT=true || VV_AUTOCOMMIT=false ;;
                 esac
             done < "$cfg"
             ui_note "Loaded config: $cfg"
