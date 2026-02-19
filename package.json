@@ -1,18 +1,57 @@
 {
-  "name": "investment-dashboard",
+  "name": "family-investment-dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "Family Investment Dashboard - Deploy via VV only",
+  "description": "Family Investment Dashboard - AI-powered investment tracking for families",
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/investments#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/investments.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/investments/issues"
+  },
   "scripts": {
-    "build": "cd web && npm install && npm run build",
+    "build": "cd web && npm ci && npm run build",
     "dev": "cd web && npm run dev",
-    "preview": "cd web && npm run preview"
+    "preview": "cd web && npm run preview",
+    "test": "npm run test:api && npm run test:worker && npm run test:web",
+    "test:api": "cd api && pytest -v",
+    "test:worker": "cd worker && pytest -v || true",
+    "test:web": "cd web && npm run test || true",
+    "lint": "npm run lint:api && npm run lint:worker && npm run lint:web",
+    "lint:api": "cd api && ruff check . && mypy . --ignore-missing-imports",
+    "lint:worker": "cd worker && ruff check . || true",
+    "lint:web": "cd web && npm run lint",
+    "format": "npm run format:api && npm run format:worker && npm run format:web",
+    "format:api": "cd api && ruff format . && ruff check --fix .",
+    "format:worker": "cd worker && ruff format .",
+    "format:web": "cd web && npx prettier --write 'src/**/*.{ts,tsx}'",
+    "setup": "./scripts/setup/init-dev.sh",
+    "health": "./scripts/health-check/health.sh",
+    "clean": "docker-compose down -v",
+    "prepare": "husky install || true"
   },
   "devDependencies": {
     "@railway/cli": "^4.30.3",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.1.0",
     "wrangler": "^4.67.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

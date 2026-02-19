@@ -311,7 +311,7 @@ class Worker:
         """Main worker loop."""
         print(f"""
 ╔══════════════════════════════════════════════════════════════╗
-║     🤖 INVESTMENT DASHBOARD WORKER - Multi-Provider AI      ║
+║     🤖 NEXUS AI WORKER - Multi-Provider Intelligence        ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Worker ID: {WORKER_ID:<45} ║
 ║  Poll Interval: {POLL_INTERVAL}s{'':42} ║

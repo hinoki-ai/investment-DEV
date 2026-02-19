@@ -1,0 +1,67 @@
+# =============================================================================
+# Docker Compose Override for Local Development
+# =============================================================================
+# This file is automatically loaded by docker-compose when present
+# It overrides settings for local development convenience
+# =============================================================================
+
+version: '3.8'
+
+services:
+  api:
+    # Override for development
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+    volumes:
+      # Mount for hot reload
+      - ./api:/app
+      - /app/__pycache__
+    # Enable interactive debugging
+    stdin_open: true
+    tty: true
+
+  worker:
+    environment:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - MOCK_AI_RESPONSES=${MOCK_AI_RESPONSES:-false}
+    volumes:
+      - ./worker:/app
+      - /app/__pycache__
+      - ./worker/temp:/app/temp
+    stdin_open: true
+    tty: true
+    # Scale workers easily: docker-compose up -d --scale worker=3
+    deploy:
+      replicas: 1
+
+  web:
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    stdin_open: true
+    tty: true
+
+  postgres:
+    ports:
+      # Ensure port is exposed for local connections
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      # Persist data
+      - postgres_data:/var/lib/postgresql/data
+      # Seed data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./database/seeds:/seeds:ro
+
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  minio:
+    ports:
+      - "${STORAGE_PORT:-9000}:9000"
+      - "9001:9001"

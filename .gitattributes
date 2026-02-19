@@ -1,0 +1,89 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Source code
+*.py text diff=python
+*.pyi text diff=python
+*.js text diff=javascript
+*.jsx text diff=javascript
+*.ts text diff=typescript
+*.tsx text diff=typescript
+*.json text
+*.html text diff=html
+*.css text diff=css
+*.scss text diff=css
+*.md text diff=markdown
+*.sh text eol=lf
+*.sql text
+
+# Kotlin/Android
+*.kt text diff=kotlin
+*.gradle text
+*.kts text
+
+# Docker
+*.dockerfile text
+Dockerfile text
+
+# Config files
+*.yml text
+*.yaml text
+*.toml text
+*.ini text
+*.conf text
+.env* text
+
+# Documentation
+*.md text diff=markdown
+*.mdx text
+LICENSE text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.exe binary
+*.apk binary
+*.aab binary
+
+# Archives
+*.tar binary
+*.gz binary
+*.bz2 binary
+*.xz binary
+*.rar binary
+*.zip binary
+
+# Audio
+*.mp3 binary
+*.ogg binary
+*.wav binary
+*.flac binary
+
+# Video
+*.mp4 binary
+*.avi binary
+*.mkv binary
+*.mov binary
+*.webm binary
+
+# Merge strategy for specific files
+package-lock.json merge=ours
+yarn.lock merge=ours
+poetry.lock merge=ours

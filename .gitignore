@@ -1,53 +1,149 @@
+# =============================================================================
 # Dependencies
-node_modules/
+# =============================================================================
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
 *.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
 
-# Environment variables
+# Node.js
+node_modules/
+.pnp
+.pnp.js
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+
+# =============================================================================
+# Environment & Secrets
+# =============================================================================
 .env
 .env.local
 .env.*.local
 !.env.example
 !.env.production
+.secrets/
+*.pem
+*.key
+*.crt
 
-# Build outputs
-dist/
-build/
-*.egg-info/
+# =============================================================================
+# Testing & Coverage
+# =============================================================================
+.coverage
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.cover
+*.py,cover
+.hypothesis/
+.coverage.*
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# IDE
-.vscode/
+# =============================================================================
+# IDE & Editors
+# =============================================================================
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
-Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+.settings/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Logs
+# =============================================================================
+# Build Outputs
+# =============================================================================
+/dist/
+/build/
+*.tsbuildinfo
+.cache/
+.parcel-cache/
+.vite/
+.next/
+out/
+
+# =============================================================================
+# Temporary Files
+# =============================================================================
+*.tmp
+*.temp
 *.log
 logs/
+/tmp/
+/temp/
+worker/temp/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# =============================================================================
+# Mobile
+# =============================================================================
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/.idea/
+mobile/android/*.iml
+mobile/android/build/
+mobile/android/app/build/
+mobile/android/app/release/
+mobile/android/captures/
+mobile/android/externalNativeBuild/
+mobile/android/cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
 
-# Temporary files
-temp/
-tmp/
-*.tmp
-
-# Docker volumes
+# =============================================================================
+# Infrastructure
+# =============================================================================
+backups/
+*.backup
+*.dump
 postgres_data/
 redis_data/
 minio_data/
 
-# Vercel
+# =============================================================================
+# Deployment
+# =============================================================================
 .vercel/
+.netlify/
+.railway/
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# =============================================================================
+# Project Specific
+# =============================================================================
+# Keep these files but ignore specific patterns
+vv/*.log
+get_cf_url.sh.output
+
+# =============================================================================
+# Documentation Build
+# =============================================================================
+/site/
+docs/_build/
+docs/api/generated/

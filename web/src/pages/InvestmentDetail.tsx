@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
@@ -53,6 +53,8 @@ export default function InvestmentDetail() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: investment, isLoading } = useQuery({
     queryKey: ['investment', id],
@@ -68,9 +70,8 @@ export default function InvestmentDetail() {
     },
   })
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !id) return
+  const processFile = async (file: File) => {
+    if (!id) return
 
     setIsUploading(true)
     try {
@@ -102,7 +103,36 @@ export default function InvestmentDetail() {
       alert('Upload failed. Please try again.')
     } finally {
       setIsUploading(false)
+      // Reset input so same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await processFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const file = e.dataTransfer.files?.[0]
+    if (!file) return
+    await processFile(file)
   }
 
   if (isLoading) {
@@ -316,7 +346,16 @@ export default function InvestmentDetail() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Upload Card */}
-          <section className="relative overflow-hidden rounded-2xl border border-cream/20 bg-gradient-to-br from-cream/10 to-surface p-5">
+          <section 
+            className={`relative overflow-hidden rounded-2xl border-2 border-dashed p-5 transition-all duration-200 ${
+              isDragging 
+                ? 'border-cream bg-cream/10' 
+                : 'border-cream/20 bg-gradient-to-br from-cream/10 to-surface'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <div className="absolute inset-0 glyph-pattern opacity-5" />
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
@@ -324,17 +363,22 @@ export default function InvestmentDetail() {
                 <h3 className="font-semibold text-cream">Upload Documents</h3>
               </div>
               <p className="text-xs text-cream-muted mb-4">
-                Upload deeds, contracts, photos, or any related files. AI analysis will start automatically.
+                Drag & drop files here or click to browse. AI analysis starts automatically.
               </p>
-              <label className="glyph-btn glyph-btn-primary w-full flex items-center justify-center gap-2 cursor-pointer">
+              <input
+                ref={fileInputRef}
+                id="file-upload"
+                type="file"
+                className="hidden"
+                onChange={handleFileUpload}
+                disabled={isUploading}
+              />
+              <label 
+                htmlFor="file-upload"
+                className={`glyph-btn glyph-btn-primary w-full flex items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
                 <Upload className="h-4 w-4" />
                 {isUploading ? 'Uploading...' : 'Choose File'}
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  disabled={isUploading}
-                />
               </label>
             </div>
           </section>

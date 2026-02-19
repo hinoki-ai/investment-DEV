@@ -1,6 +1,8 @@
-# 🏡 Family Investment Dashboard
+# 🔷 NEXUS / Nest
 
-A **production-ready, three-layer investment tracking system** designed for your family's future.
+A **personal investment tracking system** built for exactly 2 people: **me and my wife**.
+
+> ⚠️ **Scope Note:** This isn't a product for customers. It's a tool tailored to our specific needs. We skip tests, multi-user security, and edge cases we don't actually have. If it works for us, it's perfect.
 
 Built with **separation of concerns** at its core:
 - **Layer 1: Storage** - Raw files (R2/S3/MinIO)

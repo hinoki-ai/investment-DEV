@@ -6,7 +6,7 @@ app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"message": "Family Investment Dashboard API", "version": "1.0.0"}
+    return {"message": "NEXUS API", "version": "1.0.0"}
 
 @app.get("/health")
 def health():

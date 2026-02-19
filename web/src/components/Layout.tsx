@@ -201,7 +201,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="w-6 h-6 flex items-center justify-center opacity-50">
                 <img src="/favinv.png" alt="" className="w-4 h-4 object-contain" />
               </div>
-              <span className="text-xs text-text-muted">Family Investment Dashboard</span>
+              <span className="text-xs text-text-muted">Nest</span>
             </div>
             <div className="flex items-center gap-4 text-xs text-text-muted">
               <span className="flex items-center gap-2">

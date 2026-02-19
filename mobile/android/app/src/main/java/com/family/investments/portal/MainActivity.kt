@@ -9,10 +9,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.family.investments.portal.ui.screens.SettingsScreen
 import com.family.investments.portal.ui.screens.UploadScreen
 import com.family.investments.portal.ui.theme.InvestmentPortalTheme
 
@@ -21,42 +17,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
-        // Handle intent (shared files)
+        // Handle shared files
         val sharedUris = handleIntent(intent)
         
         setContent {
             InvestmentPortalTheme {
-                val navController = rememberNavController()
                 val pendingUris = remember { mutableStateListOf<Uri>() }
                 
-                // Add any initially shared URIs
                 LaunchedEffect(sharedUris) {
                     pendingUris.addAll(sharedUris)
                 }
                 
-                NavHost(
-                    navController = navController,
-                    startDestination = "upload"
-                ) {
-                    composable("upload") {
-                        UploadScreen(
-                            sharedUris = pendingUris.toList(),
-                            onNavigateToSettings = {
-                                navController.navigate("settings")
-                            }
-                        )
-                        // Clear after passing to screen
-                        LaunchedEffect(Unit) {
-                            pendingUris.clear()
-                        }
-                    }
-                    composable("settings") {
-                        SettingsScreen(
-                            onNavigateBack = {
-                                navController.popBackStack()
-                            }
-                        )
-                    }
+                UploadScreen(
+                    sharedUris = pendingUris.toList()
+                )
+                
+                LaunchedEffect(Unit) {
+                    pendingUris.clear()
                 }
             }
         }
@@ -65,8 +42,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // Handle new shared files while app is running
-        val sharedUris = handleIntent(intent)
-        // TODO: Pass these to the current screen via ViewModel or state
+        handleIntent(intent)
     }
     
     private fun handleIntent(intent: Intent): List<Uri> {

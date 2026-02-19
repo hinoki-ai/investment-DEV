@@ -1,144 +1,232 @@
-# R2 Portal - Design System
+# FAMINV Mobile - Design System
 
-## Visual Design Philosophy
+## Visual Philosophy
 
-**"Dark Mode by Default, Glassmorphism, Electric Accents"**
+**"Warm Dark Minimalism"**
 
-A premium, futuristic interface that feels like a professional tool while remaining approachable.
+A refined, premium interface inspired by Nothing Phone and Linear.app. Warm cream accents on deep charcoal create a sophisticated, calm experience that feels expensive and intentional.
+
+> No more electric purple. No more generic glassmorphism. Just warm, tactile darkness.
+
+---
 
 ## Color Palette
 
-### Background Colors
-- `DeepSpace` (#0F0F1A) - Main background
-- `Midnight` (#1A1A2E) - Elevated surfaces
-- `CosmicPurple` (#2D1B4E) - Card backgrounds
-- `Nebula` (#3D2C5E) - Highlights
+### Core Backgrounds
+| Name | Hex | Usage |
+|------|-----|-------|
+| Void | `#0A0A0A` | Main background - absolute black |
+| Void Deep | `#070707` | Deepest void, status bar |
+| Surface | `#111111` | Card surfaces |
+| Surface Elevated | `#161616` | Elevated cards, inputs |
+| Surface Higher | `#1C1C1C` | Highest elevation |
 
-### Accent Colors (Electric Gradients)
-- `ElectricViolet` (#8B5CF6) - Primary brand color
-- `ElectricBlue` (#3B82F6) - Secondary accent
-- `CyanGlow` (#06B6D4) - Active states, uploading
-- `MintGreen` (#10B981) - Success states
-
-### Semantic Colors
-- `ErrorRose` (#F43F5E) - Errors, failures
-- `WarningAmber` (#F59E0B) - Warnings, pending
-- `SuccessEmerald` (#10B981) - Completed
+### Accent - Warm Cream
+| Name | Hex | Usage |
+|------|-----|-------|
+| Cream | `#E8D5C4` | Primary accent, CTAs, active states |
+| Cream Light | `#F5E6D3` | Hover states |
+| Cream Dark | `#C9B296` | Secondary accent |
+| Cream Muted | `#A89482` | Muted highlights |
 
 ### Text Colors
-- `TextPrimary` (#F8FAFC) - Headings, important text
-- `TextSecondary` (#94A3B8) - Body text
-- `TextTertiary` (#64748B) - Hints, captions
+| Name | Hex | Usage |
+|------|-----|-------|
+| Text Primary | `#F5F2ED` | Headlines, important text |
+| Text Secondary | `#8A8279` | Body text, labels |
+| Text Muted | `#5C554D` | Hints, captions, disabled |
 
-## Glassmorphism
+### Semantic Colors (Muted Earth Tones)
+| Name | Hex | Usage |
+|------|-----|-------|
+| Success | `#7FB069` | Completed, success states |
+| Warning | `#D4A373` | Pending, warnings |
+| Error | `#C76B6B` | Failed, errors |
+| Info | `#6B8CAE` | Processing, neutral info |
 
-All cards use a frosted glass effect:
-- Background: White at 6-8% opacity
-- Border: White at 15-20% opacity
-- Shadow: Purple glow at 15% opacity
-- Backdrop blur effect
+### Borders
+| Name | Hex | Usage |
+|------|-----|-------|
+| Border Default | `rgba(232, 213, 196, 0.1)` | Card borders |
+| Border Strong | `rgba(232, 213, 196, 0.15)` | Hover states |
 
+---
+
+## Components
+
+### WarmCard
 ```kotlin
-GlassCard(
-    cornerRadius = 20.dp,
-    elevation = 4.dp,
-    borderAlpha = 0.2f,
-    backgroundAlpha = 0.06f
+WarmCard(
+    cornerRadius = 12.dp,
+    backgroundAlpha = 1f
 ) {
     // Content
 }
 ```
+- Subtle 1dp border in cream at 10% opacity
+- Surface background (#111111)
+- No shadows (flat, modern aesthetic)
+- 12dp corner radius
+
+### ElevatedWarmCard
+- Uses SurfaceElevated (#161616)
+- 16dp corner radius
+- For emphasized content
+
+### GlyphButton (Primary)
+```kotlin
+GlyphButton(onClick = { }) {
+    Icon(Icons.Rounded.Add, null)
+    Text("Add")
+}
+```
+- Cream background (#E8D5C4)
+- Void text (black)
+- 8dp corner radius
+- No gradient (solid, confident)
+
+### GlyphButtonSecondary (Outlined)
+- Transparent background
+- Border in BorderDefault
+- TextPrimary color
+
+### GlyphButtonGhost (Minimal)
+- No background
+- No border
+- CreamMuted text
+
+### StatusBadge
+```kotlin
+StatusBadge(text = "Active", type = BadgeType.SUCCESS)
+```
+- Uppercase, small text
+- Pill shape (20dp radius)
+- Background at 20% opacity
+- Matching border at 20% opacity
+
+---
+
+## Typography
+
+All text uses system font with careful weight selection:
+
+| Style | Size | Weight | Usage |
+|-------|------|--------|-------|
+| Headline Small | 24sp | SemiBold (600) | Screen titles |
+| Title Large | 22sp | Medium (500) | Card titles |
+| Title Medium | 16sp | Medium (500) | Section headers |
+| Body Large | 16sp | Regular (400) | Primary body |
+| Body Medium | 14sp | Regular (400) | Secondary body |
+| Body Small | 12sp | Regular (400) | Captions |
+| Label Large | 14sp | Medium (500) | Buttons |
+| Label Small | 11sp | Medium (500) | Badges, metadata |
+
+---
 
 ## Animations
 
 ### Micro-interactions
-1. **Pulsing Dot** - For active states (uploading)
-2. **Animated Counter** - Number transitions
-3. **Progress Bar** - Smooth fill animation
-4. **Scale on Complete** - Files bounce slightly when done
+1. **Pulsing Dot** - Cream pulse for active states (800ms)
+2. **Animated Counter** - Number transitions with easing
+3. **Progress Bar** - Smooth fill, 3dp height, cream color
+4. **Card Hover** - Subtle border color change (no scale)
 
 ### Transitions
-1. **Floating Empty State** - Gentle up/down float
-2. **Slide In/Out** - List items enter smoothly
-3. **Fade Between States** - Status changes
-4. **Gradient Shimmer** - Loading states
+1. **Content Fade** - 200ms ease
+2. **Slide Up** - Bottom sheets, action bars
+3. **Scale In** - FAB appearance
+4. **Animated Content** - Status changes
 
 ### Ambient Effects
-- Gradient orbs in background
-- Subtle glow on interactive elements
-- Smooth shadows with color tint
+- Static cream glow orbs at 2-3% opacity
+- No animated backgrounds (too distracting)
+- Subtle grain texture optional
 
-## Typography
+---
 
-All text uses the system font with careful weight selection:
-- **Headlines**: SemiBold (600)
-- **Titles**: Medium (500)
-- **Body**: Regular (400)
-- **Labels**: Medium (500), smaller size
+## Layout Principles
 
-## Components
+### Spacing Scale
+- 4dp - Tight
+- 8dp - Compact
+- 12dp - Default padding
+- 16dp - Section padding
+- 24dp - Large gaps
+- 32dp - Screen padding
 
-### File Item Card
-- Glass card with gradient icon
-- Status dot (pulsing when active)
-- Progress bar (when uploading)
-- Animated action buttons
+### Card Padding
+- Internal: 16dp
+- External margins: 16dp horizontal, 6dp vertical
 
-### Stats Header
-- 4-column layout
-- Animated counters
-- Color-coded by status
+### Border Radius
+- Small (buttons): 8dp
+- Medium (cards): 12dp
+- Large (elevated): 16dp
+- Full (pills): 50%
 
-### Bottom Action Bar
-- Floating glass card
-- Gradient primary button
-- Ghost secondary buttons
-
-### Settings Screen
-- Connection status card with icon
-- Sectioned layout
-- Glass text fields
-- Toggle switches with brand colors
+---
 
 ## Iconography
 
-- Rounded Material Icons
-- Consistent 24dp size
-- Color-matched to context
-- File type icons have unique gradients
+- **Style**: Rounded Material Icons
+- **Size**: 20dp (standard), 24dp (emphasis)
+- **Color**: TextSecondary (default), Cream (active), Success/Error (states)
+- **File Icons**: Monochrome in muted containers
 
-## Shadows & Elevation
+---
 
-- Cards: 4-8dp with purple tint
-- Buttons: 12dp with violet glow
-- Icons: 12dp colored shadow matching gradient
+## Empty States
 
-## Responsive States
+### Floating Cloud Pattern
+```
+┌─────────────────────┐
+│   ○ (glow orb)      │
+│      ☁️             │
+│   Drop files here   │
+│   Subtitle text     │
+└─────────────────────┘
+```
 
-### Empty State
-- Floating cloud icon
-- Gradient orb background
-- Gentle pulse animation
+- Subtle cream glow behind icon
+- Gentle scale animation (1.0 → 1.02)
+- Fade between 0.7 and 1.0 opacity
+- Icon: CloudUpload at CreamMuted
 
-### Uploading
-- Progress indicators
-- Status text updates
-- Pulsing status dots
+---
 
-### Complete
-- Success color theme
-- Checkmark icons
-- Bounce animation
+## Migration from Old Design
 
-### Error
-- Error color theme
-- Retry button
-- Shake animation on failure
+| Old | New |
+|-----|-----|
+| DeepSpace | Void |
+| ElectricViolet | Cream |
+| Glassmorphism blur | Solid surfaces |
+| Purple glow shadows | No shadows (flat) |
+| 20dp corner radius | 12dp corner radius |
+| Gradient buttons | Solid cream buttons |
+| Animated gradient bg | Static subtle glow |
 
-## Design Principles
+---
 
-1. **Depth through layers** - Glass cards over gradient background
-2. **Motion gives feedback** - Every action has visual response
-3. **Color communicates** - Status is immediately obvious
-4. **Consistency** - Same patterns throughout
-5. **Breathing room** - Generous padding, clear hierarchy
+## Philosophy Checklist
+
+Before adding any UI element, verify:
+
+- [ ] Is it necessary? (No decorative elements)
+- [ ] Does it use the warm palette? (Cream, not purple)
+- [ ] Is the contrast sufficient? (TextSecondary for non-essential)
+- [ ] Is the animation subtle? (No bouncy overshoots)
+- [ ] Does it feel expensive? (Generous whitespace, clean lines)
+
+---
+
+## Web Parity
+
+The mobile app now matches the web dashboard:
+- Same color values
+- Same border radius scale
+- Same typography philosophy
+- Same component naming (WarmCard = glass-card)
+- Same button styles (glyph-btn)
+
+This creates a unified FAMINV brand experience across platforms.

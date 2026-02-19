@@ -1,5 +1,5 @@
 -- =============================================================================
--- FAMILY INVESTMENT DASHBOARD - Database Schema
+-- NEXUS - Database Schema
 -- =============================================================================
 -- Three-layer architecture tables:
 --   - Coordination: file_registry, processing_jobs, analysis_results

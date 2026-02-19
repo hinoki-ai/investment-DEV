@@ -21,7 +21,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.family.investments.portal.ui.theme.*
 
+/**
+ * Animated Counter - Number transitions with smooth slide animation
+ */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AnimatedCounter(
@@ -45,45 +49,9 @@ fun AnimatedCounter(
     }
 }
 
-@Composable
-fun PulsingDot(
-    modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
-    )
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(600, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha"
-    )
-    
-    Box(
-        modifier = modifier
-            .size(8.dp)
-            .alpha(alpha)
-    ) {
-        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(
-                color = color,
-                radius = size.minDimension / 2 * scale
-            )
-        }
-    }
-}
-
+/**
+ * Shimmer Effect - For loading states
+ */
 @Composable
 fun ShimmerEffect(
     modifier: Modifier = Modifier,
@@ -93,9 +61,9 @@ fun ShimmerEffect(
     content: @Composable () -> Unit
 ) {
     val shimmerColors = listOf(
-        Color.White.copy(alpha = 0.0f),
-        Color.White.copy(alpha = 0.2f),
-        Color.White.copy(alpha = 0.0f)
+        Cream.copy(alpha = 0.0f),
+        Cream.copy(alpha = 0.1f),
+        Cream.copy(alpha = 0.0f)
     )
     
     val transition = rememberInfiniteTransition(label = "shimmer")
@@ -134,16 +102,14 @@ fun ShimmerEffect(
     }
 }
 
+/**
+ * Animated Progress Bar - Warm minimal style
+ */
 @Composable
 fun AnimatedProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
-    color: Brush = Brush.horizontalGradient(
-        colors = listOf(
-            com.family.investments.portal.ui.theme.CyanGlow,
-            com.family.investments.portal.ui.theme.ElectricBlue
-        )
-    )
+    color: Color = Cream
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
@@ -154,54 +120,14 @@ fun AnimatedProgressBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(4.dp)
+            .height(3.dp)
     ) {
         // Background
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    com.family.investments.portal.ui.theme.SurfaceGlass,
-                    RoundedCornerShape(2.dp)
-                )
-        )
-        
-        // Progress
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(animatedProgress)
-                .fillMaxHeight()
-                .background(
-                    brush = color,
-                    RoundedCornerShape(2.dp)
-                )
-        )
-    }
-}
-
-@Composable
-fun AnimatedProgressBar(
-    progress: Float,
-    modifier: Modifier = Modifier,
-    color: Color = com.family.investments.portal.ui.theme.CyanGlow
-) {
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(300, easing = FastOutSlowInEasing),
-        label = "progress"
-    )
-    
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(4.dp)
-    ) {
-        // Background
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    color.copy(alpha = 0.1f),
+                    SurfaceHigher,
                     RoundedCornerShape(2.dp)
                 )
         )
@@ -213,6 +139,48 @@ fun AnimatedProgressBar(
                 .fillMaxHeight()
                 .background(
                     color,
+                    RoundedCornerShape(2.dp)
+                )
+        )
+    }
+}
+
+// Legacy overload with Brush (deprecated)
+@Deprecated("Use version with Color parameter instead", ReplaceWith("AnimatedProgressBar(progress, modifier, Cream)"))
+@Composable
+fun AnimatedProgressBar(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Brush = Brush.horizontalGradient(
+        colors = listOf(Cream, CreamLight)
+    )
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        label = "progress"
+    )
+    
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(3.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    SurfaceHigher,
+                    RoundedCornerShape(2.dp)
+                )
+        )
+        
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(animatedProgress)
+                .fillMaxHeight()
+                .background(
+                    Cream,
                     RoundedCornerShape(2.dp)
                 )
         )

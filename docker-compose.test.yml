@@ -1,0 +1,56 @@
+# =============================================================================
+# Docker Compose for Testing
+# =============================================================================
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.test.yml up -d
+# =============================================================================
+
+version: '3.8'
+
+services:
+  api:
+    environment:
+      - ENVIRONMENT=testing
+      - DATABASE_URL=postgresql://test:test@postgres:5432/test
+      - REDIS_URL=redis://redis:6379/1
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./api:/app
+      - /app/__pycache__
+
+  worker:
+    environment:
+      - ENVIRONMENT=testing
+      - DATABASE_URL=postgresql://test:test@postgres:5432/test
+      - REDIS_URL=redis://redis:6379/1
+      - MOCK_AI_RESPONSES=true
+    volumes:
+      - ./worker:/app
+      - /app/__pycache__
+
+  postgres:
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: test
+    volumes: []  # Don't mount init.sql for tests
+
+  redis:
+    command: redis-server --appendonly no  # Disable persistence for tests
+
+  # Test runner service
+  test-runner:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://test:test@postgres:5432/test
+      - REDIS_URL=redis://redis:6379/1
+    volumes:
+      - ./api:/app
+      - /app/__pycache__
+    command: pytest -v --tb=short
+    depends_on:
+      - postgres
+      - redis
+    profiles:
+      - test

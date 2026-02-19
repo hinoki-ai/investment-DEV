@@ -22,10 +22,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.family.investments.portal.data.local.SettingsDataStore
-import com.family.investments.portal.ui.components.GlassCard
-import com.family.investments.portal.ui.components.GradientButton
-import com.family.investments.portal.ui.components.PulsingDot
+import com.family.investments.portal.ui.components.*
 import com.family.investments.portal.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -55,7 +54,7 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepSpace)
+            .background(Void)
     ) {
         // Ambient background
         Box(
@@ -65,7 +64,7 @@ fun SettingsScreen(
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            ElectricViolet.copy(alpha = 0.1f),
+                            Cream.copy(alpha = 0.03f),
                             Color.Transparent
                         )
                     ),
@@ -89,7 +88,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .padding(start = 8.dp)
                                 .size(40.dp)
-                                .background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                                .background(Surface, CircleShape)
                         ) {
                             Icon(
                                 Icons.Rounded.ArrowBack,
@@ -109,65 +108,18 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 // Connection Status Card
-                GlassCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    cornerRadius = 20.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(
-                                    brush = Brush.linearGradient(
-                                        listOf(ElectricViolet, ElectricBlue)
-                                    ),
-                                    RoundedCornerShape(16.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Rounded.Cloud,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.width(16.dp))
-                        
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Cloudflare R2",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "Connected",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = SuccessEmerald
-                            )
-                        }
-                        
-                        PulsingDot(color = SuccessEmerald)
-                    }
-                }
+                ConnectionStatusCard()
                 
                 // API Configuration
                 SettingsSection(title = "API Configuration") {
-                    // API URL
-                    GlassTextField(
+                    WarmTextField(
                         value = apiUrl,
                         onValueChange = { apiUrl = it },
                         label = "API URL",
@@ -182,8 +134,7 @@ fun SettingsScreen(
                     
                     Spacer(modifier = Modifier.height(12.dp))
                     
-                    // Device ID
-                    GlassTextField(
+                    WarmTextField(
                         value = deviceId,
                         onValueChange = { deviceId = it },
                         label = "Device ID",
@@ -198,14 +149,14 @@ fun SettingsScreen(
                 
                 // Processing Options
                 SettingsSection(title = "Processing") {
-                    GlassCard(
+                    WarmCard(
                         modifier = Modifier.fillMaxWidth(),
-                        cornerRadius = 16.dp
+                        cornerRadius = 12.dp
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(20.dp),
+                                .padding(16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -214,27 +165,27 @@ fun SettingsScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(44.dp)
+                                        .size(40.dp)
                                         .background(
-                                            MintGreen.copy(alpha = 0.15f),
-                                            RoundedCornerShape(12.dp)
+                                            Success.copy(alpha = 0.1f),
+                                            RoundedCornerShape(10.dp)
                                         ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Rounded.AutoAwesome,
                                         contentDescription = null,
-                                        tint = MintGreen,
-                                        modifier = Modifier.size(24.dp)
+                                        tint = Success,
+                                        modifier = Modifier.size(20.dp)
                                     )
                                 }
                                 
-                                Spacer(modifier = Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
                                 
                                 Column {
                                     Text(
                                         text = "Auto-analyze",
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         color = TextPrimary
                                     )
                                     Text(
@@ -249,10 +200,10 @@ fun SettingsScreen(
                                 checked = autoAnalyze,
                                 onCheckedChange = { autoAnalyze = it },
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = Color.White,
-                                    checkedTrackColor = ElectricViolet,
+                                    checkedThumbColor = Void,
+                                    checkedTrackColor = Cream,
                                     uncheckedThumbColor = TextSecondary,
-                                    uncheckedTrackColor = SurfaceGlass
+                                    uncheckedTrackColor = SurfaceHigher
                                 )
                             )
                         }
@@ -262,24 +213,21 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 
                 // Reset button
-                TextButton(
+                GlyphButtonGhost(
                     onClick = {
                         scope.launch {
                             settingsDataStore.resetToDefaults()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = TextTertiary
-                    )
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Rounded.Refresh, null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Rounded.Refresh, null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text("Reset to Defaults")
                 }
                 
                 // Save button
-                GradientButton(
+                GlyphButton(
                     onClick = {
                         scope.launch {
                             settingsDataStore.updateApiUrl(apiUrl)
@@ -291,13 +239,67 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = apiUrl.isNotBlank() && deviceId.isNotBlank()
                 ) {
-                    Icon(Icons.Rounded.Save, null, modifier = Modifier.size(22.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Save Settings", style = MaterialTheme.typography.titleMedium)
+                    Icon(Icons.Rounded.Save, null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Save Settings", style = MaterialTheme.typography.labelLarge)
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun ConnectionStatusCard() {
+    WarmCard(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = 16.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        color = SurfaceElevated,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = BorderDefault,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Rounded.Cloud,
+                    contentDescription = null,
+                    tint = Cream,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Cloud Storage",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "Connected",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Success
+                )
+            }
+            
+            PulsingDot(color = Success)
         }
     }
 }
@@ -311,8 +313,9 @@ private fun SettingsSection(
         Text(
             text = title.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = TextTertiary,
-            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+            color = TextMuted,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+            letterSpacing = 0.1.sp
         )
         content()
     }
@@ -320,7 +323,7 @@ private fun SettingsSection(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GlassTextField(
+private fun WarmTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -333,7 +336,7 @@ private fun GlassTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(label) },
-        placeholder = { Text(placeholder, color = TextTertiary) },
+        placeholder = { Text(placeholder, color = TextMuted) },
         leadingIcon = {
             Icon(
                 leadingIcon,
@@ -343,17 +346,17 @@ private fun GlassTextField(
         },
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = keyboardOptions,
-        supportingText = { Text(supportingText, color = TextTertiary) },
+        supportingText = { Text(supportingText, color = TextMuted) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
             focusedTextColor = TextPrimary,
             unfocusedTextColor = TextPrimary,
-            focusedBorderColor = ElectricViolet.copy(alpha = 0.5f),
-            unfocusedBorderColor = GlassWhite.copy(alpha = 0.2f),
-            focusedLabelColor = ElectricViolet,
+            focusedBorderColor = Cream.copy(alpha = 0.5f),
+            unfocusedBorderColor = BorderDefault,
+            focusedLabelColor = Cream,
             unfocusedLabelColor = TextSecondary,
-            containerColor = SurfaceGlass
+            containerColor = Surface
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(10.dp),
         singleLine = true
     )
 }

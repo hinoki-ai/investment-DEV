@@ -58,10 +58,18 @@ export default function Files() {
     queryFn: () => filesApi.list(),
   })
 
-  const handleDownload = async (fileId: string, _filename: string) => {
+  const handleDownload = async (fileId: string, filename: string) => {
     try {
       const { download_url } = await filesApi.getDownloadUrl(fileId)
-      window.open(download_url, '_blank')
+      
+      // Create a hidden anchor element to trigger download
+      const link = document.createElement('a')
+      link.href = download_url
+      link.download = filename // This sets the filename for the download
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     } catch (error) {
       console.error('Download error:', error)
       alert('Failed to generate download link')

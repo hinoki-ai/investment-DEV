@@ -1,5 +1,5 @@
 # =============================================================================
-# FAMILY INVESTMENT DASHBOARD - Docker Compose
+# NEXUS / Nest - Docker Compose
 # =============================================================================
 # Three-Layer Architecture:
 #   Layer 1: File Storage (MinIO for local dev, R2 in prod)

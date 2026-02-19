@@ -1,7 +1,7 @@
 {
-  "name": "Family Investment Dashboard",
-  "short_name": "FID",
-  "description": "Family Investment Dashboard - Track and manage your family's investments",
+  "name": "Nest",
+  "short_name": "Nest",
+  "description": "Nest - Investment Portal with AI-powered document analysis",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

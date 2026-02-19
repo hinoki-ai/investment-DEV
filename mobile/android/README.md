@@ -1,60 +1,58 @@
-# R2 Portal - Android App ✨
+# Nexus Mobile - Android App
 
-A **minimal yet insanely beautiful** native Android app that serves as a file upload portal to Cloudflare R2.
-
-![Design Preview](https://raw.githubusercontent.com/user-attachments/assets/preview.png)
+A **minimal, premium** native Android app for Nexus Cloud Portal. Warm dark aesthetic inspired by Nothing Phone and Linear.app. Upload files directly to cloud storage.
 
 ## ✨ Design Highlights
 
-- **🌌 Deep Space Dark Theme** - Rich purples and electric accents
-- **💎 Glassmorphism Cards** - Frosted glass with subtle borders and shadows
-- **⚡ Electric Gradients** - Vibrant violet to cyan transitions
-- **🎭 Fluid Animations** - Every interaction feels alive
-- **🎯 Micro-interactions** - Pulsing dots, bouncing icons, smooth counters
+- **🖤 Warm Dark Theme** - Near-black void with warm cream accents
+- **🎯 Nothing Phone Aesthetic** - Glyph patterns, dot grids, clean lines
+- **☕ Cream Accents** - From favicon #E8D5C4, not generic purple
+- **📐 Minimalist Cards** - Subtle borders, no shadows, generous whitespace
+- **✨ Refined Animations** - Purposeful motion, no visual noise
 
 ## 🎨 Visual Design
 
 ```
 ┌─────────────────────────────────────┐
-│  💜 Deep Space Background           │
-│     ✨ Ambient Glow Orbs            │
+│  🖤 Void Background (#0A0A0A)       │
+│     ·  ·  ·  (subtle glyph dots)    │
 │                                     │
 │  ┌─────────────────────────────┐    │
-│  │  💎 Glass Card              │    │
-│  │     ╭─────────────╮         │    │
-│  │     │ 📄 File.pdf │ ✓       │    │
-│  │     ╰─────────────╯         │    │
+│  │  ⬜ Warm Card (#111111)      │    │
+│  │     ───────────────         │    │
+│  │  📄 File.pdf         ✓      │    │
+│  │     ───────────────         │    │
 │  └─────────────────────────────┘    │
 │                                     │
-│  ╔════════════════════════════════╗ │
-│  ║  🚀 Upload Button (Gradient)   ║ │
-│  ╚════════════════════════════════╝ │
+│  ┌────────────────────────────────┐ │
+│  │  ☕ Upload (Cream button)       │ │
+│  └────────────────────────────────┘ │
 └─────────────────────────────────────┘
 ```
 
 ## 🚀 Features
 
-- **Direct-to-R2 Upload** - Files upload directly using pre-signed URLs
+- **Direct-to-Cloud Upload** - Files upload directly using pre-signed URLs
 - **Share from Any App** - Android's native share sheet integration
-- **Real-time Progress** - Animated progress bars and status indicators
+- **Real-time Progress** - Warm cream progress indicators
 - **Batch Uploads** - Select multiple files at once
 - **Auto-Analysis** - Option to queue files for AI processing
-- **Beautiful Empty State** - Animated floating cloud with gradient orbs
+- **Beautiful Empty State** - Floating cloud with subtle cream glow
 
 ## 📸 Screens
 
 ### Upload Screen
-- Floating glass cards for each file
-- Gradient file type icons with shadows
-- Animated status indicators (pulsing dots for active uploads)
+- Warm cards with subtle borders
+- Muted file type icons in rounded containers
+- Status indicators with pulsing cream dots
 - Stats header with animated counters
-- Bottom action bar with gradient primary button
+- Bottom action bar with solid cream primary button
 
 ### Settings Screen
 - Connection status card with live indicator
-- Glass text fields with icon prefixes
+- Warm text fields with icon prefixes
 - Auto-analyze toggle switch
-- Ambient gradient background
+- Subtle ambient cream glow
 
 ## 🛠️ Tech Stack
 
@@ -79,16 +77,16 @@ app/src/main/java/com/family/investments/portal/
 │   └── UploadManager.kt               # Upload orchestration
 ├── ui/
 │   ├── components/
-│   │   ├── GlassCard.kt               # Glassmorphism container
-│   │   ├── FileItem.kt                # Animated file card
-│   │   ├── EmptyState.kt              # Beautiful empty state
+│   │   ├── GlassCard.kt               # Card components (WarmCard)
+│   │   ├── FileItem.kt                # File list item
+│   │   ├── EmptyState.kt              # Empty state with animation
 │   │   └── AnimatedCounter.kt         # Animation utilities
 │   ├── screens/
 │   │   ├── UploadScreen.kt            # Main upload UI
 │   │   └── SettingsScreen.kt          # Configuration UI
 │   └── theme/
-│       ├── Color.kt                   # Premium color palette
-│       ├── Theme.kt                   # Dark theme by default
+│       ├── Color.kt                   # Warm dark palette
+│       ├── Theme.kt                   # Dark theme (default)
 │       ├── Type.kt                    # Typography scale
 │       └── Shape.kt                   # Rounded corners
 ```
@@ -98,27 +96,55 @@ app/src/main/java/com/family/investments/portal/
 ### Color Palette
 ```kotlin
 // Backgrounds
-DeepSpace       #0F0F1A    // Main background
-Midnight        #1A1A2E    // Cards
-CosmicPurple    #2D1B4E    // Elevated
+Void            #0A0A0A    // Main background
+Surface         #111111    // Cards
+SurfaceElevated #161616    // Elevated surfaces
 
-// Accents
-ElectricViolet  #8B5CF6    // Primary
-ElectricBlue    #3B82F6    // Secondary
-CyanGlow        #06B6D4    // Active
-MintGreen       #10B981    // Success
+// Accent
+Cream           #E8D5C4    // Primary accent
+CreamLight      #F5E6D3    // Hover states
+CreamMuted      #A89482    // Secondary text
 
-// Glassmorphism
-GlassWhite      10% white   // Card background
-GlassBorder     15% white   // Card border
+// Text
+TextPrimary     #F5F2ED    // Main text
+TextSecondary   #8A8279    // Body text
+TextMuted       #5C554D    // Hints
+
+// Semantic
+Success         #7FB069    // Muted sage green
+Warning         #D4A373    // Warm amber
+Error           #C76B6B    // Muted rose
+
+// Borders
+BorderDefault   rgba(232, 213, 196, 0.1)  // 10% cream
+BorderStrong    rgba(232, 213, 196, 0.15) // 15% cream
 ```
 
+### Components
+
+#### WarmCard
+- Background: Surface (#111111)
+- Border: 1dp BorderDefault
+- Corner radius: 12dp
+- No shadow (flat design)
+
+#### GlyphButton (Primary)
+- Background: Cream (#E8D5C4)
+- Text: Void (#0A0A0A)
+- Corner radius: 8dp
+- Height: 48dp
+
+#### StatusBadge
+- Pill shape (20dp radius)
+- Uppercase text
+- Background at 20% opacity
+- Border at 20% opacity
+
 ### Animations
-- **Pulsing Dot** - `600ms` ease-in-out, infinite
-- **Progress Bar** - `300ms` smooth fill
+- **Pulsing Dot** - 800ms ease-in-out, infinite
+- **Progress Bar** - 300ms smooth fill
 - **Counter** - Slide up/down transition
-- **Floating** - `2000ms` sine wave, infinite
-- **Success Bounce** - Spring physics
+- **Floating** - 3000ms sine wave (subtle)
 
 ## 🚀 Getting Started
 
@@ -153,7 +179,7 @@ The app defaults to `http://10.0.2.2:8000` (Android emulator localhost).
 ## 📲 Usage
 
 ### Method 1: In-App Picker
-1. Open R2 Portal
+1. Open NEXUS
 2. Tap **"Select Files"** button
 3. Choose files from device
 4. Tap **"Upload"** button
@@ -161,7 +187,7 @@ The app defaults to `http://10.0.2.2:8000` (Android emulator localhost).
 ### Method 2: Share Sheet
 1. Open any app (Photos, Files, etc.)
 2. Select files → Share
-3. Choose **"R2 Portal"**
+3. Choose **"NEXUS"**
 4. Files appear in app, tap Upload
 
 ## 🔗 API Integration
@@ -186,17 +212,35 @@ POST /api/v1/uploads/confirm
 
 | Element | Animation |
 |---------|-----------|
-| Empty State | Gentle floating with gradient orb pulse |
-| File Added | Slide in + scale from 0.8 |
-| Uploading | Pulsing dot + progress fill |
-| Complete | Icon bounce + color flash |
-| Error | Shake + color shift to red |
+| Empty State | Gentle floating with cream glow |
+| File Added | Fade in + slight slide |
+| Uploading | Cream pulsing dot + progress fill |
+| Complete | Subtle scale + success color |
+| Error | Error color shift |
 | Counter | Vertical slide transition |
+
+## 🔄 Design Evolution
+
+### Before (v1)
+- Electric purple gradients
+- Heavy glassmorphism blur
+- Animated gradient backgrounds
+- 20dp corner radius
+- Purple glow shadows
+
+### After (v2 - Current)
+- Warm cream accents
+- Solid surfaces, subtle borders
+- Static ambient glow
+- 12dp corner radius
+- Flat design (no shadows)
+
+The new design feels more premium, intentional, and cohesive with the web dashboard.
 
 ## 📝 License
 
-Part of the Family Investment Dashboard project.
+Part of the NEXUS project.
 
 ---
 
-**Crafted with 💜 for a premium upload experience**
+**Crafted with ☕ in warm dark**

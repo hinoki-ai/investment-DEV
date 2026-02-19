@@ -22,7 +22,7 @@ from routers import investments, files, analysis, dashboard, uploads
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
-    print("🚀 Starting Investment Dashboard API...")
+    print("🚀 Starting NEXUS / Nest API...")
     
     # Test Redis connection
     try:
@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
 # =============================================================================
 
 app = FastAPI(
-    title="Family Investment Dashboard API",
+    title="NEXUS / Nest API",
     description="Three-layer architecture: Storage | Coordination | Intelligence",
     version="1.0.0",
     lifespan=lifespan
@@ -108,7 +108,7 @@ async def health_check():
 async def root():
     """API root."""
     return {
-        "name": "Family Investment Dashboard API",
+        "name": "NEXUS / Nest API",
         "version": "1.0.0",
         "architecture": "Three-layer: Storage | Coordination | Intelligence",
         "docs": "/docs"

@@ -1,0 +1,14 @@
+name = "investment-api"
+main = "index.js"
+compatibility_date = "2026-02-19"
+
+# Account info
+account_id = "f823a3f5752d5b771fddf73ea67c3056"
+
+[env.production]
+name = "investment-api"
+
+# Custom domain for the worker
+routes = [
+  { pattern = "api.inv.aramac.dev", custom_domain = true }
+]
