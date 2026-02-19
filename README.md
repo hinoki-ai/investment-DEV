@@ -94,21 +94,6 @@ docker-compose up -d web                   # Dashboard
 
 ---
 
-## 🚀 Deploy to Production
-
-**Use the VV deployer (only supported method):**
-
-```bash
-# Deploy to production
-./vv/vv
-
-# Or with options
-VV_PROD=false ./vv/vv      # Deploy to preview
-VV_DRY_RUN=true ./vv/vv    # Dry run
-```
-
----
-
 ## 📁 Project Structure
 
 ```
@@ -133,13 +118,34 @@ VV_DRY_RUN=true ./vv/vv    # Dry run
 │   └── init.sql           # Initial schema + sample data
 ├── shared/                 # Shared types/models
 │   └── models.py          # Pydantic schemas
+├── mobile/
+│   └── android/            # Native Android app for file uploads
 ├── docker-compose.yml      # Complete stack
 └── .env.example           # Configuration template
 ```
 
 ---
 
-## 📱 Upload Flow (Phone)
+## 📱 Mobile Setup (Private Use)
+
+For 2-3 family members:
+
+### Desktop/Laptop
+- Open `https://inv.aramac.dev` in browser
+- Bookmark it
+
+### Android (File Uploads)
+```bash
+cd mobile/android
+./gradlew assembleRelease
+# Send APK to family via Signal/WhatsApp
+```
+
+**Note:** Enable "Unknown sources" in Settings to install
+
+---
+
+## 📱 Upload Flow
 
 ```
 Phone → POST /api/v1/uploads/request-url
@@ -231,6 +237,22 @@ CORS_ORIGINS=http://localhost:5173
 
 ## 🛠️ Development
 
+### Local Development
+
+```bash
+# Start infrastructure
+docker-compose up -d postgres redis minio
+
+# Start API
+cd api && pip install -r requirements.txt && uvicorn main:app --reload
+
+# Start Worker (another terminal)
+cd worker && pip install -r requirements.txt && python main.py
+
+# Start Web (another terminal)  
+cd web && npm install && npm run dev
+```
+
 ### Run Without Docker
 
 ```bash
@@ -286,44 +308,13 @@ GET  /api/v1/analysis/queue/stats     # Queue statistics
 
 ---
 
-## 📦 Production Deployment
-
-### Cloudflare R2 (Recommended)
-
-1. Create R2 bucket in Cloudflare dashboard
-2. Create API token with R2 permissions
-3. Update `.env` with R2 credentials
-
-### Supabase (PostgreSQL)
-
-1. Create project at https://supabase.com
-2. Run `database/init.sql` in SQL Editor
-3. Update `DATABASE_URL` in `.env`
-
-### Deploy API + Worker
-
-```bash
-# Build images
-docker-compose build api worker
-
-# Push to registry
-docker tag investment-api:latest your-registry/investment-api:latest
-docker push your-registry/investment-api:latest
-
-# Deploy to your platform (Fly.io, Railway, etc.)
-```
-
-### Deploy Web Dashboard
-
-```bash
-cd web
-npm run build
-# Deploy dist/ folder to Vercel, Netlify, or static host
-```
-
----
-
 ## 🔒 Security
+
+For private/family use:
+- Keep `.env` secure
+- Use strong passwords for PostgreSQL
+- Rotate R2 keys periodically
+- Enable 2FA on Cloudflare account
 
 - **Pre-signed URLs** for file uploads/downloads (time-limited)
 - **File hashing** for deduplication
@@ -335,14 +326,10 @@ npm run build
 
 ## 📝 Future Enhancements
 
-- [ ] User authentication (JWT)
-- [ ] Multi-family support (tenants)
-- [ ] Real-time notifications (WebSockets)
-- [ ] Mobile app (React Native)
+- [ ] User authentication (JWT) - for multi-user
 - [ ] Automatic backups
 - [ ] Data export (CSV, PDF reports)
 - [ ] Tax calculation helpers
-- [ ] Market data integration
 
 ---
 

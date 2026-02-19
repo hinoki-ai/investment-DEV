@@ -22,27 +22,32 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.family.investments.portal.ui.theme.*
 
+/**
+ * Empty State - Warm minimal aesthetic
+ * Floating cloud with subtle cream glow
+ */
 @Composable
 fun EmptyState(
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "float")
     
+    // Gentle floating animation
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.05f,
+        targetValue = 1.02f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutSine),
+            animation = tween(3000, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
         ),
         label = "scale"
     )
     
     val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
+        initialValue = 0.7f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutSine),
+            animation = tween(3000, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
         ),
         label = "alpha"
@@ -55,16 +60,16 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Animated glowing orb
+        // Warm glowing orb
         Box(
             modifier = Modifier
-                .size(160.dp)
+                .size(140.dp)
                 .scale(scale)
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            ElectricViolet.copy(alpha = 0.3f * alpha),
-                            ElectricBlue.copy(alpha = 0.1f * alpha),
+                            Cream.copy(alpha = 0.08f * alpha),
+                            Cream.copy(alpha = 0.02f * alpha),
                             Color.Transparent
                         )
                     ),
@@ -72,14 +77,14 @@ fun EmptyState(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            // Inner glow
+            // Inner subtle glow
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(80.dp)
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                ElectricViolet.copy(alpha = 0.5f),
+                                Cream.copy(alpha = 0.15f),
                                 Color.Transparent
                             )
                         ),
@@ -91,41 +96,96 @@ fun EmptyState(
             Icon(
                 imageVector = Icons.Rounded.CloudUpload,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = TextPrimary.copy(alpha = alpha)
+                modifier = Modifier.size(40.dp),
+                tint = CreamMuted.copy(alpha = alpha)
             )
         }
         
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
         Text(
             text = "Drop files here",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             color = TextPrimary,
             textAlign = TextAlign.Center
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Text(
-            text = "Select files to upload or share from any app",
-            style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.alpha(0.8f)
         )
         
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "Files upload directly to Cloudflare R2",
+            text = "Select files to upload or share from any app",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = "Files upload directly to cloud storage",
             style = MaterialTheme.typography.bodySmall,
-            color = TextTertiary,
+            color = TextMuted,
             textAlign = TextAlign.Center
         )
     }
 }
 
+/**
+ * Empty State for Dashboard/Lists
+ */
+@Composable
+fun EmptyStateMinimal(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Subtle dot pattern placeholder
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(
+                    color = SurfaceElevated,
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "—",
+                style = MaterialTheme.typography.headlineMedium,
+                color = TextMuted
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(20.dp))
+        
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = TextPrimary,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
+ * Upload Success Animation - Warm success state
+ */
 @Composable
 fun UploadSuccessAnimation(
     fileCount: Int,
@@ -146,12 +206,12 @@ fun UploadSuccessAnimation(
     ) {
         Box(
             modifier = Modifier
-                .size(80.dp)
+                .size(72.dp)
                 .scale(scale)
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            SuccessEmerald.copy(alpha = 0.3f),
+                            Success.copy(alpha = 0.2f),
                             Color.Transparent
                         )
                     ),
@@ -162,8 +222,8 @@ fun UploadSuccessAnimation(
             Icon(
                 imageVector = Icons.Rounded.CloudUpload,
                 contentDescription = null,
-                tint = SuccessEmerald,
-                modifier = Modifier.size(40.dp)
+                tint = Success,
+                modifier = Modifier.size(32.dp)
             )
         }
         
@@ -171,8 +231,49 @@ fun UploadSuccessAnimation(
         
         Text(
             text = "$fileCount files uploaded",
-            style = MaterialTheme.typography.titleLarge,
-            color = SuccessEmerald
+            style = MaterialTheme.typography.titleMedium,
+            color = Success
+        )
+    }
+}
+
+/**
+ * Processing State - For loading/queue states
+ */
+@Composable
+fun ProcessingState(
+    message: String,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .background(
+                    color = Cream.copy(alpha = alpha),
+                    shape = CircleShape
+                )
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary
         )
     }
 }
