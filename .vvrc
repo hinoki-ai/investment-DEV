@@ -1,0 +1,20 @@
+# VV Configuration for Investments Project
+# Version: 0.12.5
+
+# Deployment settings
+VERBOSE=true
+DRY_RUN=false
+PROD=true
+OPEN=true
+MONITOR=true
+AUTOCOMMIT=true
+REPORT=true
+PREBUILD=true
+
+# Project settings
+PROJECT_NAME=investment-dashboard
+DOMAIN=inv.aramac.dev
+
+# Vercel settings (set these in environment or ~/.config/vv/config)
+# TOKEN=your_vercel_token
+# SCOPE=your_vercel_scope

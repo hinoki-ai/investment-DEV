@@ -1,0 +1,15 @@
+{
+  "name": "investment-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Family Investment Dashboard - Deploy via VV only",
+  "scripts": {
+    "build": "cd web && npm install && npm run build",
+    "dev": "cd web && npm run dev",
+    "preview": "cd web && npm run preview"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}

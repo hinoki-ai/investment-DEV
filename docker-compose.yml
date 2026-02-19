@@ -1,0 +1,180 @@
+# =============================================================================
+# FAMILY INVESTMENT DASHBOARD - Docker Compose
+# =============================================================================
+# Three-Layer Architecture:
+#   Layer 1: File Storage (MinIO for local dev, R2 in prod)
+#   Layer 2: Coordination Database (PostgreSQL + Redis)
+#   Layer 3: Intelligence Worker (Kimi K2.5 Analysis)
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ===========================================================================
+  # LAYER 2: DATABASE (Coordination Layer)
+  # ===========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: invest_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-investor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-family_future_2024}
+      POSTGRES_DB: ${DB_NAME:-investments}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-investor} -d ${DB_NAME:-investments}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - invest_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: invest_cache
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes
+    networks:
+      - invest_network
+
+  # ===========================================================================
+  # LAYER 1: FILE STORAGE (MinIO for local dev, S3-compatible)
+  # ===========================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: invest_storage
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${STORAGE_PORT:-9000}:9000"
+      - "9001:9001"  # MinIO Console
+    command: server /data --console-address ":9001"
+    networks:
+      - invest_network
+
+  createbuckets:
+    image: minio/mc
+    container_name: invest_storage_init
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 ${STORAGE_ACCESS_KEY:-minioadmin} ${STORAGE_SECRET_KEY:-minioadmin};
+      /usr/bin/mc mb myminio/investments || true;
+      /usr/bin/mc policy set public myminio/investments;
+      exit 0;
+      "
+    networks:
+      - invest_network
+
+  # ===========================================================================
+  # LAYER 2: COORDINATION API
+  # ===========================================================================
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: invest_api
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DATABASE_URL=postgresql://${DB_USER:-investor}:${DB_PASSWORD:-family_future_2024}@postgres:5432/${DB_NAME:-investments}
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-investments}
+      - STORAGE_REGION=${STORAGE_REGION:-us-east-1}
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./api:/app
+      - /app/__pycache__
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks:
+      - invest_network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ===========================================================================
+  # LAYER 3: INTELLIGENCE WORKER (Kimi K2.5)
+  # ===========================================================================
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: invest_worker
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DATABASE_URL=postgresql://${DB_USER:-investor}:${DB_PASSWORD:-family_future_2024}@postgres:5432/${DB_NAME:-investments}
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT:-http://minio:9000}
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY:-minioadmin}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY:-minioadmin}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-investments}
+      - STORAGE_REGION=${STORAGE_REGION:-us-east-1}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - KIMI_API_URL=${KIMI_API_URL:-https://api.moonshot.cn/v1}
+      - WORKER_POLL_INTERVAL=${WORKER_POLL_INTERVAL:-10}
+      - MAX_CONCURRENT_JOBS=${MAX_CONCURRENT_JOBS:-3}
+    volumes:
+      - ./worker:/app
+      - /app/__pycache__
+      - ./worker/temp:/app/temp  # For temporary file downloads
+    depends_on:
+      - api
+      - redis
+    networks:
+      - invest_network
+    command: python main.py
+
+  # ===========================================================================
+  # WEB DASHBOARD (React + Vite)
+  # ===========================================================================
+  # NOTE: For Vercel deployment, this service is not used.
+  # Use this only for local development with Docker.
+  # For production: Deploy 'web/' folder directly to Vercel
+  # ===========================================================================
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: development
+    container_name: invest_web
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - invest_network
+    command: npm run dev -- --host
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  invest_network:
+    driver: bridge
