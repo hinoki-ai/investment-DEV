@@ -91,10 +91,10 @@ export default function Files() {
           </p>
         </div>
         
-        {totalSize > 0 && (
+        {totalSize && totalSize > 0 && (
           <div className="flex items-center gap-2 text-xs text-text-muted">
             <HardDrive className="h-4 w-4" />
-            <span className="font-mono">{formatFileSize(totalSize)}</span>
+            <span className="font-mono">{formatFileSize(totalSize || 0)}</span>
             <span>total</span>
           </div>
         )}

@@ -277,7 +277,7 @@ export default function InvestmentDetail() {
           )}
 
           {/* Documents List */}
-          {investment.documents && investment.documents.length > 0 && (
+          {(investment as any).documents && (investment as any).documents.length > 0 && (
             <section className="glass-card-elevated">
               <div className="p-5 border-b border-border">
                 <div className="flex items-center justify-between">
@@ -285,12 +285,12 @@ export default function InvestmentDetail() {
                     <FileText className="h-4 w-4 text-cream-muted" />
                     <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Documents</span>
                   </div>
-                  <span className="text-xs text-text-muted">{investment.documents.length} files</span>
+                  <span className="text-xs text-text-muted">{(investment as any).documents.length} files</span>
                 </div>
               </div>
               <div className="p-2">
                 <div className="space-y-1">
-                  {investment.documents.map((doc: any) => (
+                  {(investment as any).documents.map((doc: any) => (
                     <div 
                       key={doc.id}
                       className="flex items-center justify-between p-3 rounded-xl hover:bg-surface transition-colors group"

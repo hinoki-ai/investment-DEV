@@ -12,11 +12,9 @@ import {
   ChevronDown,
   Filter,
   CheckCircle,
+  Target,
   ArrowUpRight,
-  ArrowDownRight,
-  DollarSign,
-  PieChart,
-  Target
+  ArrowDownRight
 } from 'lucide-react'
 import {
   SAMPLE_CREDITS,
@@ -70,7 +68,7 @@ function MoneyCard({
     }`}>
       <p className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">{title}</p>
       <p className={`font-mono text-2xl font-semibold ${highlight ? 'text-cream' : 'text-text-primary'}`}>
-        {currency === '%' ? `${amount.toFixed(1)}%` : formatCurrency(amount, currency)}
+        {currency === '%' ? `${amount.toFixed(1)}%` : formatCurrency(amount)}
       </p>
       {subtitle && (
         <p className="text-xs text-text-muted mt-1">{subtitle}</p>
@@ -542,7 +540,7 @@ function LandsTab({
             </div>
             <div className="p-4 rounded-xl bg-surface">
               <p className="text-xs text-text-muted uppercase mb-1">Price/m²</p>
-              <p className="font-mono text-lg font-semibold text-text-primary">{formatCurrency(selectedLand.pricePerSquareMeter, 'CLP/m²')}</p>
+              <p className="font-mono text-lg font-semibold text-text-primary">{formatCurrency(selectedLand.pricePerSquareMeter)}/m²</p>
             </div>
             <div className="p-4 rounded-xl bg-surface">
               <p className="text-xs text-text-muted uppercase mb-1">Expected Appreciation</p>

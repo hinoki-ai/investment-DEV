@@ -6,12 +6,10 @@ import {
   Brain,
   TrendingUp,
   Clock,
-  ArrowUpRight,
-  ArrowDownRight,
   Activity,
   ChevronRight
 } from 'lucide-react'
-import StatCard, { FeaturedStat, MiniStat } from '../components/StatCard'
+import StatCard, { FeaturedStat } from '../components/StatCard'
 import { dashboardApi, investmentsApi } from '../lib/api'
 import { formatCurrency, formatNumber } from '../lib/utils'
 import { Link } from 'react-router-dom'

@@ -15,7 +15,7 @@ import {
   List
 } from 'lucide-react'
 import { investmentsApi } from '../lib/api'
-import { formatCurrency, categoryLabels } from '../lib/utils'
+import { formatCurrency } from '../lib/utils'
 
 const categories = [
   { value: '', label: 'All Categories' },
