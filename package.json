@@ -8,7 +8,10 @@
     "dev": "cd web && npm run dev",
     "preview": "cd web && npm run preview"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@railway/cli": "^4.30.3",
+    "wrangler": "^4.67.0"
+  },
   "engines": {
     "node": ">=18"
   }

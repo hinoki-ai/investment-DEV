@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+
 package com.family.investments.portal.ui.screens
 
 import android.Manifest
@@ -36,7 +38,6 @@ import com.family.investments.portal.ui.components.*
 import com.family.investments.portal.ui.theme.*
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun UploadScreen(
     sharedUris: List<Uri> = emptyList(),

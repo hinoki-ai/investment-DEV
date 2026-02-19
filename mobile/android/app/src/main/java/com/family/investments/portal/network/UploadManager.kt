@@ -20,7 +20,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okio.source
 import okio.buffer
 import java.io.File
-import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -221,7 +221,7 @@ class UploadManager(
         return try {
             val tempFile = File.createTempFile("upload_", "_tmp", context.cacheDir)
             context.contentResolver.openInputStream(uri)?.use { input ->
-                FileInputStream(tempFile).use { output ->
+                FileOutputStream(tempFile).use { output ->
                     input.copyTo(output)
                 }
             }

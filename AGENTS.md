@@ -4,13 +4,74 @@ This document provides essential context for AI coding agents working on this pr
 
 ---
 
+## 🚨 MEGA RULE: CLI-First Self-Sufficiency
+
+> **Agents MUST attempt to solve ALL tasks themselves using CLI tools and services before asking for user intervention.**
+
+### Core Principles:
+
+1. **Try Everything Yourself First**
+   - Use available Shell commands, system tools, and CLI utilities to investigate and fix issues
+   - Exhaust all programmatic solutions before requesting user help
+   - Research error messages online using web search when stuck
+
+2. **CLI Over GUI**
+   - Prefer command-line interfaces over graphical ones
+   - Use package managers (`npm`, `pip`, `apt`, etc.) programmatically
+   - Automate setup and configuration via scripts
+
+3. **No "I Cannot" Without Exhaustion**
+   - Before stating a limitation, confirm:
+     - [ ] All relevant files have been examined
+     - [ ] All applicable tools have been tried
+     - [ ] Online documentation has been consulted
+     - [ ] Alternative approaches have been attempted
+
+4. **Proactive Exploration**
+   - Don't wait for permission to investigate
+   - Read config files, logs, and source code proactively
+   - Use `grep`, `find`, `cat`, and other tools to understand the system
+
+### When You MAY Ask for Help:
+
+- Missing credentials or secrets required for external services
+- Ambiguous requirements where user intent is unclear
+- Irreversible destructive operations (deleting production data)
+- Legal or ethical concerns
+
+---
+
+## Required CLI Tools (All Operational)
+
+The following CLI tools have been verified and are available for agents to use:
+
+| Category | Tool | Version | Purpose |
+|----------|------|---------|---------|
+| **Build** | `make` | 4.4.1 | Run Makefile commands |
+| **Python** | `python3` | 3.14.2 | Python runtime |
+| | `uv` | 0.9.27 | Fast Python package manager |
+| **Node.js** | `node` | 22.22.0 | JavaScript runtime |
+| | `npm` | 10.9.4 | Node package manager |
+| **Database** | `psql` | 18.1 | PostgreSQL client |
+| | `valkey-server` | 8.1.5 | Redis-compatible server |
+| | `valkey-cli` | 8.1.5 | Redis-compatible CLI |
+| **Containers** | `podman` | 5.7.1 | Docker alternative |
+| | `podman-compose` | 1.5.0 | Compose for Podman |
+| | `docker` | → podman | Symlink for compatibility |
+| | `docker-compose` | → podman-compose | Symlink for compatibility |
+| **System** | `git`, `curl`, `wget`, `ssh` | latest | Standard utilities |
+
+> **Note:** Docker commands work via Podman symlinks for compatibility with existing `docker-compose.yml` and Makefile.
+
+---
+
 ## Project Overview
 
 **Family Investment Dashboard** is a production-ready, three-layer investment tracking system designed for family asset management. It supports multiple investment types (land, stocks, gold, crypto, real estate, bonds) with AI-powered document analysis.
 
 **Key Features:**
 - Direct phone uploads to cloud storage (no file passes through API)
-- AI document analysis using Kimi K2.5 (Moonshot AI)
+- Multi-provider AI document analysis (Kimi K2.5, OpenAI GPT-4o, Anthropic Claude, Google Gemini, Ollama)
 - Web dashboard for portfolio management
 - Multi-device access (phones, laptops, tablets)
 - Structured S3-compatible storage organization
@@ -37,7 +98,7 @@ The system follows a **three-layer architecture**:
                                │
 ┌─────────────────────────────────────────────────────────────────┐
 │                   LAYER 3: INTELLIGENCE                          │
-│              (Multi-Provider: Kimi, GPT-4o, Claude, Gemini)      │
+│        (Multi-Provider: Kimi, GPT-4o, Claude, Gemini, Ollama)    │
 │   • Document OCR     • Entity extraction  • Valuation analysis   │
 │   • Summarization    • Contract parsing   • Risk detection       │
 └─────────────────────────────────────────────────────────────────┘
@@ -49,7 +110,7 @@ The system follows a **three-layer architecture**:
 
 | Component | Technology |
 |-----------|------------|
-| **Backend API** | Python 3.12, FastAPI, SQLAlchemy 2.0 |
+| **Backend API** | Python 3.12, FastAPI, SQLAlchemy 2.0, Pydantic v2 |
 | **Database** | PostgreSQL 16, Redis 7 |
 | **AI Worker** | Python, Multi-provider (Kimi, OpenAI, Claude, Gemini, Ollama) |
 | **Storage** | S3-compatible (Cloudflare R2, AWS S3, MinIO) |
@@ -57,7 +118,7 @@ The system follows a **three-layer architecture**:
 | **State Management** | TanStack Query (React Query), Zustand |
 | **Charts** | Recharts |
 | **Icons** | Lucide React |
-| **Deployment** | Docker, Docker Compose, Vercel |
+| **Deployment** | Docker, Docker Compose, Vercel (via VV deployer), Railway, Render |
 
 ---
 
@@ -80,29 +141,34 @@ The system follows a **three-layer architecture**:
 │   └── Dockerfile                # API container image
 ├── worker/                       # Layer 3: Intelligence Worker
 │   ├── main.py                   # Worker orchestrator (job polling loop)
-│   ├── kimi_client.py            # Kimi K2.5 API integration
+│   ├── ai_client.py              # Multi-provider AI client (Kimi, OpenAI, Claude, Gemini)
 │   ├── storage.py                # Worker storage client
 │   ├── requirements.txt          # Python dependencies
 │   └── Dockerfile                # Worker container image
 ├── web/                          # Web Dashboard (React + Vite)
 │   ├── src/
-│   │   ├── pages/                # Dashboard, Investments, Files, Analysis
-│   │   ├── components/           # Reusable UI components
+│   │   ├── pages/                # Dashboard, Investments, Files, Analysis pages
+│   │   ├── components/           # Reusable UI components (Layout, StatCard)
 │   │   ├── lib/                  # API client (api.ts), utilities
 │   │   ├── App.tsx               # Main app with routes
 │   │   └── main.tsx              # React entry point
 │   ├── package.json              # Node.js dependencies
+│   ├── tsconfig.json             # TypeScript configuration
+│   ├── vite.config.ts            # Vite configuration
 │   └── Dockerfile                # Web container image
 ├── database/
 │   └── init.sql                  # PostgreSQL schema + sample data
 ├── shared/
 │   └── models.py                 # Shared Pydantic schemas
+├── vv/                           # VV deployer (Vercel deployment script)
+│   ├── vv                        # Main deployment script
+│   └── ui.sh                     # UI helper functions
 ├── docker-compose.yml            # Complete local stack
 ├── Makefile                      # Development commands
 ├── vercel.json                   # Vercel deployment config
-└── vv/                           # VV deployer (Vercel deployment script)
-    ├── vv                        # Main deployment script
-    └── ui.sh                     # UI helper functions
+├── railway.json                  # Railway deployment config
+├── render.yaml                   # Render deployment config
+└── .vvrc                         # VV deployer configuration
 ```
 
 ---
@@ -141,7 +207,7 @@ make down           # Stop all services
 make logs           # View all logs
 make logs-api       # View API logs
 make logs-worker    # View Worker logs
-make api            # Start API only
+make api            # Start API only (with infrastructure)
 make worker         # Start Worker only
 make web            # Start Web only
 make db             # Start database services only
@@ -190,7 +256,13 @@ STORAGE_ENDPOINT=https://<account>.r2.cloudflarestorage.com
 STORAGE_ACCESS_KEY=your-access-key
 STORAGE_SECRET_KEY=your-secret-key
 STORAGE_BUCKET=family-investments
-KIMI_API_KEY=your-kimi-api-key  # Get from https://platform.moonshot.cn/
+
+# AI Provider (at least one required)
+AI_API_KEY=your-api-key                    # Generic fallback
+KIMI_API_KEY=your-kimi-api-key             # Moonshot AI
+OPENAI_API_KEY=your-openai-key             # OpenAI
+ANTHROPIC_API_KEY=your-anthropic-key       # Claude
+GOOGLE_API_KEY=your-google-key             # Gemini
 
 # Optional (have defaults)
 ENVIRONMENT=development
@@ -231,6 +303,7 @@ MAX_CONCURRENT_JOBS=3
 - **JobType:** document_analysis, valuation, ocr, summarization, custom
 - **JobStatus:** queued, running, completed, failed, cancelled
 - **DocumentType:** deed, contract, receipt, photo, video, audio, survey, appraisal, tax_document, permit, correspondence, financial_statement, legal, other
+- **InvestmentStatus:** active, sold, pending, under_contract
 
 ### Views
 
@@ -347,7 +420,7 @@ npx tsc --noEmit
 
 ### Production Deployment
 
-**Use the VV deployer (only supported method for frontend):**
+**Frontend (Vercel) - Use the VV deployer (only supported method):**
 
 ```bash
 # Deploy to production
@@ -357,6 +430,13 @@ npx tsc --noEmit
 VV_PROD=false ./vv/vv      # Deploy to preview
 VV_DRY_RUN=true ./vv/vv    # Dry run
 ```
+
+**Backend (Railway/Render):**
+
+The API and Worker are deployed via Docker:
+- `railway.json` - Railway deployment configuration
+- `render.yaml` - Render deployment configuration
+- Both services share the same Docker image with different entrypoints
 
 ### Infrastructure Setup
 
@@ -413,7 +493,7 @@ Phone → POST /api/v1/uploads/confirm
 1. Worker polls `processing_jobs` table for `queued` jobs
 2. Uses `SELECT FOR UPDATE SKIP LOCKED` for concurrent workers
 3. Downloads file from storage to local temp
-4. Calls Kimi K2.5 API for analysis
+4. Calls AI provider API for analysis
 5. Saves results to `analysis_results` table
 6. Updates job status to `completed` or `failed`
 7. Cleans up temp file
@@ -445,7 +525,7 @@ Examples:
    - Check CORS settings for MinIO
 
 3. **Worker not processing jobs:**
-   - Check `KIMI_API_KEY` is set
+   - Check `AI_API_KEY` or provider-specific key is set
    - Verify Redis connection
    - Check worker logs: `make logs-worker`
 
