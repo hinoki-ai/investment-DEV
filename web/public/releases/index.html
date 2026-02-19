@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS Mobile - Download</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0A0A0A;
+            color: #F5F2ED;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #111111;
+            border: 1px solid rgba(232, 213, 196, 0.15);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #F5F2ED;
+        }
+        .subtitle {
+            color: #8A8279;
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+        .download-card {
+            background: #111111;
+            border: 1px solid rgba(232, 213, 196, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .version {
+            display: inline-block;
+            background: rgba(232, 213, 196, 0.1);
+            color: #E8D5C4;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        .file-info {
+            color: #8A8279;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #E8D5C4;
+            color: #0A0A0A;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .download-btn:hover {
+            background: #F5E6D3;
+        }
+        .instructions {
+            background: #111111;
+            border: 1px solid rgba(232, 213, 196, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+        }
+        .instructions h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #E8D5C4;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .instructions ol {
+            color: #8A8279;
+            font-size: 14px;
+            line-height: 1.8;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        .share-link {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(232, 213, 196, 0.1);
+        }
+        .share-url {
+            background: rgba(232, 213, 196, 0.05);
+            border: 1px solid rgba(232, 213, 196, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #E8D5C4;
+            word-break: break-all;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📱</div>
+        <h1>NEXUS Mobile</h1>
+        <p class="subtitle">Family Investment Tracker</p>
+
+        <div class="download-card">
+            <span class="version">Version 1.0</span>
+            <p class="file-info">Android APK • 10.5 MB</p>
+            <a href="nexus-v1.0.apk" class="download-btn" download>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download APK
+            </a>
+        </div>
+
+        <div class="instructions">
+            <h3>Installation Steps</h3>
+            <ol>
+                <li>Download the APK file</li>
+                <li>Open the downloaded file</li>
+                <li>If prompted, allow "Install from unknown sources"</li>
+                <li>Tap "Install" and wait for completion</li>
+                <li>Open NEXUS and configure your API settings</li>
+            </ol>
+        </div>
+
+        <div class="share-link">
+            <p class="subtitle">Share this link with your wife:</p>
+            <div class="share-url">https://inv.aramac.dev/releases/</div>
+        </div>
+    </div>
+</body>
+</html>
