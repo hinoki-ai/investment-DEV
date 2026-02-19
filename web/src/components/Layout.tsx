@@ -8,8 +8,7 @@ import {
   Menu,
   X,
   Calculator,
-  ChevronRight,
-  LogOut
+  ChevronRight
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -28,17 +27,6 @@ const navItems = [
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(false)
-
-  // Track desktop breakpoint
-  useEffect(() => {
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024)
-    }
-    checkDesktop()
-    window.addEventListener('resize', checkDesktop)
-    return () => window.removeEventListener('resize', checkDesktop)
-  }, [])
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
