@@ -210,9 +210,13 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
             # Capture commit output to temp file for error display
             commit_tmp_out=$(mktemp)
             git add -A
+            # Disable exit-on-error temporarily
+            set +e
             # Redirect stdin from /dev/null to prevent git from waiting for input
             git commit -m "chore(vv): auto-commit $DEPLOYMENT_ID" > "$commit_tmp_out" 2>&1 </dev/null
             commit_exit=$?
+            # Re-enable exit-on-error
+            set -e
             if [[ $commit_exit -eq 0 ]]; then
                 rm -f "$commit_tmp_out"
                 ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Commit: ${C_SUCCESS}Complete"
@@ -237,11 +241,13 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                 
                 # Capture push output to temp file for error display
                 push_tmp_out=$(mktemp)
-                # Disable ERR trap temporarily so we can handle errors ourselves
-                trap '' ERR
+                # Disable exit-on-error temporarily so we can handle errors ourselves
+                set +e
                 # Redirect stdin from /dev/null to prevent git from waiting for input
                 git push origin "$CURRENT_BRANCH" > "$push_tmp_out" 2>&1 </dev/null
                 push_exit=$?
+                # Re-enable exit-on-error
+                set -e
                 if [[ $push_exit -eq 0 ]]; then
                     rm -f "$push_tmp_out"
                     ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Remote: ${C_HIGHLIGHT}Synced"
