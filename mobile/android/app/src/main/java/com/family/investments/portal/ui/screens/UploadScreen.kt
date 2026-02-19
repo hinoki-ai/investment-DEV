@@ -24,10 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.family.investments.portal.data.local.SettingsDataStore
@@ -99,18 +99,17 @@ fun UploadScreen(
         }
     }
     
-    // Background gradient
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DeepSpace)
+            .background(Void)
     ) {
-        // Ambient gradient orbs
+        // Ambient background - subtle cream glow
         AmbientGlow()
         
         Scaffold(
             topBar = {
-                GlassTopBar(
+                WarmTopBar(
                     uploadCount = uploads.size,
                     completedCount = completedCount,
                     onSettingsClick = onNavigateToSettings
@@ -140,7 +139,7 @@ fun UploadScreen(
                                 pending = pendingCount,
                                 uploading = uploadingCount,
                                 completed = completedCount,
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
                         
@@ -189,7 +188,7 @@ fun UploadScreen(
                     exit = scaleOut() + fadeOut(),
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
-                    GradientButton(
+                    GlyphButton(
                         onClick = { 
                             checkAndRequestPermissions(context, permissionLauncher, filePickerLauncher)
                         },
@@ -200,10 +199,10 @@ fun UploadScreen(
                         Icon(
                             Icons.Rounded.Add,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Select Files", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Select Files", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -213,7 +212,7 @@ fun UploadScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GlassTopBar(
+private fun WarmTopBar(
     uploadCount: Int,
     completedCount: Int,
     onSettingsClick: () -> Unit
@@ -222,7 +221,7 @@ private fun GlassTopBar(
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "R2 Portal",
+                    text = "Upload",
                     style = MaterialTheme.typography.titleLarge,
                     color = TextPrimary
                 )
@@ -249,13 +248,13 @@ private fun GlassTopBar(
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .size(40.dp)
-                    .background(GlassWhite.copy(alpha = 0.1f), CircleShape)
+                    .background(Surface, CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Settings,
                     contentDescription = "Settings",
                     tint = TextSecondary,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
         },
@@ -274,10 +273,9 @@ private fun UploadStatsHeader(
     completed: Int,
     modifier: Modifier = Modifier
 ) {
-    GlassCard(
+    WarmCard(
         modifier = modifier.fillMaxWidth(),
-        cornerRadius = 16.dp,
-        elevation = 2.dp
+        cornerRadius = 12.dp
     ) {
         Row(
             modifier = Modifier
@@ -293,17 +291,17 @@ private fun UploadStatsHeader(
             StatItem(
                 value = pending,
                 label = "Pending",
-                color = WarningAmber
+                color = Warning
             )
             StatItem(
                 value = uploading,
                 label = "Uploading",
-                color = CyanGlow
+                color = Cream
             )
             StatItem(
                 value = completed,
                 label = "Done",
-                color = SuccessEmerald
+                color = Success
             )
         }
     }
@@ -320,7 +318,10 @@ private fun StatItem(
     ) {
         AnimatedCounter(
             count = value,
-            style = MaterialTheme.typography.headlineSmall.copy(color = color)
+            style = MaterialTheme.typography.titleLarge.copy(
+                color = color,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
         )
         Text(
             text = label,
@@ -339,12 +340,11 @@ private fun BottomActionBar(
     onClearCompleted: () -> Unit,
     onAddMore: () -> Unit
 ) {
-    GlassCard(
+    WarmCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
-        cornerRadius = 24.dp,
-        elevation = 8.dp
+            .padding(16.dp),
+        cornerRadius = 16.dp
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -354,60 +354,44 @@ private fun BottomActionBar(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Add more button
-                OutlinedButton(
+                GlyphButtonSecondary(
                     onClick = onAddMore,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = TextSecondary
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        GlassWhite.copy(alpha = 0.2f)
-                    )
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Rounded.Add, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text("Add")
                 }
                 
                 // Upload/Clear button
                 if (pendingCount > 0 || isUploading) {
-                    GradientButton(
+                    GlyphButton(
                         onClick = onUploadClick,
                         modifier = Modifier.weight(2f),
                         enabled = !isUploading && pendingCount > 0
                     ) {
                         if (isUploading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(18.dp),
                                 strokeWidth = 2.dp,
-                                color = Color.White
+                                color = Void
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("Uploading...")
                         } else {
-                            Icon(Icons.Rounded.CloudUpload, null, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Icon(Icons.Rounded.CloudUpload, null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text("Upload $pendingCount")
                         }
                     }
                 } else {
-                    OutlinedButton(
+                    GlyphButtonSecondary(
                         onClick = onClearCompleted,
-                        modifier = Modifier.weight(2f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = SuccessEmerald
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            SuccessEmerald.copy(alpha = 0.3f)
-                        )
+                        modifier = Modifier.weight(2f)
                     ) {
-                        Icon(Icons.Rounded.CheckCircle, null, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Clear Done")
+                        Icon(Icons.Rounded.Check, null, modifier = Modifier.size(18.dp), tint = Success)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Clear Done", color = Success)
                     }
                 }
             }
@@ -420,15 +404,15 @@ private fun AmbientGlow() {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Top left glow
+        // Top subtle glow
         Box(
             modifier = Modifier
-                .size(300.dp)
+                .size(400.dp)
                 .offset(x = (-100).dp, y = (-100).dp)
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            ElectricViolet.copy(alpha = 0.15f),
+                            Cream.copy(alpha = 0.03f),
                             Color.Transparent
                         )
                     ),
@@ -436,34 +420,19 @@ private fun AmbientGlow() {
                 )
         )
         
-        // Bottom right glow
+        // Bottom subtle glow
         Box(
             modifier = Modifier
-                .size(400.dp)
-                .offset(x = 200.dp, y = 600.dp)
+                .size(500.dp)
+                .offset(x = 100.dp, y = 500.dp)
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            ElectricBlue.copy(alpha = 0.1f),
+                            Cream.copy(alpha = 0.02f),
                             Color.Transparent
                         )
                     ),
                     CircleShape
-                )
-        )
-        
-        // Center subtle glow
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            CosmicPurple.copy(alpha = 0.05f),
-                            Color.Transparent
-                        )
-                    )
                 )
         )
     }
