@@ -1,89 +1,120 @@
 # =============================================================================
-# Docker Compose for Production Deployment
-# =============================================================================
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# NEXUS Production Stack - Docker Compose
+# Reliable for 2 people, slow traffic. No cloud BS needed.
 # =============================================================================
 
-version: '3.8'
+version: "3.8"
 
 services:
+  # PostgreSQL with persistent volume
+  postgres:
+    image: postgres:16-alpine
+    container_name: nexus_db_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-investor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-family_future_2024}
+      POSTGRES_DB: ${DB_NAME:-investments}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"  # Local only for security
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-investor} -d ${DB_NAME:-investments}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command: >
+      postgres 
+      -c max_connections=20
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=8MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+
+  # Redis for job queue
+  redis:
+    image: redis:7-alpine
+    container_name: nexus_redis_prod
+    restart: unless-stopped
+    volumes:
+      - redis_prod_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"  # Local only
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # API Server
   api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: nexus_api_prod
     restart: unless-stopped
     environment:
       - ENVIRONMENT=production
-      - LOG_LEVEL=info
-      - WORKERS=4
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
+      - DATABASE_URL=postgresql://${DB_USER:-investor}:${DB_PASSWORD:-family_future_2024}@postgres:5432/${DB_NAME:-investments}
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT}
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-investments}
+      - STORAGE_REGION=${STORAGE_REGION:-auto}
+      - JWT_SECRET=${JWT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    # Remove volume mounts for production
-    volumes: []
+      start_period: 10s
 
+  # AI Worker
   worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: nexus_worker_prod
     restart: unless-stopped
     environment:
       - ENVIRONMENT=production
-      - LOG_LEVEL=info
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+      - DATABASE_URL=postgresql://${DB_USER:-investor}:${DB_PASSWORD:-family_future_2024}@postgres:5432/${DB_NAME:-investments}
+      - REDIS_URL=redis://redis:6379/0
+      - STORAGE_ENDPOINT=${STORAGE_ENDPOINT}
+      - STORAGE_ACCESS_KEY=${STORAGE_ACCESS_KEY}
+      - STORAGE_SECRET_KEY=${STORAGE_SECRET_KEY}
+      - STORAGE_BUCKET=${STORAGE_BUCKET:-investments}
+      - STORAGE_REGION=${STORAGE_REGION:-auto}
+      - KIMI_API_KEY=${KIMI_API_KEY}
+      - KIMI_API_URL=${KIMI_API_URL:-https://api.moonshot.cn/v1}
+      - KIMI_MODEL=${KIMI_MODEL:-kimi-k2-5}
+      - WORKER_POLL_INTERVAL=${WORKER_POLL_INTERVAL:-10}
+      - MAX_CONCURRENT_JOBS=${MAX_CONCURRENT_JOBS:-2}
+    depends_on:
+      - api
+      - redis
     volumes:
-      # Only mount temp directory
       - worker_temp:/app/temp
 
-  web:
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    deploy:
-      replicas: 1
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-    # Remove volume mounts for production
-    volumes: []
-
-  postgres:
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-    # Don't expose port in production
-    ports: []
-    volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-
-  redis:
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
-    # Don't expose port in production
-    ports: []
-
 volumes:
-  postgres_data_prod:
+  postgres_prod_data:
+    driver: local
+  redis_prod_data:
+    driver: local
   worker_temp:
+    driver: local

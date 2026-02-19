@@ -235,19 +235,43 @@ reset: clean ## Reset everything (WARNING: destroys data!)
 	fi
 
 # =============================================================================
-# Deployment
+# Production Deployment (2 people, slow traffic = Docker is fine)
 # =============================================================================
+
+prod-up: ## Start production stack locally
+	docker-compose -f docker-compose.prod.yml up -d
+	@echo "🚀 Production stack running at http://localhost:8000"
+	@echo "📊 Health check: curl http://localhost:8000/health"
+
+prod-down: ## Stop production stack
+	docker-compose -f docker-compose.prod.yml down
+
+prod-logs: ## View production logs
+	docker-compose -f docker-compose.prod.yml logs -f
+
+prod-backup: ## Backup production database
+	@mkdir -p backups
+	docker-compose -f docker-compose.prod.yml exec -T postgres pg_dump -U investor investments > backups/investments_$(shell date +%Y%m%d_%H%M%S).sql
+	@echo "✅ Backup saved to backups/"
+
+# =============================================================================
+# Railway Deployment (when you want cloud hosting)
+# =============================================================================
+
+railway-login: ## Login to Railway (one-time browser auth)
+	railway login
+
+railway-setup: ## Setup Railway project and PostgreSQL
+	./scripts/railway-setup.sh
+
+railway-deploy: ## Deploy to Railway (requires: make railway-login)
+	./scripts/deploy-railway.sh
+
+railway-db: ## Get Railway database URL
+	@echo "DATABASE_URL=$$(railway variables get DATABASE_URL)"
 
 deploy-web: ## Deploy web to Vercel
 	cd web && npx vercel --prod
-
-deploy-api-staging: ## Deploy API to staging (Railway/Render)
-	@echo "Deploying API to staging..."
-	@echo "Set up Railway/Render CLI and run: railway up"
-
-deploy-api-prod: ## Deploy API to production
-	@echo "Deploying API to production..."
-	@echo "Requires manual approval"
 
 # =============================================================================
 # Utilities
