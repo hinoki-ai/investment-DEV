@@ -1,15 +1,23 @@
 services:
-  # API Service
   - type: web
     name: investment-api
     runtime: docker
-    dockerfilePath: ./api/Dockerfile
-    buildFilter:
-      paths:
-        - api/**
+    dockerfilePath: api/Dockerfile
     envVars:
       - key: ENVIRONMENT
         value: production
+      - key: STORAGE_ENDPOINT
+        value: https://f823a3f5752d5b771fddf73ea67c3056.r2.cloudflarestorage.com
+      - key: STORAGE_ACCESS_KEY
+        value: d8500c48485fef1215439c5a76c47b5d
+      - key: STORAGE_SECRET_KEY
+        value: bd6ab7634b7c9d6284af68e1a29035eeaf879c9251ebfd72a3d49151c6d0b863
+      - key: STORAGE_BUCKET
+        value: investments
+      - key: STORAGE_REGION
+        value: auto
+      - key: CORS_ORIGINS
+        value: https://inv.aramac.dev,https://c0d1422c.investment-aramac.pages.dev
       - key: DATABASE_URL
         fromDatabase:
           name: investment-db
@@ -21,68 +29,12 @@ services:
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
-      - key: CORS_ORIGINS
-        value: "https://inv.aramac.dev,https://investment-aramac.vercel.app"
-      - key: STORAGE_ENDPOINT
-        sync: false  # Set manually in Render dashboard
-      - key: STORAGE_ACCESS_KEY
-        sync: false
-      - key: STORAGE_SECRET_KEY
-        sync: false
-      - key: STORAGE_BUCKET
-        value: family-investments
-      - key: STORAGE_REGION
-        value: auto
     healthCheckPath: /health
-    autoDeploy: true
-
-  # Worker Service
-  - type: worker
-    name: investment-worker
-    runtime: docker
-    dockerfilePath: ./worker/Dockerfile
-    buildFilter:
-      paths:
-        - worker/**
-    envVars:
-      - key: ENVIRONMENT
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: investment-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: investment-redis
-          property: connectionString
-      - key: STORAGE_ENDPOINT
-        sync: false
-      - key: STORAGE_ACCESS_KEY
-        sync: false
-      - key: STORAGE_SECRET_KEY
-        sync: false
-      - key: STORAGE_BUCKET
-        value: family-investments
-      - key: STORAGE_REGION
-        value: auto
-      - key: KIMI_API_KEY
-        sync: false
-      - key: KIMI_API_URL
-        value: https://api.moonshot.cn/v1
-      - key: WORKER_POLL_INTERVAL
-        value: "10"
-      - key: MAX_CONCURRENT_JOBS
-        value: "3"
-    autoDeploy: true
 
 databases:
   - name: investment-db
     databaseName: investments
     user: investor
-    plan: free
 
 redis:
   - name: investment-redis
-    plan: free
-    ipAllowList: []
