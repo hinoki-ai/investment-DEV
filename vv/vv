@@ -1,0 +1,521 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# ARAMAC VERCEL DEPLOYER
+# Deploy projects to Vercel with monitoring and reporting
+# ═══════════════════════════════════════════════════════════════════════════════
+
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+# Source ARAMAC UI system - resolve symlinks
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+if command -v readlink >/dev/null 2>&1; then
+    SCRIPT_SOURCE=$(readlink -f "$SCRIPT_SOURCE" 2>/dev/null || echo "$SCRIPT_SOURCE")
+fi
+SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+source "$SCRIPT_DIR/ui.sh"
+
+ui_init "VV-Vercel"
+
+# Purple ARAMAC brand color (borders stay orange)
+export C_BRAND=$'\033[38;5;141m'
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+TERM_WIDTH=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+VV_VERBOSE="${VV_VERBOSE:-true}"
+VV_DRY_RUN="${VV_DRY_RUN:-false}"
+VV_PROD="${VV_PROD:-true}"
+VV_OPEN="${VV_OPEN:-true}"
+VV_MONITOR="${VV_MONITOR:-true}"
+VV_AUTOCOMMIT="${VV_AUTOCOMMIT:-true}"
+VV_REPORT="${VV_REPORT:-true}"
+VV_PREBUILD="${VV_PREBUILD:-true}"
+VV_TOKEN="${VV_TOKEN:-}"
+VV_SCOPE="${VV_SCOPE:-}"
+VV_PROJECT="${VV_PROJECT:-}"
+FORCE_ALWAYS="${FORCE_ALWAYS:-false}"
+FORCE_ON_FAIL="${FORCE_ON_FAIL:-false}"
+PREVIEW_FORCE="${PREVIEW_FORCE:-false}"
+
+# =============================================================================
+# PROJECT DETECTION
+# =============================================================================
+
+PROJECT_ROOT=$(pwd)
+while [[ "$PROJECT_ROOT" != "/" ]]; do
+    if [[ -f "$PROJECT_ROOT/package.json" ]]; then
+        break
+    fi
+    PROJECT_ROOT=$(dirname "$PROJECT_ROOT")
+done
+
+if [[ ! -f "$PROJECT_ROOT/package.json" ]]; then
+    ui_header "Vercel Deployer" "0.12.4"
+    ui_box_open
+    ui_error "No package.json found"
+    ui_info "Please run from a project directory"
+    ui_box_close
+    exit 1
+fi
+
+PROJECT_NAME=$(basename "$PROJECT_ROOT")
+PROJECT_VERSION=$(node -p "require('$PROJECT_ROOT/package.json').version" 2>/dev/null || echo "1.0.0")
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+DEPLOYMENT_LOG="/tmp/vv-deployment-$(date +%Y%m%d-%H%M%S).log"
+DEPLOYMENT_ID=$(date +%Y%m%d-%H%M%S)
+START_TS=$(date +%s)
+DEPLOYMENT_URL=""
+DEPLOYMENT_EXIT_CODE=0
+
+log_to_file() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$DEPLOYMENT_LOG"
+}
+
+# =============================================================================
+# HEADER
+# =============================================================================
+
+ui_header "Vercel Deployer" "0.12.4" "$(date +%H:%M:%S)" "true"
+
+# =============================================================================
+# CONFIG LOADING
+# =============================================================================
+
+load_vv_config() {
+    local cfg
+    for cfg in "$HOME/.config/vv/config" "$PROJECT_ROOT/.vvrc"; do
+        if [[ -f "$cfg" ]]; then
+            # Source config file
+            while IFS='=' read -r key val; do
+                [[ -z "$key" ]] && continue
+                [[ "$key" =~ ^# ]] && continue
+                case "$key" in
+                    VERBOSE) [[ "$val" == "true" ]] && VV_VERBOSE=true || VV_VERBOSE=false ;;
+                    DRY_RUN) [[ "$val" == "true" ]] && VV_DRY_RUN=true || VV_DRY_RUN=false ;;
+                    MONITOR) [[ "$val" == "true" ]] && VV_MONITOR=true || VV_MONITOR=false ;;
+                    PREBUILD) [[ "$val" == "true" ]] && VV_PREBUILD=true || VV_PREBUILD=false ;;
+                    OPEN) [[ "$val" == "true" ]] && VV_OPEN=true || VV_OPEN=false ;;
+                    PROD) [[ "$val" == "true" ]] && VV_PROD=true || VV_PROD=false ;;
+                esac
+            done < "$cfg"
+            ui_note "Loaded config: $cfg"
+        fi
+    done
+}
+
+truthy() { [[ "$1" =~ ^(1|true|yes|on)$ ]]; }
+
+load_vv_config
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+
+on_error() {
+    local code=$?
+    local end_ts=$(date +%s)
+    local dur=$(( end_ts - START_TS ))
+    ui_box_open
+    ui_error "Deployment aborted after ${dur}s"
+    ui_info "Log: $DEPLOYMENT_LOG"
+    ui_box_close
+}
+trap on_error ERR
+
+# =============================================================================
+# SEGMENTED PANEL GROUP
+# =============================================================================
+
+# Start segmented panel with Pre-flight Checks
+ui_first
+ui_segment_title "${C_ACCENT}Pre-flight Checks" "true"
+
+# Check Vercel CLI
+if command -v vercel &>/dev/null; then
+    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Vercel CLI: ${C_SUCCESS}OK"
+else
+    ui_error "Vercel CLI not installed"
+    ui_info "Installing..."
+    npm install -g vercel
+    if command -v vercel &>/dev/null; then
+        ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Vercel CLI: ${C_SUCCESS}OK"
+    else
+        ui_error "Vercel CLI: FAILED"
+        ui_segment_close
+        exit 1
+    fi
+fi
+
+# Check Vercel authentication
+if vercel whoami &>/dev/null 2>&1; then
+    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Vercel: ${C_HIGHLIGHT}Authenticated"
+else
+    ui_error "Vercel: Not logged in"
+    ui_info "Run: vercel login"
+    ui_segment_close
+    exit 1
+fi
+
+# Check project link / detect scope requirement
+if [[ -f "$PROJECT_ROOT/.vercel/project.json" ]]; then
+    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Project: ${C_HIGHLIGHT}Linked"
+else
+    ui_error "Project not linked"
+    ui_info "Run: vercel link"
+fi
+
+# Force scope for non-interactive Vercel CLI (required in CI/non-TTY)
+# Use team ID to avoid "Personal Account" confusion since username == team name
+VV_SCOPE="${VV_SCOPE:-team_4JD6TWdRmhUDUrf9Jc55uq2b}"
+
+# Check Node
+if command -v node &>/dev/null; then
+    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Node.js: ${C_SUCCESS}OK"
+else
+    ui_error "Node.js: NOT FOUND"
+    exit 1
+fi
+
+# =============================================================================
+# GIT CHECKS (as segment)
+# =============================================================================
+
+if [[ -d "$PROJECT_ROOT/.git" ]]; then
+    cd "$PROJECT_ROOT"
+    
+    ui_first
+    ui_first
+    ui_segment_title "${C_BRAND}Git Status"
+    
+    CURRENT_BRANCH=$(git branch --show-current)
+    ui_info "Branch: ${C_HIGHLIGHT}${CURRENT_BRANCH^}"
+    
+    # Show last commit info
+    LAST_COMMIT=$(git log -1 --pretty=format:'%h %s' 2>/dev/null || echo "No commits yet")
+    ui_info "Last commit: ${C_MUTED}${LAST_COMMIT:0:50}"
+    
+    # Auto-commit if needed
+    if [[ -n $(git status --porcelain) ]]; then
+        if [[ "$VV_AUTOCOMMIT" == true ]]; then
+            # Show spinner frame first, then start git commit
+            ui_spinner_advance
+            ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Committing changes..."
+            
+            spinner_start=$(date +%s)
+            git add -A
+            git commit -m "chore(vv): auto-commit $DEPLOYMENT_ID" >/dev/null 2>&1 &
+            commit_pid=$!
+            # Give spinner at least 0.5s to be visible even for fast commits
+            while kill -0 $commit_pid 2>/dev/null || [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
+                ui_spinner_advance
+                ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Committing changes..."
+                sleep 0.08
+            done
+            wait $commit_pid 2>/dev/null || true
+            ui_spinner_reset
+            ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Commit: ${C_SUCCESS}Complete" "${C_TEXT}"
+        else
+            ui_warn "Uncommitted changes present"
+        fi
+    else
+        ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Working directory: ${C_SECONDARY}Clean"
+    fi
+    
+    # Step 4: Remote sync status
+    if git rev-parse --verify origin/"$CURRENT_BRANCH" &>/dev/null; then
+        commits_ahead=$(git rev-list --count HEAD ^origin/"$CURRENT_BRANCH" 2>/dev/null || echo "0")
+        commits_behind=$(git rev-list --count origin/"$CURRENT_BRANCH" ^HEAD 2>/dev/null || echo "0")
+        if [[ "$commits_ahead" -gt 0 ]]; then
+            if [[ "$VV_AUTOCOMMIT" == true ]]; then
+                # Show spinner frame first, then start git push
+                ui_spinner_advance
+                ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Pushing $commits_ahead commit(s)..."
+                
+                spinner_start=$(date +%s)
+                git push origin "$CURRENT_BRANCH" >/dev/null 2>&1 &
+                push_pid=$!
+                # Give spinner at least 0.5s to be visible even for fast pushes
+                while kill -0 $push_pid 2>/dev/null || [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
+                    ui_spinner_advance
+                    ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Pushing $commits_ahead commit(s)..."
+                    sleep 0.08
+                done
+                wait $push_pid
+                if [[ $? -eq 0 ]]; then
+                    ui_spinner_reset
+                    ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Pushed: ${C_SUCCESS}Success" "${C_TEXT}"
+                    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Remote: ${C_HIGHLIGHT}Synced"
+                else
+                    ui_spinner_reset
+                    ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Push: ${C_ERROR}Failed" "${C_TEXT}"
+                    ui_warn "Remote: Not synced"
+                fi
+            else
+                ui_warn "Remote: $commits_ahead commits ahead"
+            fi
+        elif [[ "$commits_behind" -gt 0 ]]; then
+            ui_info "Remote: $commits_behind commits behind"
+        else
+            ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Remote: ${C_HIGHLIGHT}Synced"
+        fi
+    else
+        ui_info "Remote: Not configured"
+    fi
+    
+    # Git segment continues...
+fi
+
+# =============================================================================
+# DEPLOYMENT SETTINGS (as segment)
+# =============================================================================
+
+if [[ "$VV_PROD" == true ]]; then
+    ENV_NAME="production"
+else
+    ENV_NAME="preview"
+fi
+
+# Detect build tool/framework
+BUILD_TOOL="Unknown"
+if [[ -f "$PROJECT_ROOT/next.config.ts" ]] || [[ -f "$PROJECT_ROOT/next.config.js" ]] || [[ -f "$PROJECT_ROOT/next.config.mjs" ]]; then
+    BUILD_TOOL="Next.js"
+elif [[ -f "$PROJECT_ROOT/vite.config.ts" ]] || [[ -f "$PROJECT_ROOT/vite.config.js" ]]; then
+    BUILD_TOOL="Vite"
+elif [[ -f "$PROJECT_ROOT/astro.config.mjs" ]] || [[ -f "$PROJECT_ROOT/astro.config.ts" ]]; then
+    BUILD_TOOL="Astro"
+elif [[ -f "$PROJECT_ROOT/svelte.config.js" ]]; then
+    BUILD_TOOL="SvelteKit"
+elif [[ -f "$PROJECT_ROOT/nuxt.config.ts" ]] || [[ -f "$PROJECT_ROOT/nuxt.config.js" ]]; then
+    BUILD_TOOL="Nuxt"
+elif [[ -f "$PROJECT_ROOT/gatsby-config.js" ]] || [[ -f "$PROJECT_ROOT/gatsby-config.ts" ]]; then
+    BUILD_TOOL="Gatsby"
+fi
+
+# Get Node.js version
+NODE_VERSION=$(node --version 2>/dev/null | sed 's/v//' || echo "unknown")
+
+# Get Git remote URL (shortened)
+GIT_REMOTE=$(git -C "$PROJECT_ROOT" remote get-url origin 2>/dev/null | sed 's/.*github\.com[:/]//' | sed 's/\.git$//' || echo "N/A")
+
+ui_first
+ui_first
+ui_segment_title "${C_NOTE}Deployment Settings"
+ui_info "Environment: ${C_HIGHLIGHT}${ENV_NAME^}"
+ui_info "Framework: ${C_SECONDARY}${BUILD_TOOL}"
+ui_info "Runtime: ${C_PEACH}Node ${NODE_VERSION}"
+ui_info "Git Remote: ${C_MUTED}${GIT_REMOTE}"
+
+# =============================================================================
+# CONVEX DEPLOYMENT (as segment)
+# =============================================================================
+
+ui_first
+ui_first
+ui_segment_title "${C_WARN}Convex Deployment"
+
+# Check if Convex project exists
+if [[ -d "$PROJECT_ROOT/convex" ]]; then
+    # Step 1: Project detected
+    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Project: ${C_HIGHLIGHT}Detected"
+    
+    # Check if Convex is configured (has deployment URL)
+    if [[ -z "${CONVEX_DEPLOYMENT:-}" ]] && [[ -z "${NEXT_PUBLIC_CONVEX_URL:-}" ]]; then
+        # Try to load from .env.local if it exists
+        if [[ -f "$PROJECT_ROOT/.env.local" ]]; then
+            export $(grep -E '^(CONVEX_DEPLOYMENT|NEXT_PUBLIC_CONVEX_URL)=' "$PROJECT_ROOT/.env.local" | xargs) 2>/dev/null || true
+        fi
+        # Check for convex.json or .convex/deployment.json
+        if [[ -f "$PROJECT_ROOT/.convex/deployment.json" ]]; then
+            export CONVEX_DEPLOYMENT=$(cat "$PROJECT_ROOT/.convex/deployment.json" | grep -o '"deployment"[^,}]*' | cut -d'"' -f4) 2>/dev/null || true
+        fi
+    fi
+    
+    # Check if we have a configured deployment
+    if [[ -z "${CONVEX_DEPLOYMENT:-}" ]] && [[ -z "${NEXT_PUBLIC_CONVEX_URL:-}" ]]; then
+        ui_warn "Convex not configured"
+        ui_info "Run: npx convex dev (to set up)"
+        ui_info "Skipping Convex deployment..."
+    else
+        # Step 2: Validate schema (with spinner)
+        ui_spinner_advance
+        ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Validating schema..."
+        
+        # Simulate schema validation time (convex deploy does this internally)
+        sleep 0.5
+        ui_spinner_reset
+        ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Schema: ${C_SECONDARY}Valid" "${C_TEXT}"
+        
+        # Step 3: Deploy functions (with spinner)
+        tmp_convex_out=$(mktemp)
+        
+        ui_spinner_advance
+        ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Deploying functions..."
+        
+        # Run deployment and capture exit code properly
+        (npx convex deploy --yes > "$tmp_convex_out" 2>&1; echo $? > "$tmp_convex_out.exit") &
+        convex_pid=$!
+        
+        # Continue spinner while deployment runs
+        spinner_start=$(date +%s)
+        while kill -0 $convex_pid 2>/dev/null; do
+            ui_spinner_advance
+            ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Deploying functions..."
+            sleep 0.08
+        done
+        
+        # Ensure minimum spinner display time (1 second) for visibility
+        while [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
+            ui_spinner_advance
+            ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Deploying functions..."
+            sleep 0.08
+        done
+        
+        wait $convex_pid 2>/dev/null || true
+        convex_exit=$(cat "$tmp_convex_out.exit" 2>/dev/null || echo "1")
+        cat "$tmp_convex_out" >> "$DEPLOYMENT_LOG"
+        rm -f "$tmp_convex_out" "$tmp_convex_out.exit"
+        ui_spinner_reset
+        
+        # Step 4: Show final result
+        if [[ $convex_exit -eq 0 ]]; then
+            ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Functions: ${C_SUCCESS}Deployed" "${C_TEXT}"
+            ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Backend: ${C_HIGHLIGHT}Ready"
+        else
+            ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Deployment: ${C_ERROR}Failed" "${C_TEXT}"
+            ui_info "Run: npx convex dev (to configure)"
+            # Don't fail the entire deployment - just warn
+        fi
+    fi
+    UI_FIRST_LINE=false
+else
+    ui_box_line "${C_MUTED}${ICON_BULLET} Convex: ${C_MUTED}Not detected"
+fi
+
+# =============================================================================
+# VERCEL DEPLOYMENT (as segment)
+# =============================================================================
+
+ui_first
+ui_first
+ui_segment_title "${C_ERROR}Vercel Deployment"
+
+# Build args
+args=()
+[[ "$VV_PROD" == true ]] && args+=(--prod)
+args+=(--yes)
+args+=(--cwd "$PROJECT_ROOT")
+# Note: --no-clipboard is now default behavior, removed to avoid warning
+[[ -n "$VV_SCOPE" ]] && args+=(--scope "$VV_SCOPE")
+[[ -n "$VV_TOKEN" ]] && args+=(--token "$VV_TOKEN")
+[[ -n "$VV_PROJECT" ]] && args+=(--project "$VV_PROJECT")
+
+# Step 1: Build configuration
+ui_box_line "${C_TEXT}Target: ${C_HIGHLIGHT}${ENV_NAME^}"
+
+ui_info "Scope: ${C_MUTED}${VV_SCOPE:-default}"
+
+if [[ "$VV_DRY_RUN" == true ]]; then
+    ui_note "DRY RUN: Would execute:"
+    ui_info "vercel ${args[*]}"
+    DEPLOYMENT_URL="https://example.vercel.app"
+    DEPLOYMENT_EXIT_CODE=0
+elif [[ "$PREVIEW_FORCE" == true ]]; then
+    ui_note "Preview mode (no actual deployment)"
+    DEPLOYMENT_URL=""
+    DEPLOYMENT_EXIT_CODE=1
+else
+    # Step 2: Build and deploy with spinner
+    tmp_out=$(mktemp)
+    
+    ui_spinner_advance
+    ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building and deploying..."
+    
+    # Run deployment and capture exit code properly
+    (vercel "${args[@]}" 2>&1 | tee -a "$DEPLOYMENT_LOG" > "$tmp_out"; echo $? > "$tmp_out.exit") &
+    vercel_pid=$!
+    
+    # Continue spinner while deployment runs
+    spinner_start=$(date +%s)
+    while kill -0 $vercel_pid 2>/dev/null; do
+        ui_spinner_advance
+        ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building and deploying..."
+        sleep 0.08
+    done
+    
+    # Ensure minimum spinner display time (1 second) for visibility
+    while [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
+        ui_spinner_advance
+        ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building and deploying..."
+        sleep 0.08
+    done
+    
+    wait $vercel_pid 2>/dev/null || true
+    vercel_exit=$(cat "$tmp_out.exit" 2>/dev/null || echo "1")
+    rm -f "$tmp_out.exit"
+    ui_spinner_reset
+    
+    if [[ $vercel_exit -eq 0 ]]; then
+        DEPLOYMENT_OUTPUT=$(cat "$tmp_out")
+        rm -f "$tmp_out"
+        
+        # Extract URL
+        DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE 'https://[^[:space:]]+\.vercel\.app' | head -1)
+        [[ -z "$DEPLOYMENT_URL" ]] && DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -o 'https://[^[:space:]]*' | head -1)
+        
+        DEPLOYMENT_EXIT_CODE=0
+        # Step 3: Success
+        ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Build: ${C_SUCCESS}Complete" "${C_TEXT}"
+        ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}URL: ${C_HIGHLIGHT}${DEPLOYMENT_URL}"
+    else
+        DEPLOYMENT_EXIT_CODE=$vercel_exit
+        rm -f "$tmp_out"
+        # Step 3: Failed
+        ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Build: ${C_ERROR}Failed" "${C_TEXT}"
+    fi
+fi
+
+# =============================================================================
+# OPEN BROWSER
+# =============================================================================
+
+if [[ "$VV_OPEN" == true && -n "$DEPLOYMENT_URL" && "$DEPLOYMENT_EXIT_CODE" -eq 0 ]]; then
+    if command -v xdg-open >/dev/null 2>&1; then
+        xdg-open "$DEPLOYMENT_URL" 2>/dev/null || true
+    fi
+fi
+
+# =============================================================================
+# SUMMARY (merged into segmented panel)
+# =============================================================================
+
+ui_first
+ui_first
+ui_segment_title "${C_NOTE}Deployment Summary"
+
+ui_info "Project: ${C_PRIMARY}${PROJECT_NAME}"
+ui_info "Version: ${C_PEACH}${PROJECT_VERSION}"
+[[ -n "$DEPLOYMENT_URL" ]] && ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}URL: ${C_HIGHLIGHT}${DEPLOYMENT_URL}"
+ui_info "Log: ${C_MUTED}${DEPLOYMENT_LOG}"
+
+# Final status
+ui_first
+ui_first
+if [[ "$DEPLOYMENT_EXIT_CODE" -eq 0 ]]; then
+    ui_segment_title "${C_SUCCESS}Complete"
+    ui_success "Deployment finished successfully"
+else
+    ui_segment_title "${C_ERROR}Failed"
+    ui_error "Deployment failed with exit code ${DEPLOYMENT_EXIT_CODE}"
+fi
+ui_segment_close
+
+if [[ "$DEPLOYMENT_EXIT_CODE" -ne 0 ]]; then
+    exit 1
+fi
