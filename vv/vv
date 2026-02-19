@@ -209,9 +209,11 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
             ui_spinner_advance
             ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Committing changes..."
             
+            # Capture commit output to temp file for error display
+            commit_tmp_out=$(mktemp)
             spinner_start=$(date +%s)
             git add -A
-            git commit -m "chore(vv): auto-commit $DEPLOYMENT_ID" >/dev/null 2>&1 &
+            git commit -m "chore(vv): auto-commit $DEPLOYMENT_ID" > "$commit_tmp_out" 2>&1 &
             commit_pid=$!
             # Give spinner at least 0.5s to be visible even for fast commits
             while kill -0 $commit_pid 2>/dev/null || [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
@@ -219,9 +221,18 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                 ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Committing changes..."
                 sleep 0.08
             done
-            wait $commit_pid 2>/dev/null || true
-            ui_spinner_reset
-            ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Commit: ${C_SUCCESS}Complete" "${C_TEXT}"
+            wait $commit_pid
+            commit_exit=$?
+            if [[ $commit_exit -eq 0 ]]; then
+                rm -f "$commit_tmp_out"
+                ui_spinner_reset
+                ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Commit: ${C_SUCCESS}Complete" "${C_TEXT}"
+            else
+                rm -f "$commit_tmp_out"
+                ui_spinner_reset
+                ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Commit: ${C_ERROR}Failed" "${C_TEXT}"
+                # Don't abort on commit failure - it might be nothing to commit
+            fi
         else
             ui_warn "Uncommitted changes present"
         fi
@@ -239,8 +250,10 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                 ui_spinner_advance
                 ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Pushing $commits_ahead commit(s)..."
                 
+                # Capture push output to temp file for error display
+                push_tmp_out=$(mktemp)
                 spinner_start=$(date +%s)
-                git push origin "$CURRENT_BRANCH" >/dev/null 2>&1 &
+                git push origin "$CURRENT_BRANCH" > "$push_tmp_out" 2>&1 &
                 push_pid=$!
                 # Give spinner at least 0.5s to be visible even for fast pushes
                 while kill -0 $push_pid 2>/dev/null || [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
@@ -249,14 +262,27 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
                     sleep 0.08
                 done
                 wait $push_pid
-                if [[ $? -eq 0 ]]; then
+                push_exit=$?
+                if [[ $push_exit -eq 0 ]]; then
+                    rm -f "$push_tmp_out"
                     ui_spinner_reset
                     ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Pushed: ${C_SUCCESS}Success" "${C_TEXT}"
                     ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Remote: ${C_HIGHLIGHT}Synced"
                 else
                     ui_spinner_reset
                     ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Push: ${C_ERROR}Failed" "${C_TEXT}"
-                    ui_warn "Remote: Not synced"
+                    ui_error "Git push failed with exit code $push_exit"
+                    # Display the actual error
+                    if [[ -s "$push_tmp_out" ]]; then
+                        ui_info "Error details:"
+                        while IFS= read -r line; do
+                            ui_box_line "${C_MUTED}  $line"
+                        done < "$push_tmp_out"
+                    fi
+                    rm -f "$push_tmp_out"
+                    # Abort deployment on push failure
+                    ui_segment_close
+                    exit 1
                 fi
             else
                 ui_warn "Remote: $commits_ahead commits ahead"
