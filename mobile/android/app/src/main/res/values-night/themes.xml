@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- 
-        Base application theme for Light mode.
-        Uses dark status bar with light content (windowLightStatusBar=false).
+        Application theme for Night/Dark mode.
+        Overrides colors for better visibility on dark backgrounds.
     -->
     <style name="Theme.InvestmentPortal" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- Status bar -->
+        <!-- Status bar - darker for dark mode -->
         <item name="android:statusBarColor">@color/status_bar_color</item>
         <item name="android:navigationBarColor">@color/navigation_bar_color</item>
         <item name="android:windowLightStatusBar">false</item>
@@ -16,8 +16,7 @@
     </style>
     
     <!-- 
-        Splash theme for cold start.
-        Shows immediately while app loads.
+        Splash theme for cold start in dark mode.
     -->
     <style name="Theme.InvestmentPortal.Splash" parent="Theme.InvestmentPortal">
         <item name="android:windowBackground">@drawable/ic_launcher_background</item>

@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- Brand Colors -->
+    <color name="deep_space">#0F0F1A</color>
+    <color name="midnight">#1A1A2E</color>
+    <color name="cosmic_purple">#2D1B4E</color>
+    
+    <!-- Accent Colors -->
+    <color name="electric_violet">#8B5CF6</color>
+    <color name="electric_blue">#3B82F6</color>
+    <color name="cyan_glow">#06B6D4</color>
+    <color name="mint_green">#10B981</color>
+    
+    <!-- Light theme colors -->
+    <color name="status_bar_color">#0F0F1A</color>
+    <color name="navigation_bar_color">#0F0F1A</color>
+    
+    <!-- Accent colors -->
+    <color name="primary_accent">#8B5CF6</color>
+    <color name="secondary_accent">#3B82F6</color>
+    <color name="tertiary_accent">#06B6D4</color>
+    
+    <!-- Legacy support -->
+    <color name="ic_launcher_background">#0F0F1A</color>
+    <color name="purple_200">#A78BFA</color>
+    <color name="purple_500">#8B5CF6</color>
+    <color name="purple_700">#7C3AED</color>
+    <color name="teal_200">#22D3EE</color>
+    <color name="teal_700">#0891B2</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
-    <!-- Brand Colors -->
-    <color name="brand_primary">#FF4F46E5</color>
-    <color name="brand_primary_dark">#FF4338CA</color>
-    <color name="brand_secondary">#FF10B981</color>
-    <color name="brand_error">#FFEF4444</color>
-    <color name="brand_warning">#FFF59E0B</color>
-    <color name="brand_success">#FF10B981</color>
 </resources>
