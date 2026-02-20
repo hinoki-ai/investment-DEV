@@ -76,6 +76,7 @@
         .download-btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             background: #E8D5C4;
             color: #0A0A0A;
@@ -85,9 +86,45 @@
             font-weight: 600;
             font-size: 16px;
             transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            min-height: 56px;
         }
         .download-btn:hover {
             background: #F5E6D3;
+            transform: translateY(-1px);
+        }
+        .download-btn:active {
+            transform: translateY(0);
+        }
+        .download-btn:disabled {
+            background: #5c554d;
+            color: #8A8279;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .download-btn.downloading {
+            background: #7fb069;
+            color: #0A0A0A;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        .download-btn.downloading .spinner {
+            display: block;
+        }
+        .download-btn.downloading .btn-icon {
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         .instructions {
             background: #111111;
@@ -128,6 +165,25 @@
             word-break: break-all;
             font-family: monospace;
         }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #111111;
+            border: 1px solid rgba(127, 176, 105, 0.3);
+            color: #7fb069;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -138,22 +194,24 @@
 
         <div class="download-card">
             <span class="version">Version 1.0</span>
-            <p class="file-info">Android APK • 10.5 MB</p>
-            <a href="nexus-v1.0.apk" class="download-btn" download>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <p class="file-info">Android APK • 11 MB</p>
+            <button id="downloadBtn" class="download-btn" onclick="downloadAPK()">
+                <svg class="spinner" viewBox="0 0 24 24"></svg>
+                <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
-                Download APK
-            </a>
+                <span class="btn-text">Download APK</span>
+            </button>
         </div>
 
         <div class="instructions">
             <h3>Installation Steps</h3>
             <ol>
-                <li>Download the APK file</li>
-                <li>Open the downloaded file</li>
+                <li>Tap the Download APK button above</li>
+                <li>Wait for download to complete</li>
+                <li>Open the downloaded file from notifications</li>
                 <li>If prompted, allow "Install from unknown sources"</li>
                 <li>Tap "Install" and wait for completion</li>
                 <li>Open NEXUS and configure your API settings</li>
@@ -161,9 +219,59 @@
         </div>
 
         <div class="share-link">
-            <p class="subtitle">Share this link with your wife:</p>
+            <p class="subtitle">Share this link:</p>
             <div class="share-url">https://inv.aramac.dev/releases/</div>
         </div>
     </div>
+
+    <div id="toast" class="toast">Download started!</div>
+
+    <script>
+        function downloadAPK() {
+            const btn = document.getElementById('downloadBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const toast = document.getElementById('toast');
+            
+            // Disable button and show loading state
+            btn.disabled = true;
+            btn.classList.add('downloading');
+            btnText.textContent = 'Downloading...';
+            
+            // Create a temporary anchor to trigger download
+            const link = document.createElement('a');
+            link.href = 'nexus-v1.0.apk';
+            link.download = 'nexus-v1.0.apk';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            // Trigger click
+            link.click();
+            
+            // Show toast
+            toast.classList.add('show');
+            
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(link);
+            }, 100);
+            
+            // Re-enable button after delay
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.classList.remove('downloading');
+                btnText.textContent = 'Download APK';
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Also allow direct link click as fallback
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preload APK for faster download
+            const preload = document.createElement('link');
+            preload.rel = 'prefetch';
+            preload.href = 'nexus-v1.0.apk';
+            document.head.appendChild(preload);
+        });
+    </script>
 </body>
 </html>

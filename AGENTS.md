@@ -778,12 +778,12 @@ Domain: `https://inv.aramac.dev`
 Project name: `investment-aramac`
 Build output: `prism/web/dist`
 
-**ONE-LINE DEPLOY:**
+**QUICK DEPLOY (One Command):**
 ```bash
-cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
+cd /home/hinoki/HinokiDEV/Investments && ./prism/vv/cloudflare-deployer
 ```
 
-**STEP BY STEP:**
+**MANUAL DEPLOY (If deployer fails):**
 ```bash
 # 1. Go to web directory
 cd /home/hinoki/HinokiDEV/Investments/prism/web
@@ -799,15 +799,14 @@ npx wrangler pages deploy dist --project-name=investment-aramac --branch=product
 ```bash
 # Check if site is live
 curl -I https://inv.aramac.dev
-
 # Should return: HTTP/2 200
 ```
 
 **TROUBLESHOOTING:**
 - If `wrangler` is not found: `npm install -g wrangler`
 - If build fails: Check `npm install` first
-- Project is already configured in `/prism/web/wrangler.toml`
-- DNS is already configured (inv.aramac.dev → Cloudflare Pages)
+- Project config: `/prism/web/wrangler.toml`
+- DNS already configured: `inv.aramac.dev` → Cloudflare Pages
 
 ---
 
