@@ -13,6 +13,7 @@ from sqlalchemy import select, func, desc
 import httpx
 
 from routers._imports import db_models, schemas, get_async_db
+from middleware import cache_response, invalidate_dashboard_cache
 
 
 router = APIRouter()
@@ -55,6 +56,7 @@ async def fetch_usd_clp_rate() -> Optional[float]:
 
 
 @router.get("/market-data")
+@cache_response(expire_seconds=300)  # Cache market data for 5 minutes
 async def get_market_data():
     """
     Get current market data for gold and silver prices.
@@ -100,6 +102,7 @@ async def get_market_data():
 
 
 @router.get("/stats", response_model=dict)
+@cache_response(expire_seconds=60)
 async def get_dashboard_stats(
     db: AsyncSession = Depends(get_async_db)
 ):
@@ -187,6 +190,7 @@ async def get_dashboard_stats(
 
 
 @router.get("/category-breakdown")
+@cache_response(expire_seconds=60)
 async def get_category_breakdown(
     db: AsyncSession = Depends(get_async_db)
 ):
@@ -223,6 +227,7 @@ async def get_category_breakdown(
 
 
 @router.get("/recent-activity")
+@cache_response(expire_seconds=30)
 async def get_recent_activity(
     limit: int = 10,
     db: AsyncSession = Depends(get_async_db)

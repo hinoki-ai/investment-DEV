@@ -11,7 +11,14 @@ interface MarketData {
   lastUpdate: Date | null
 }
 
-export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) {
+interface MarketDataTickerProps {
+  collapsed: boolean
+  showTime?: boolean
+}
+
+export default function MarketDataTicker({ collapsed, showTime = true }: MarketDataTickerProps) {
+  // showTime is reserved for future use
+  void showTime
   const [currentTime, setCurrentTime] = useState<Date>(new Date())
   const [marketData, setMarketData] = useState<MarketData>({
     usd: null,
@@ -189,17 +196,19 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
   if (collapsed) {
     return (
       <div className="px-2 py-3 space-y-3">
-        {/* Date/Time Icon */}
-        <div className="group relative flex justify-center">
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface/50 text-text-muted hover:text-cream hover:bg-surface transition-colors">
-            <Clock className="h-4 w-4" />
+        {/* Date/Time Icon - only show if showTime is true */}
+        {showTime && (
+          <div className="group relative flex justify-center">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface/50 text-text-muted hover:text-cream hover:bg-surface transition-colors">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div className="absolute left-full ml-2 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
+              <div className="text-xs text-text-muted mb-1">Chile ({formatChileanDateShort(currentTime)})</div>
+              <div className="font-mono text-cream">{formatChileanTime(currentTime)}</div>
+              <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
+            </div>
           </div>
-          <div className="absolute left-full ml-2 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
-            <div className="text-xs text-text-muted mb-1">Chile ({formatChileanDateShort(currentTime)})</div>
-            <div className="font-mono text-cream">{formatChileanTime(currentTime)}</div>
-            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
-          </div>
-        </div>
+        )}
 
         {/* USD Icon */}
         <div className="group relative flex justify-center">
@@ -291,16 +300,18 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
   // Expanded view - full display
   return (
     <div className="px-4 py-3 space-y-3">
-      {/* Date & Time */}
-      <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50">
-        <div className="flex items-center gap-2 mb-1.5">
-          <Clock className="h-3.5 w-3.5 text-text-muted" />
-          <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">Chile</span>
+      {/* Date & Time - only show if showTime is true */}
+      {showTime && (
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Clock className="h-3.5 w-3.5 text-text-muted" />
+            <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">Chile</span>
+          </div>
+          <div className="font-mono text-sm text-text-primary truncate" title={formatChileanDateTime(currentTime)}>
+            {formatChileanDateTime(currentTime)}
+          </div>
         </div>
-        <div className="font-mono text-sm text-text-primary truncate" title={formatChileanDateTime(currentTime)}>
-          {formatChileanDateTime(currentTime)}
-        </div>
-      </div>
+      )}
 
       {/* Market Data Grid */}
       <div className="grid grid-cols-2 gap-2">
@@ -447,25 +458,6 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             </div>
           )}
         </div>
-      </div>
-
-      {/* Last Update & Refresh */}
-      <div className="flex items-center justify-between px-1">
-        <span className="text-[9px] text-text-muted">
-          {marketData.lastUpdate ? (
-            `Actualizado: ${marketData.lastUpdate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
-          ) : (
-            'Actualizando...'
-          )}
-        </span>
-        <button
-          onClick={fetchMarketData}
-          disabled={loading}
-          className="text-[9px] text-cream hover:text-cream/80 disabled:text-text-muted transition-colors"
-          title="Actualizar datos"
-        >
-          {loading ? '...' : '↻'}
-        </button>
       </div>
 
       {/* Error message */}

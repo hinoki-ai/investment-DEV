@@ -12,6 +12,7 @@ from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 
 from routers._imports import db_models, schemas, get_async_db, get_storage_service
+from middleware import invalidate_file_cache, invalidate_dashboard_cache
 
 
 router = APIRouter()
@@ -130,6 +131,10 @@ async def delete_file(
     # Delete from database
     await db.delete(file_entry)
     await db.commit()
+    
+    # Invalidate caches
+    invalidate_file_cache(str(file_id))
+    invalidate_dashboard_cache()
     
     return None
 

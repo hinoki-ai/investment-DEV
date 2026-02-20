@@ -1,1 +1,18 @@
-/* /index.html 200
+# Cloudflare Pages Redirects - SPA Support
+# Place this file in your build output (dist/) directory
+
+# Static assets - serve directly
+/assets/*  /assets/:splat  200
+/releases/*  /releases/:splat  200
+/*.apk  /:splat  200
+/favicon*  /favicon.ico  200
+/site.webmanifest  /site.webmanifest  200
+/robots.txt  /robots.txt  200
+/*.png  /:splat  200
+/*.jpg  /:splat  200
+/*.svg  /:splat  200
+/*.ico  /:splat  200
+/*.webmanifest  /:splat  200
+
+# SPA catch-all - serve index.html with 200 status (rewrite, not redirect)
+/*  /index.html  200

@@ -8,9 +8,9 @@ This document provides essential context for AI coding agents working on this pr
 
 ### Deploy Website (inv.aramac.dev)
 ```bash
-cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
+cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && vercel --prod
 ```
-**Platform:** Cloudflare Pages (NOT Vercel)  
+**Platform:** Vercel (DNS delegated from GoDaddy)  
 **Domain:** https://inv.aramac.dev  
 **Build folder:** `prism/web/dist`
 
@@ -771,42 +771,35 @@ make test
 
 ## Deployment
 
-### 🎯 FRONTEND DEPLOYMENT - Cloudflare Pages (inv.aramac.dev)
+### 🎯 FRONTEND DEPLOYMENT - Vercel (inv.aramac.dev)
 
-**IMPORTANT:** The website is hosted on **Cloudflare Pages**, NOT Vercel.
+**Platform:** Vercel
 Domain: `https://inv.aramac.dev`
-Project name: `investment-aramac`
+Project: `investment-aramac` (aramac scope)
 Build output: `prism/web/dist`
+DNS: Delegated from GoDaddy to Vercel (ns1.vercel-dns.com, ns2.vercel-dns.com)
 
-**QUICK DEPLOY (One Command):**
+**QUICK DEPLOY:**
 ```bash
-cd /home/hinoki/HinokiDEV/Investments && ./prism/vv/cloudflare-deployer
-```
-
-**MANUAL DEPLOY (If deployer fails):**
-```bash
-# 1. Go to web directory
-cd /home/hinoki/HinokiDEV/Investments/prism/web
-
-# 2. Build the project
-npm run build
-
-# 3. Deploy to Cloudflare Pages
-npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
+cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && vercel --prod
 ```
 
 **VERIFY DEPLOYMENT:**
 ```bash
-# Check if site is live
+# Check if site is live on Vercel IP
+dig inv.aramac.dev +short
+# Should return: 76.76.21.21
+
+# Check HTTP response
 curl -I https://inv.aramac.dev
-# Should return: HTTP/2 200
+# Should return: HTTP/2 200 with Server: Vercel header
 ```
 
 **TROUBLESHOOTING:**
-- If `wrangler` is not found: `npm install -g wrangler`
-- If build fails: Check `npm install` first
-- Project config: `/prism/web/wrangler.toml`
-- DNS already configured: `inv.aramac.dev` → Cloudflare Pages
+- If `vercel` CLI not found: `npm i -g vercel`
+- If build fails: `npm install` first
+- Project config: `/prism/web/vercel.json`
+- DNS issues: Check `vercel dns ls aramac.dev`
 
 ---
 

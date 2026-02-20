@@ -132,6 +132,146 @@ export interface ChatResponse {
   model: string
 }
 
+// Analytics Types
+export interface InvestmentMetrics {
+  investment_id: string
+  name: string
+  category: string
+  basic: {
+    total_invested: number
+    current_value: number
+    absolute_return: number
+    simple_roi: number
+  }
+  time_weighted: {
+    annualized_roi: number | null
+    cagr: number | null
+    years_held: number
+  }
+  advanced: {
+    irr: number | null
+    npv: number | null
+    payback_period_months: number | null
+  }
+  risk: {
+    sharpe_ratio: number | null
+    volatility: number | null
+    max_drawdown: number | null
+    var_95: number | null
+  }
+  comparative: {
+    vs_inflation: number | null
+    vs_cdi: number | null
+    vs_sp500: number | null
+  }
+}
+
+export interface PortfolioSummary {
+  summary: {
+    total_value: number
+    total_invested: number
+    total_absolute_return: number
+    total_roi: number
+    weighted_cagr: number | null
+  }
+  risk: {
+    portfolio_volatility: number | null
+    portfolio_sharpe: number | null
+  }
+  allocation: Record<string, number>
+  best_performer: { id: string; name: string; roi: number } | null
+  worst_performer: { id: string; name: string; roi: number } | null
+  investment_count: number
+  investments: InvestmentMetrics[]
+}
+
+export interface ComparisonResult {
+  winner: {
+    id: string
+    name: string
+    score: number
+  }
+  rankings: Array<{
+    investment_id: string
+    name: string
+    category: string
+    metrics: Record<string, number | null>
+    scores: {
+      composite: number
+      risk_adjusted: number | null
+    }
+    rankings: {
+      composite: number
+      roi: number
+      cagr: number
+      sharpe: number
+    }
+  }>
+  portfolio_summary: {
+    total_value: number
+    total_invested: number
+    total_return_pct: number
+    avg_roi: number
+    avg_cagr: number
+  }
+  risk_analysis: {
+    concentration: Record<string, number>
+    distribution: Record<string, number>
+  }
+  recommendations: string[]
+  warnings: string[]
+  opportunities: string[]
+}
+
+export interface ScenarioResult {
+  scenario: string
+  impact_pct: number
+  portfolio_impact: number
+  total_current: number
+  total_projected: number
+  projections: Array<{
+    investment_id: string
+    name: string
+    category: string
+    current_value: number
+    projected_value: number
+    value_change: number
+    current_roi: number
+    projected_roi: number
+  }>
+}
+
+// Analytics API
+export const analyticsApi = {
+  getInvestmentMetrics: (id: string) => 
+    api.get<{ success: boolean; data: InvestmentMetrics }>(`/analytics/investments/${id}/metrics`).then(r => r.data),
+  
+  getBatchMetrics: (ids: string[]) =>
+    api.post<{ success: boolean; count: number; data: InvestmentMetrics[] }>('/analytics/investments/batch-metrics', ids).then(r => r.data),
+  
+  getPortfolioSummary: (params?: { category?: string; status?: string }) =>
+    api.get<{ success: boolean; data: PortfolioSummary }>('/analytics/portfolio/summary', { params }).then(r => r.data),
+  
+  getPortfolioOptimization: () =>
+    api.get<{ success: boolean; data: any; error?: string }>('/analytics/portfolio/optimization').then(r => r.data),
+  
+  compareInvestments: (ids: string[], riskProfile: string = 'balanced', includeScenarios: boolean = true) =>
+    api.post<{ success: boolean; data: ComparisonResult }>('/analytics/compare', ids, { 
+      params: { risk_profile: riskProfile, include_scenarios: includeScenarios } 
+    }).then(r => r.data),
+  
+  compareAll: (params?: { category?: string; limit?: number }) =>
+    api.get<{ success: boolean; data: ComparisonResult }>('/analytics/compare/all', { params }).then(r => r.data),
+  
+  runScenarioAnalysis: (ids: string[], scenarioType: string = 'market_crash', customImpact?: number) =>
+    api.post<{ success: boolean; data: ScenarioResult }>('/analytics/scenario-analysis', ids, {
+      params: { scenario_type: scenarioType, custom_impact: customImpact }
+    }).then(r => r.data),
+  
+  getBenchmarks: () =>
+    api.get<{ success: boolean; data: { rates: Record<string, string>; values: Record<string, number>; description: Record<string, string> } }>('/analytics/benchmarks').then(r => r.data),
+}
+
 // Chat API
 export const chatApi = {
   sendMessage: (data: ChatRequest) => 

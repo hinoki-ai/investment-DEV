@@ -12,8 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
+# Import logging configuration first (configures structlog)
+from logging_config import get_logger, configure_logging
 from database import async_engine, Base, redis_client
-from routers import investments, files, analysis, dashboard, uploads, chat
+from routers import investments, files, analysis, dashboard, uploads, chat, health, analytics
+from middleware import MetricsMiddleware, LoggingMiddleware, CacheControlMiddleware
+
+# Configure logging on startup
+configure_logging()
+logger = get_logger("main")
 
 
 # =============================================================================
@@ -33,25 +40,32 @@ if not STATIC_DIR.exists():
 async def lifespan(app: FastAPI):
     """Application lifespan events."""
     # Startup
-    print("🚀 Starting NEXUS API...")
+    logger.info("api_starting", message="🚀 Starting NEXUS API...")
     
     # Test Redis connection
     try:
         redis_client.ping()
-        print("✅ Redis connected")
+        logger.info("redis_connected", message="✅ Redis connected")
     except Exception as e:
-        print(f"⚠️ Redis connection failed: {e}")
+        logger.warning("redis_connection_failed", error=str(e), message="⚠️ Redis connection failed")
     
-    # Note: Database tables should be created via migrations (Alembic)
-    # For development, you can uncomment below:
-    # async with async_engine.begin() as conn:
-    #     await conn.run_sync(Base.metadata.create_all)
+    # Test database connection
+    try:
+        from database import async_engine
+        async with async_engine.connect() as conn:
+            await conn.execute("SELECT 1")
+        logger.info("database_connected", message="✅ Database connected")
+    except Exception as e:
+        logger.warning("database_connection_failed", error=str(e), message="⚠️ Database connection failed")
+    
+    logger.info("api_started", message="✅ NEXUS API ready")
     
     yield
     
     # Shutdown
-    print("🛑 Shutting down API...")
+    logger.info("api_shutting_down", message="🛑 Shutting down API...")
     await async_engine.dispose()
+    logger.info("api_shutdown_complete", message="✅ API shutdown complete")
 
 
 # =============================================================================
@@ -86,7 +100,7 @@ app = FastAPI(
     - Uploads: 10/minute
     - Analysis: 5/minute
     """,
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
     docs_url="/openapi",
     redoc_url="/redoc",
@@ -99,18 +113,31 @@ app = FastAPI(
     },
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+# =============================================================================
+# MIDDLEWARE (Order matters - executed in reverse for response)
+# =============================================================================
 
 # CORS
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:4173,https://inv.aramac.dev").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=[origin.strip() for origin in CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Cache control
+app.add_middleware(CacheControlMiddleware)
+
+# Logging (adds request context)
+app.add_middleware(LoggingMiddleware)
+
+# Metrics collection
+app.add_middleware(MetricsMiddleware)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 # =============================================================================
@@ -119,23 +146,30 @@ app.add_middleware(
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler with structured logging."""
+    logger.exception(
+        "unhandled_exception",
+        error=str(exc),
+        error_type=type(exc).__name__,
+        path=request.url.path,
+        method=request.method,
+    )
     return JSONResponse(
         status_code=500,
         content={
             "detail": "Internal server error",
             "type": type(exc).__name__,
-            "message": str(exc)
         }
     )
 
 
 # =============================================================================
-# HEALTH CHECK
+# HEALTH CHECK (deprecated - use router instead)
 # =============================================================================
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
+@app.get("/health-legacy")
+async def health_check_legacy():
+    """Legacy health check endpoint (deprecated, use /health instead)."""
     health_status = {
         "status": "healthy",
         "services": {}
@@ -184,12 +218,17 @@ async def docs():
 # ROUTERS
 # =============================================================================
 
+# Health check router (includes /health, /metrics, etc.)
+app.include_router(health.router)
+
+# API routers
 app.include_router(investments.router, prefix="/api/v1/investments", tags=["Investments"])
 app.include_router(files.router, prefix="/api/v1/files", tags=["Files"])
 app.include_router(uploads.router, prefix="/api/v1/uploads", tags=["Uploads"])
 app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
+app.include_router(analytics.router, prefix="/api/v1", tags=["Analytics"])
 
 
 if __name__ == "__main__":

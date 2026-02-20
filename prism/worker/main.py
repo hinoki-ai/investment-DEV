@@ -3,6 +3,7 @@
 WORKER MAIN - Intelligence Layer Orchestrator
 ===============================================================================
 Polls for jobs, processes files with Kimi K2.5, saves results.
+Includes AI response caching to avoid re-analyzing identical files.
 ===============================================================================
 """
 import json
@@ -11,7 +12,7 @@ import signal
 import sys
 import time
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
@@ -31,6 +32,26 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 POLL_INTERVAL = int(os.getenv("WORKER_POLL_INTERVAL", "10"))  # seconds
 MAX_CONCURRENT = int(os.getenv("MAX_CONCURRENT_JOBS", "3"))
 WORKER_ID = os.getenv("HOSTNAME", f"worker-{os.getpid()}")
+AI_CACHE_TTL_DAYS = int(os.getenv("AI_CACHE_TTL_DAYS", "30"))  # Cache AI results for 30 days
+
+# =============================================================================
+# REDIS CONNECTION (for caching)
+# =============================================================================
+
+_redis_client = None
+
+def get_redis():
+    """Get Redis client for caching."""
+    global _redis_client
+    if _redis_client is None:
+        try:
+            import redis
+            _redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+        except Exception as e:
+            print(f"⚠️ Redis unavailable, caching disabled: {e}")
+            _redis_client = None
+    return _redis_client
+
 
 # =============================================================================
 # DATABASE CONNECTION
@@ -39,6 +60,67 @@ WORKER_ID = os.getenv("HOSTNAME", f"worker-{os.getpid()}")
 def get_db_connection():
     """Get database connection."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
+
+# =============================================================================
+# AI RESPONSE CACHING
+# =============================================================================
+
+def _get_cached_analysis(file_hash: str) -> Optional[dict]:
+    """
+    Check if a file has already been analyzed.
+    Returns cached result if found and not expired.
+    """
+    if not file_hash:
+        return None
+    
+    redis = get_redis()
+    if not redis:
+        return None
+    
+    try:
+        cache_key = f"ai_analysis:{file_hash}"
+        cached = redis.get(cache_key)
+        if cached:
+            print(f"   💾 Found cached analysis for file hash: {file_hash[:16]}...")
+            return json.loads(cached)
+    except Exception as e:
+        print(f"   ⚠️ Cache check failed: {e}")
+    
+    return None
+
+
+def _cache_analysis(file_hash: str, analysis_data: dict):
+    """Cache analysis result for future use."""
+    if not file_hash:
+        return
+    
+    redis = get_redis()
+    if not redis:
+        return
+    
+    try:
+        cache_key = f"ai_analysis:{file_hash}"
+        ttl_seconds = AI_CACHE_TTL_DAYS * 24 * 60 * 60  # Convert days to seconds
+        redis.setex(cache_key, ttl_seconds, json.dumps(analysis_data, default=str))
+        print(f"   💾 Cached analysis result (TTL: {AI_CACHE_TTL_DAYS} days)")
+    except Exception as e:
+        print(f"   ⚠️ Cache write failed: {e}")
+
+
+def _get_file_hash(file_id: str) -> Optional[str]:
+    """Get file hash from database."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT file_hash FROM file_registry WHERE id = %s",
+                (file_id,)
+            )
+            result = cur.fetchone()
+            return result["file_hash"] if result else None
+    finally:
+        conn.close()
 
 
 # =============================================================================
@@ -78,7 +160,7 @@ class Worker:
                         pj.id, pj.job_type, pj.file_id, pj.investment_id,
                         pj.priority, pj.parameters, pj.retry_count, pj.max_retries,
                         fr.storage_key, fr.storage_bucket, fr.original_filename,
-                        fr.mime_type, i.name as investment_name, i.category as investment_category
+                        fr.mime_type, fr.file_hash, i.name as investment_name, i.category as investment_category
                     FROM processing_jobs pj
                     JOIN file_registry fr ON pj.file_id = fr.id
                     LEFT JOIN investments i ON pj.investment_id = i.id
@@ -253,10 +335,27 @@ class Worker:
         job_id = job["id"]
         file_id = job["file_id"]
         storage_key = job["storage_key"]
+        file_hash = job.get("file_hash")
         
         print(f"\n🔍 Processing job {job_id[:8]}...")
         print(f"   File: {job.get('original_filename')}")
         print(f"   Investment: {job.get('investment_name', 'N/A')}")
+        
+        # === AI RESPONSE CACHING ===
+        # Check if file already analyzed (by hash)
+        if file_hash:
+            cached_result = _get_cached_analysis(file_hash)
+            if cached_result:
+                print(f"   ✅ Using cached analysis result")
+                try:
+                    # Save cached result as new analysis result
+                    result_id = self._save_analysis_result(job, cached_result)
+                    self._complete_job(job_id, result_id)
+                    print(f"   ✨ Job completed using cached result!")
+                    return True
+                except Exception as e:
+                    print(f"   ⚠️ Failed to use cached result: {e}")
+                    # Continue with normal processing
         
         local_path = None
         start_time = time.time()
@@ -289,7 +388,11 @@ class Worker:
             result_id = self._save_analysis_result(job, analysis_result)
             print(f"   ✅ Result saved: {result_id[:8]}")
             
-            # 5. Complete job
+            # 5. Cache the result for future use
+            if file_hash:
+                _cache_analysis(file_hash, analysis_result)
+            
+            # 6. Complete job
             self._complete_job(job_id, result_id)
             print(f"   ✨ Job completed successfully!")
             
@@ -316,6 +419,7 @@ class Worker:
 ║  Worker ID: {WORKER_ID:<45} ║
 ║  Poll Interval: {POLL_INTERVAL}s{'':42} ║
 ║  Max Concurrent: {MAX_CONCURRENT}{'':42} ║
+║  AI Cache TTL: {AI_CACHE_TTL_DAYS} days{'':40} ║
 ╚══════════════════════════════════════════════════════════════╝
         """)
         

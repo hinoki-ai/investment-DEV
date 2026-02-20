@@ -12,6 +12,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from routers._imports import db_models, schemas, get_async_db
+from middleware import invalidate_investment_cache, invalidate_dashboard_cache
 
 
 router = APIRouter()
@@ -27,6 +28,10 @@ async def create_investment(
     db.add(investment)
     await db.commit()
     await db.refresh(investment)
+    
+    # Invalidate caches
+    invalidate_dashboard_cache()
+    
     return schemas.InvestmentResponse.model_validate(investment)
 
 
@@ -113,6 +118,11 @@ async def update_investment(
     
     await db.commit()
     await db.refresh(investment)
+    
+    # Invalidate caches
+    invalidate_investment_cache(str(investment_id))
+    invalidate_dashboard_cache()
+    
     return schemas.InvestmentResponse.model_validate(investment)
 
 
@@ -135,6 +145,11 @@ async def delete_investment(
     
     await db.delete(investment)
     await db.commit()
+    
+    # Invalidate caches
+    invalidate_investment_cache(str(investment_id))
+    invalidate_dashboard_cache()
+    
     return None
 
 

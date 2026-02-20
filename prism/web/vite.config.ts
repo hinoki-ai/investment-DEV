@@ -16,5 +16,19 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React vendor
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI libraries
+          'ui-vendor': ['lucide-react', 'recharts'],
+          // Data fetching
+          'query-vendor': ['@tanstack/react-query', 'axios'],
+        }
+      }
+    },
+    // Optimize chunk size warnings
+    chunkSizeWarningLimit: 500,
   }
 })

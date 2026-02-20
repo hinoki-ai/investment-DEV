@@ -1,0 +1,503 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# NEXUS + PRISM - FULL DEPLOYMENT AUTOMATION
+# Builds Android APK, updates web with download link, deploys to Cloudflare
+#
+# Usage:
+#   ./prism/vv/deploy-all              # Full deployment
+#   ./prism/vv/deploy-all --skip-apk   # Skip APK build (use existing)
+#   ./prism/vv/deploy-all --skip-web   # Skip web build
+#   ./prism/vv/deploy-all --dry-run    # Simulate without deploying
+# ═══════════════════════════════════════════════════════════════════════════════
+
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+# Script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Source UI system if available
+if [[ -f "$SCRIPT_DIR/ui.sh" ]]; then
+    source "$SCRIPT_DIR/ui.sh"
+    UI_AVAILABLE=true
+else
+    UI_AVAILABLE=false
+fi
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+
+# Paths
+NEXUS_MOBILE_DIR="$PROJECT_ROOT/nexus/mobile"
+PRISM_WEB_DIR="$PROJECT_ROOT/prism/web"
+RELEASES_DIR="$PRISM_WEB_DIR/public/releases"
+APK_OUTPUT_DIR="$NEXUS_MOBILE_DIR/app/build/outputs/apk/release"
+
+# APK Configuration
+APK_NAME="nexus-v1.0.apk"
+APK_VERSION="1.0.0"
+
+# Cloudflare
+CF_PROJECT="${CF_PROJECT:-investment-aramac}"
+CF_DOMAIN="https://inv.aramac.dev"
+
+# Flags
+SKIP_APK=false
+SKIP_WEB=false
+DRY_RUN=false
+SKIP_DEPLOY=false
+FORCE_REBUILD=false
+
+# Colors
+C_RESET='\033[0m'
+C_SUCCESS='\033[32m'
+C_ERROR='\033[31m'
+C_WARN='\033[33m'
+C_INFO='\033[36m'
+C_ACCENT='\033[35m'
+C_CREAM='\033[38;5;223m'
+
+# =============================================================================
+# LOGGING FUNCTIONS
+# =============================================================================
+
+log_header() {
+    echo ""
+    echo -e "${C_ACCENT}══════════════════════════════════════════════════════════════${C_RESET}"
+    echo -e "${C_ACCENT}  $1${C_RESET}"
+    echo -e "${C_ACCENT}══════════════════════════════════════════════════════════════${C_RESET}"
+}
+
+log_success() {
+    echo -e "${C_SUCCESS}✓${C_RESET} $1"
+}
+
+log_error() {
+    echo -e "${C_ERROR}✗${C_RESET} $1"
+}
+
+log_warn() {
+    echo -e "${C_WARN}⚠${C_RESET} $1"
+}
+
+log_info() {
+    echo -e "${C_INFO}→${C_RESET} $1"
+}
+
+log_step() {
+    echo ""
+    echo -e "${C_CREAM}▶ $1${C_RESET}"
+}
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+print_usage() {
+    cat << EOF
+Usage: $(basename "$0") [OPTIONS]
+
+NEXUS + PRISM Full Deployment Automation
+
+OPTIONS:
+    --skip-apk       Skip APK build (use existing)
+    --skip-web       Skip web build
+    --skip-deploy    Build only, don't deploy
+    --force          Force clean rebuild
+    --dry-run        Simulate without making changes
+    -h, --help       Show this help message
+
+EXAMPLES:
+    $(basename "$0")                    # Full deployment
+    $(basename "$0") --skip-apk        # Use existing APK
+    $(basename "$0") --dry-run         # Test without deploying
+
+EOF
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --skip-apk)
+                SKIP_APK=true
+                shift
+                ;;
+            --skip-web)
+                SKIP_WEB=true
+                shift
+                ;;
+            --skip-deploy)
+                SKIP_DEPLOY=true
+                shift
+                ;;
+            --force)
+                FORCE_REBUILD=true
+                shift
+                ;;
+            --dry-run)
+                DRY_RUN=true
+                shift
+                ;;
+            -h|--help)
+                print_usage
+                exit 0
+                ;;
+            *)
+                log_error "Unknown option: $1"
+                print_usage
+                exit 1
+                ;;
+        esac
+    done
+}
+
+format_size() {
+    local size=$1
+    if [[ $size -gt 1073741824 ]]; then
+        echo "$(bc <<< "scale=2; $size/1073741824") GB"
+    elif [[ $size -gt 1048576 ]]; then
+        echo "$(bc <<< "scale=1; $size/1048576") MB"
+    elif [[ $size -gt 1024 ]]; then
+        echo "$(bc <<< "scale=1; $size/1024") KB"
+    else
+        echo "${size} B"
+    fi
+}
+
+# =============================================================================
+# PRE-FLIGHT CHECKS
+# =============================================================================
+
+preflight_checks() {
+    log_header "PRE-FLIGHT CHECKS"
+    
+    local checks_passed=true
+    
+    # Check Node.js
+    if command -v node &>/dev/null; then
+        local node_version=$(node --version)
+        log_success "Node.js $node_version"
+    else
+        log_error "Node.js not found"
+        checks_passed=false
+    fi
+    
+    # Check npm
+    if command -v npm &>/dev/null; then
+        log_success "npm available"
+    else
+        log_error "npm not found"
+        checks_passed=false
+    fi
+    
+    # Check Wrangler
+    if command -v wrangler &>/dev/null; then
+        log_success "Wrangler CLI available"
+    else
+        log_warn "Wrangler CLI not found (will try to use npx)"
+    fi
+    
+    # Check Cloudflare auth
+    if wrangler whoami &>/dev/null 2>&1; then
+        log_success "Cloudflare authenticated"
+    else
+        log_warn "Cloudflare not authenticated (will prompt if needed)"
+    fi
+    
+    # Check Java for Android builds
+    if [[ "$SKIP_APK" == false ]]; then
+        if command -v java &>/dev/null; then
+            local java_version=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2)
+            log_success "Java: $java_version"
+        else
+            log_error "Java not found (required for APK build)"
+            checks_passed=false
+        fi
+        
+        # Check Android SDK / Gradle wrapper
+        if [[ -f "$NEXUS_MOBILE_DIR/gradlew" ]]; then
+            log_success "Gradle wrapper found"
+        else
+            log_error "Gradle wrapper not found at $NEXUS_MOBILE_DIR"
+            checks_passed=false
+        fi
+    fi
+    
+    # Check directory structure
+    if [[ -d "$PRISM_WEB_DIR" ]]; then
+        log_success "PRISM web directory: $PRISM_WEB_DIR"
+    else
+        log_error "PRISM web directory not found"
+        checks_passed=false
+    fi
+    
+    if [[ -d "$NEXUS_MOBILE_DIR" ]]; then
+        log_success "NEXUS mobile directory: $NEXUS_MOBILE_DIR"
+    else
+        log_error "NEXUS mobile directory not found"
+        checks_passed=false
+    fi
+    
+    if [[ "$checks_passed" == false ]]; then
+        log_error "Pre-flight checks failed. Please fix the issues above."
+        exit 1
+    fi
+    
+    log_success "All pre-flight checks passed"
+}
+
+# =============================================================================
+# APK BUILD
+# =============================================================================
+
+build_apk() {
+    log_header "BUILDING NEXUS APK"
+    
+    if [[ "$SKIP_APK" == true ]]; then
+        log_warn "Skipping APK build (--skip-apk)"
+        
+        # Check if existing APK exists
+        if [[ -f "$RELEASES_DIR/$APK_NAME" ]]; then
+            log_success "Using existing APK: $APK_NAME"
+            local apk_size=$(stat -f%z "$RELEASES_DIR/$APK_NAME" 2>/dev/null || stat -c%s "$RELEASES_DIR/$APK_NAME" 2>/dev/null || echo "0")
+            log_info "Size: $(format_size $apk_size)"
+        elif [[ -f "$APK_OUTPUT_DIR/app-release-unsigned.apk" ]]; then
+            log_warn "Using unsigned APK"
+            mkdir -p "$RELEASES_DIR"
+            cp "$APK_OUTPUT_DIR/app-release-unsigned.apk" "$RELEASES_DIR/$APK_NAME"
+        else
+            log_error "No existing APK found and --skip-apk is set"
+            exit 1
+        fi
+        return 0
+    fi
+    
+    log_step "Cleaning previous builds..."
+    if [[ "$DRY_RUN" == false ]]; then
+        cd "$NEXUS_MOBILE_DIR"
+        ./gradlew clean 2>&1 | tail -5
+    else
+        log_info "[DRY RUN] Would run: ./gradlew clean"
+    fi
+    
+    log_step "Building release APK..."
+    if [[ "$DRY_RUN" == false ]]; then
+        cd "$NEXUS_MOBILE_DIR"
+        
+        # Build release APK
+        if ./gradlew assembleRelease --no-daemon 2>&1 | tee /tmp/apk-build.log; then
+            log_success "APK build completed"
+        else
+            log_error "APK build failed"
+            log_info "Check log: /tmp/apk-build.log"
+            exit 1
+        fi
+        
+        # Find and copy the APK
+        mkdir -p "$RELEASES_DIR"
+        
+        # Try different possible APK names
+        if [[ -f "$APK_OUTPUT_DIR/app-release.apk" ]]; then
+            cp "$APK_OUTPUT_DIR/app-release.apk" "$RELEASES_DIR/$APK_NAME"
+        elif [[ -f "$APK_OUTPUT_DIR/app-release-unsigned.apk" ]]; then
+            cp "$APK_OUTPUT_DIR/app-release-unsigned.apk" "$RELEASES_DIR/$APK_NAME"
+        else
+            # Find any APK in the release directory
+            local found_apk=$(find "$APK_OUTPUT_DIR" -name "*.apk" -type f | head -1)
+            if [[ -n "$found_apk" ]]; then
+                cp "$found_apk" "$RELEASES_DIR/$APK_NAME"
+            else
+                log_error "No APK file found in $APK_OUTPUT_DIR"
+                exit 1
+            fi
+        fi
+    else
+        log_info "[DRY RUN] Would run: ./gradlew assembleRelease"
+        log_info "[DRY RUN] Would copy APK to: $RELEASES_DIR/$APK_NAME"
+    fi
+    
+    # Verify APK exists
+    if [[ -f "$RELEASES_DIR/$APK_NAME" ]]; then
+        local apk_size=$(stat -f%z "$RELEASES_DIR/$APK_NAME" 2>/dev/null || stat -c%s "$RELEASES_DIR/$APK_NAME" 2>/dev/null || echo "0")
+        log_success "APK ready: $APK_NAME ($(format_size $apk_size))"
+    else
+        log_error "APK not found after build"
+        exit 1
+    fi
+}
+
+# =============================================================================
+# WEB BUILD
+# =============================================================================
+
+build_web() {
+    log_header "BUILDING PRISM WEB"
+    
+    if [[ "$SKIP_WEB" == true ]]; then
+        log_warn "Skipping web build (--skip-web)"
+        return 0
+    fi
+    
+    cd "$PRISM_WEB_DIR"
+    
+    # Install dependencies if needed
+    if [[ ! -d "$PRISM_WEB_DIR/node_modules" ]] || [[ "$FORCE_REBUILD" == true ]]; then
+        log_step "Installing dependencies..."
+        if [[ "$DRY_RUN" == false ]]; then
+            npm install
+        else
+            log_info "[DRY RUN] Would run: npm install"
+        fi
+    else
+        log_success "Dependencies already installed"
+    fi
+    
+    # Copy APK to dist during build (Vite will copy public folder)
+    if [[ -f "$RELEASES_DIR/$APK_NAME" ]]; then
+        log_info "APK will be included in build: $APK_NAME"
+    fi
+    
+    # Build
+    log_step "Building for production..."
+    if [[ "$DRY_RUN" == false ]]; then
+        if npm run build 2>&1 | tee /tmp/web-build.log; then
+            log_success "Web build completed"
+        else
+            log_error "Web build failed"
+            log_info "Check log: /tmp/web-build.log"
+            exit 1
+        fi
+    else
+        log_info "[DRY RUN] Would run: npm run build"
+    fi
+    
+    # Verify dist exists
+    if [[ -d "$PRISM_WEB_DIR/dist" ]]; then
+        log_success "Build output: dist/"
+        
+        # Check if APK is in dist
+        if [[ -f "$PRISM_WEB_DIR/dist/releases/$APK_NAME" ]]; then
+            local dist_apk_size=$(stat -f%z "$PRISM_WEB_DIR/dist/releases/$APK_NAME" 2>/dev/null || stat -c%s "$PRISM_WEB_DIR/dist/releases/$APK_NAME" 2>/dev/null || echo "0")
+            log_success "APK in dist: releases/$APK_NAME ($(format_size $dist_apk_size))"
+        else
+            log_warn "APK not found in dist/releases/"
+            # Copy it manually
+            mkdir -p "$PRISM_WEB_DIR/dist/releases"
+            cp "$RELEASES_DIR/$APK_NAME" "$PRISM_WEB_DIR/dist/releases/$APK_NAME"
+            log_success "APK copied to dist"
+        fi
+    else
+        log_error "dist/ directory not found after build"
+        exit 1
+    fi
+}
+
+# =============================================================================
+# DEPLOY
+# =============================================================================
+
+deploy() {
+    log_header "DEPLOYING TO CLOUDFLARE"
+    
+    if [[ "$SKIP_DEPLOY" == true ]]; then
+        log_warn "Skipping deployment (--skip-deploy)"
+        log_info "Build artifacts are ready in:"
+        log_info "  - APK: $RELEASES_DIR/$APK_NAME"
+        log_info "  - Web: $PRISM_WEB_DIR/dist/"
+        return 0
+    fi
+    
+    if [[ "$DRY_RUN" == true ]]; then
+        log_info "[DRY RUN] Would deploy to Cloudflare Pages"
+        log_info "[DRY RUN] Project: $CF_PROJECT"
+        log_info "[DRY RUN] Command: wrangler pages deploy dist --project-name=$CF_PROJECT --branch=production"
+        return 0
+    fi
+    
+    cd "$PRISM_WEB_DIR"
+    
+    # Check authentication
+    if ! wrangler whoami &>/dev/null 2>&1; then
+        log_warn "Not authenticated with Cloudflare"
+        log_info "Running: wrangler login"
+        wrangler login
+    fi
+    
+    log_step "Deploying to Cloudflare Pages..."
+    log_info "Project: $CF_PROJECT"
+    log_info "Domain: $CF_DOMAIN"
+    
+    if wrangler pages deploy dist --project-name="$CF_PROJECT" --branch="production" 2>&1 | tee /tmp/deploy.log; then
+        log_success "Deployment completed!"
+        echo ""
+        echo -e "${C_SUCCESS}══════════════════════════════════════════════════════════════${C_RESET}"
+        echo -e "${C_CREAM}  🚀 DEPLOYMENT SUCCESSFUL${C_RESET}"
+        echo -e "${C_SUCCESS}══════════════════════════════════════════════════════════════${C_RESET}"
+        echo ""
+        echo -e "  ${C_INFO}Website:${C_RESET}  $CF_DOMAIN"
+        echo -e "  ${C_INFO}Download:${C_RESET} $CF_DOMAIN/download"
+        echo -e "  ${C_INFO}APK:${C_RESET}      $CF_DOMAIN/releases/$APK_NAME"
+        echo ""
+    else
+        log_error "Deployment failed"
+        log_info "Check log: /tmp/deploy.log"
+        exit 1
+    fi
+}
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+main() {
+    local start_time=$(date +%s)
+    
+    echo ""
+    echo -e "${C_ACCENT}    ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗${C_RESET}"
+    echo -e "${C_ACCENT}    ████╗  ██║██╔════╝╚██╗██╔╝██║   ██║██╔════╝${C_RESET}"
+    echo -e "${C_ACCENT}    ██╔██╗ ██║█████╗   ╚███╔╝ ██║   ██║███████╗${C_RESET}"
+    echo -e "${C_ACCENT}    ██║╚██╗██║██╔══╝   ██╔██╗ ██║   ██║╚════██║${C_RESET}"
+    echo -e "${C_ACCENT}    ██║ ╚████║███████╗██╔╝ ██╗╚██████╔╝███████║${C_RESET}"
+    echo -e "${C_ACCENT}    ╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝${C_RESET}"
+    echo -e "${C_CREAM}         Full Deployment Automation${C_RESET}"
+    echo ""
+    
+    # Parse arguments
+    parse_args "$@"
+    
+    # Print configuration
+    log_info "Configuration:"
+    echo "  Skip APK:    $SKIP_APK"
+    echo "  Skip Web:    $SKIP_WEB"
+    echo "  Skip Deploy: $SKIP_DEPLOY"
+    echo "  Force:       $FORCE_REBUILD"
+    echo "  Dry Run:     $DRY_RUN"
+    echo ""
+    
+    # Run deployment steps
+    preflight_checks
+    build_apk
+    build_web
+    deploy
+    
+    # Calculate duration
+    local end_time=$(date +%s)
+    local duration=$((end_time - start_time))
+    local minutes=$((duration / 60))
+    local seconds=$((duration % 60))
+    
+    log_header "COMPLETED"
+    log_success "Total time: ${minutes}m ${seconds}s"
+    
+    if [[ "$SKIP_DEPLOY" == false && "$DRY_RUN" == false ]]; then
+        echo ""
+        echo -e "  ${C_CREAM}Open website:${C_RESET} $CF_DOMAIN"
+        echo -e "  ${C_CREAM}Download app:${C_RESET} $CF_DOMAIN/download"
+        echo ""
+    fi
+}
+
+# Run main
+main "$@"
