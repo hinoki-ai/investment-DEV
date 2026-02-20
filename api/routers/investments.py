@@ -13,8 +13,11 @@ from sqlalchemy.orm import selectinload
 
 import sys
 
-# Import API SQLAlchemy models first (local)
+# Import database first
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
+from database import get_async_db
+
+# Import API SQLAlchemy models first (local)
 from models import Investment, Document, FileRegistry
 
 # Then import shared Pydantic schemas
