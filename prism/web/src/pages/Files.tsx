@@ -89,28 +89,6 @@ export default function Files() {
 
   return (
     <div className="space-y-6 fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <FolderOpen className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Storage</span>
-          </div>
-          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Archivos</h1>
-          <p className="text-text-secondary mt-1">
-            Explora y gestiona los documentos subidos
-          </p>
-        </div>
-        
-        {totalSize && totalSize > 0 && (
-          <div className="flex items-center gap-2 text-xs text-text-muted">
-            <HardDrive className="h-4 w-4" />
-            <span className="font-mono">{formatFileSize(totalSize || 0)}</span>
-            <span>total</span>
-          </div>
-        )}
-      </div>
-
       {/* Filters */}
       <div className="glass-card p-4">
         <div className="flex flex-col sm:flex-row gap-4">

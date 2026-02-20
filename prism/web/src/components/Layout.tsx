@@ -1,14 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  Trees, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Trees,
+  FileText,
   Upload,
   Menu,
   X,
   ChevronRight,
   ChevronDown,
-  Download,
   FolderOpen,
   MessageSquare,
   BarChart3,
@@ -21,14 +20,14 @@ import MarketDataTicker from './MarketDataTicker'
 // Compact time display component for the header - First line: CHILE + time, Second line: long date
 function CompactTimeDisplay() {
   const [currentTime, setCurrentTime] = useState<Date>(new Date())
-  
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date())
     }, 1000)
     return () => clearInterval(timer)
   }, [])
-  
+
   const formatChileanTime = (date: Date): string => {
     return date.toLocaleTimeString('es-CL', {
       timeZone: 'America/Santiago',
@@ -38,7 +37,7 @@ function CompactTimeDisplay() {
       hour12: false,
     })
   }
-  
+
   const formatChileanDateLong = (date: Date): string => {
     return date.toLocaleDateString('es-CL', {
       timeZone: 'America/Santiago',
@@ -48,7 +47,7 @@ function CompactTimeDisplay() {
       year: 'numeric',
     })
   }
-  
+
   return (
     <div className="flex flex-col gap-0.5">
       <div className="flex items-baseline gap-2">
@@ -60,6 +59,29 @@ function CompactTimeDisplay() {
       <div className="text-[11px] text-text-secondary capitalize">
         {formatChileanDateLong(currentTime)}
       </div>
+    </div>
+  )
+}
+
+// Mini clock for collapsed sidebar — just HH:MM
+function CollapsedClock() {
+  const [currentTime, setCurrentTime] = useState<Date>(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const hhmm = currentTime.toLocaleTimeString('es-CL', {
+    timeZone: 'America/Santiago',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+
+  return (
+    <div className="flex items-center justify-center py-0.5 px-1 bg-surface/50 rounded-lg">
+      <span className="font-mono text-[13px] text-text-secondary tracking-tight leading-none">{hhmm}</span>
     </div>
   )
 }
@@ -134,7 +156,7 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // Hover state removed - only manual toggle
-  
+
   // Track expanded groups - initialize based on active state
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>()
@@ -197,11 +219,10 @@ export default function Layout({ children }: LayoutProps) {
     // Section header
     if (isNavSection(el)) {
       return (
-        <div 
+        <div
           key={`section-${index}`}
-          className={`mt-6 mb-2 px-4 text-[10px] font-semibold tracking-widest text-text-muted uppercase transition-all duration-300 ${
-            isExpanded ? 'opacity-100' : 'opacity-0 h-0 mt-0 mb-0 overflow-hidden'
-          }`}
+          className={`mt-6 mb-2 px-4 text-[10px] font-semibold tracking-widest text-text-muted uppercase transition-all duration-300 ${isExpanded ? 'opacity-100' : 'opacity-0 h-0 mt-0 mb-0 overflow-hidden'
+            }`}
         >
           {el.label}
         </div>
@@ -213,17 +234,16 @@ export default function Layout({ children }: LayoutProps) {
       const GroupIcon = el.icon
       const isActive = isGroupActive(el, location.pathname)
       const isGroupExpanded = expandedGroups.has(el.label)
-      
+
       return (
         <div key={`group-${index}`} className="mb-1">
           {/* Group Header Button */}
           <button
             onClick={() => toggleGroup(el.label)}
-            className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 group ${
-              isActive 
-                ? 'text-cream bg-surface/80' 
-                : 'text-text-secondary hover:text-text-primary hover:bg-surface/40'
-            } ${isExpanded ? 'px-4 py-2.5' : 'p-3 justify-center'}`}
+            className={`w-full flex items-center gap-3 rounded-xl transition-all duration-200 group ${isActive
+              ? 'text-cream bg-surface/80'
+              : 'text-text-secondary hover:text-text-primary hover:bg-surface/40'
+              } ${isExpanded ? 'px-4 py-2.5' : 'p-3 justify-center'}`}
             title={!isExpanded ? el.label : undefined}
           >
             <div className={`relative ${isActive ? 'text-cream' : 'text-text-muted group-hover:text-text-primary'}`}>
@@ -232,21 +252,19 @@ export default function Layout({ children }: LayoutProps) {
                 <span className="absolute -inset-1 bg-cream/10 rounded-full blur-sm" />
               )}
             </div>
-            
-            <span className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${
-              isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
-            }`}>
+
+            <span className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
+              }`}>
               {el.label}
             </span>
-            
+
             {isExpanded && (
-              <ChevronDown 
-                className={`h-4 w-4 ml-auto text-text-muted transition-transform duration-300 ${
-                  isGroupExpanded ? 'rotate-180' : ''
-                }`} 
+              <ChevronDown
+                className={`h-4 w-4 ml-auto text-text-muted transition-transform duration-300 ${isGroupExpanded ? 'rotate-180' : ''
+                  }`}
               />
             )}
-            
+
             {/* Tooltip for collapsed state */}
             {!isExpanded && (
               <div className="absolute left-full ml-3 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
@@ -255,25 +273,23 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             )}
           </button>
-          
+
           {/* Nested Items */}
-          <div className={`overflow-hidden transition-all duration-300 ease-out ${
-            isExpanded && isGroupExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-          }`}>
+          <div className={`overflow-hidden transition-all duration-300 ease-out ${isExpanded && isGroupExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}>
             <div className="mt-1 ml-4 pl-4 border-l border-border space-y-0.5">
               {el.items.map((item, itemIndex) => {
                 const ItemIcon = item.icon
                 const itemActive = isItemActive(item, location.pathname)
-                
+
                 return (
                   <Link
                     key={`${el.label}-item-${itemIndex}`}
                     to={item.path}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group/item ${
-                      itemActive 
-                        ? 'text-cream bg-surface' 
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface/30'
-                    }`}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group/item ${itemActive
+                      ? 'text-cream bg-surface'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface/30'
+                      }`}
                   >
                     <ItemIcon className={`h-4 w-4 flex-shrink-0 ${itemActive ? 'text-cream' : 'text-text-muted group-hover/item:text-text-primary'}`} />
                     <span className="text-sm font-medium whitespace-nowrap flex-1">{item.label}</span>
@@ -294,16 +310,15 @@ export default function Layout({ children }: LayoutProps) {
     if (isNavItem(el)) {
       const Icon = el.icon
       const active = isItemActive(el, location.pathname)
-      
+
       return (
         <Link
           key={`item-${index}`}
           to={el.path}
-          className={`flex items-center gap-3 rounded-xl transition-all duration-200 group relative mb-1 ${
-            active 
-              ? 'bg-surface text-cream' 
-              : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
-          } ${isExpanded ? 'px-4 py-3' : 'p-3 justify-center'}`}
+          className={`flex items-center gap-3 rounded-xl transition-all duration-200 group relative mb-1 ${active
+            ? 'bg-surface text-cream'
+            : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
+            } ${isExpanded ? 'px-4 py-3' : 'p-3 justify-center'}`}
           title={!isExpanded ? el.label : undefined}
         >
           <div className={`relative ${active ? 'text-cream' : 'text-text-muted group-hover:text-text-primary'}`}>
@@ -312,15 +327,14 @@ export default function Layout({ children }: LayoutProps) {
               <span className="absolute -inset-1 bg-cream/10 rounded-full blur-sm" />
             )}
           </div>
-          <span className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${
-            isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
-          }`}>
+          <span className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
+            }`}>
             {el.label}
           </span>
           {active && isExpanded && (
             <ChevronRight className="h-4 w-4 ml-auto text-cream/60 flex-shrink-0" />
           )}
-          
+
           {/* Tooltip for collapsed state */}
           {!isExpanded && (
             <div className="absolute left-full ml-3 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
@@ -337,16 +351,15 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-void text-text-primary font-sans">
-      
+
       {/* Desktop Sidebar */}
-      <aside 
-        className={`hidden lg:flex fixed left-0 top-0 h-full flex-col border-r border-border bg-void-deep/80 backdrop-blur-xl z-40 transition-all duration-300 ease-out text-[0.9em] ${
-          isExpanded ? 'w-72' : 'w-14'
-        }`}
+      <aside
+        className={`hidden lg:flex fixed left-0 top-0 h-full flex-col border-r border-border bg-void-deep/80 backdrop-blur-xl z-40 transition-all duration-300 ease-out text-[0.9em] ${isExpanded ? 'w-72' : 'w-20'
+          }`}
       >
         {/* Compact Header: Large Favicon (toggle) + Time/Date Panel */}
-        <div className="p-3 pb-2">
-          <div className={`flex items-center gap-3 ${isExpanded ? '' : 'justify-center flex-col'}`}>
+        <div className={`${isExpanded ? 'p-3 pb-2' : 'p-3 pb-0'}`}>
+          <div className={`flex items-center gap-3 ${isExpanded ? '' : 'justify-center flex-col gap-1.5'}`}>
             {/* Large Favicon - Acts as sidebar toggle */}
             <button
               onClick={toggleSidebar}
@@ -354,19 +367,26 @@ export default function Layout({ children }: LayoutProps) {
               title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
             >
               <div className="relative w-12 h-12 flex items-center justify-center">
-                <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20 group-hover:bg-cream/15 transition-colors" />
-                <img 
-                  src="/favinv.png" 
-                  alt="FavInv" 
+                <div className="absolute inset-0 bg-surface/40 rounded-xl border border-border group-hover:bg-surface/50 transition-colors" />
+                <img
+                  src="/favinv.png"
+                  alt="FavInv"
                   className="relative w-7 h-7 object-contain opacity-90"
                 />
               </div>
             </button>
-            
+
             {/* Time/Date Panel (only when expanded) */}
             {isExpanded && (
               <div className="flex-1 min-w-0 py-1.5 px-3 bg-surface/30 rounded-lg border border-border/30">
                 <CompactTimeDisplay />
+              </div>
+            )}
+
+            {/* Collapsed mini clock */}
+            {!isExpanded && (
+              <div className="w-full px-1">
+                <CollapsedClock />
               </div>
             )}
           </div>
@@ -384,16 +404,15 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         {/* Bottom Actions */}
-        <div className={`p-4 space-y-3 transition-all duration-300 ${isExpanded ? '' : 'px-2'}`}>
+        <div className={`space-y-3 transition-all duration-300 ${isExpanded ? 'p-4' : 'p-2'}`}>
           <div className={`h-px bg-border transition-all duration-300 ${isExpanded ? 'mx-2' : 'mx-0'}`} />
-          
-          {/* Upload & Download Buttons */}
+
+          {/* Upload Button */}
           <div className="space-y-2">
             <Link
               to="/files"
-              className={`glyph-btn glyph-btn-primary transition-all duration-300 ${
-                isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
-              }`}
+              className={`glyph-btn glyph-btn-primary transition-all duration-300 ${isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
+                }`}
               title={!isExpanded ? "Documentos" : undefined}
             >
               <Upload className="h-4 w-4 flex-shrink-0" />
@@ -401,19 +420,6 @@ export default function Layout({ children }: LayoutProps) {
                 Documentos
               </span>
             </Link>
-            <a
-              href="/releases/nexus-v1.0.apk"
-              download
-              className={`glyph-btn glyph-btn-secondary transition-all duration-300 ${
-                isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
-              }`}
-              title={!isExpanded ? "Descargar App" : undefined}
-            >
-              <Download className="h-4 w-4 flex-shrink-0" />
-              <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Descargar App
-              </span>
-            </a>
           </div>
 
 
@@ -426,10 +432,10 @@ export default function Layout({ children }: LayoutProps) {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <div className="relative w-9 h-9 flex items-center justify-center">
-              <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20" />
-              <img 
-                src="/favinv.png" 
-                alt="FavInv" 
+              <div className="absolute inset-0 bg-surface/40 rounded-xl border border-border" />
+              <img
+                src="/favinv.png"
+                alt="FavInv"
                 className="relative w-5 h-5 object-contain"
               />
             </div>
@@ -449,22 +455,20 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Mobile Sidebar Overlay */}
-      <div 
-        className={`lg:hidden fixed inset-0 z-40 transition-all duration-300 ${
-          sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+      <div
+        className={`lg:hidden fixed inset-0 z-40 transition-all duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
       >
         {/* Backdrop */}
-        <div 
+        <div
           className="absolute inset-0 bg-void/90 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
-        
+
         {/* Mobile Sidebar Panel */}
-        <aside 
-          className={`absolute left-0 top-16 bottom-0 w-80 bg-void-deep border-r border-border flex flex-col transition-transform duration-300 text-[0.9em] ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+        <aside
+          className={`absolute left-0 top-16 bottom-0 w-80 bg-void-deep border-r border-border flex flex-col transition-transform duration-300 text-[0.9em] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <div className="flex-1 overflow-y-auto py-4">
             <nav className="px-4">
@@ -472,7 +476,7 @@ export default function Layout({ children }: LayoutProps) {
                 // Section header
                 if (isNavSection(el)) {
                   return (
-                    <div 
+                    <div
                       key={`mobile-section-${index}`}
                       className="mt-6 mb-2 px-4 text-[10px] font-semibold tracking-widest text-text-muted uppercase"
                     >
@@ -480,49 +484,45 @@ export default function Layout({ children }: LayoutProps) {
                     </div>
                   )
                 }
-                
+
                 // Group
                 if (isNavGroup(el)) {
                   const GroupIcon = el.icon
                   const groupActive = isGroupActive(el, location.pathname)
                   const isGroupExpanded = expandedGroups.has(el.label)
-                  
+
                   return (
                     <div key={`mobile-group-${index}`} className="mb-1">
                       <button
                         onClick={() => toggleGroup(el.label)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                          groupActive 
-                            ? 'text-cream bg-surface/80' 
-                            : 'text-text-secondary hover:text-text-primary hover:bg-surface/40'
-                        }`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${groupActive
+                          ? 'text-cream bg-surface/80'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-surface/40'
+                          }`}
                       >
                         <GroupIcon className={`h-5 w-5 flex-shrink-0 ${groupActive ? 'text-cream' : 'text-text-muted'}`} />
                         <span className="font-medium text-sm flex-1 text-left">{el.label}</span>
-                        <ChevronDown 
-                          className={`h-4 w-4 text-text-muted transition-transform duration-300 ${
-                            isGroupExpanded ? 'rotate-180' : ''
-                          }`} 
+                        <ChevronDown
+                          className={`h-4 w-4 text-text-muted transition-transform duration-300 ${isGroupExpanded ? 'rotate-180' : ''
+                            }`}
                         />
                       </button>
-                      
-                      <div className={`overflow-hidden transition-all duration-300 ${
-                        isGroupExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                      }`}>
+
+                      <div className={`overflow-hidden transition-all duration-300 ${isGroupExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                        }`}>
                         <div className="mt-1 ml-4 pl-4 border-l border-border space-y-0.5">
                           {el.items.map((item, itemIndex) => {
                             const ItemIcon = item.icon
                             const itemActive = isItemActive(item, location.pathname)
-                            
+
                             return (
                               <Link
                                 key={`mobile-${el.label}-item-${itemIndex}`}
                                 to={item.path}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
-                                  itemActive 
-                                    ? 'text-cream bg-surface' 
-                                    : 'text-text-secondary hover:text-text-primary hover:bg-surface/30'
-                                }`}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${itemActive
+                                  ? 'text-cream bg-surface'
+                                  : 'text-text-secondary hover:text-text-primary hover:bg-surface/30'
+                                  }`}
                               >
                                 <ItemIcon className={`h-4 w-4 flex-shrink-0 ${itemActive ? 'text-cream' : 'text-text-muted'}`} />
                                 <span className="text-sm font-medium flex-1">{item.label}</span>
@@ -536,21 +536,20 @@ export default function Layout({ children }: LayoutProps) {
                     </div>
                   )
                 }
-                
+
                 // Regular item
                 if (isNavItem(el)) {
                   const Icon = el.icon
                   const active = isItemActive(el, location.pathname)
-                  
+
                   return (
                     <Link
                       key={`mobile-item-${index}`}
                       to={el.path}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1 ${
-                        active 
-                          ? 'bg-surface text-cream' 
-                          : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
-                      }`}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1 ${active
+                        ? 'bg-surface text-cream'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
+                        }`}
                     >
                       <Icon className={`h-5 w-5 flex-shrink-0 ${active ? 'text-cream' : 'text-text-muted'}`} />
                       <span className="font-medium text-sm flex-1">{el.label}</span>
@@ -558,12 +557,12 @@ export default function Layout({ children }: LayoutProps) {
                     </Link>
                   )
                 }
-                
+
                 return null
               })}
             </nav>
           </div>
-          
+
           {/* Mobile Bottom Actions */}
           <div className="p-4 border-t border-border space-y-3">
             <Link
@@ -573,22 +572,13 @@ export default function Layout({ children }: LayoutProps) {
               <Upload className="h-4 w-4" />
               <span>Documentos</span>
             </Link>
-            <a
-              href="/releases/nexus-v1.0.apk"
-              download
-              className="glyph-btn glyph-btn-secondary w-full justify-center"
-            >
-              <Download className="h-4 w-4" />
-              <span>Descargar App</span>
-            </a>
           </div>
         </aside>
       </div>
 
       {/* Main Content */}
-      <main className={`transition-all duration-300 min-h-screen ${
-        isExpanded ? 'lg:ml-64' : 'lg:ml-14'
-      }`}>
+      <main className={`transition-all duration-300 min-h-screen ${isExpanded ? 'lg:ml-72' : 'lg:ml-20'
+        }`}>
         <div className="pt-20 lg:pt-8 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             {children}

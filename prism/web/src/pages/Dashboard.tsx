@@ -6,8 +6,10 @@ import {
   Brain,
   TrendingUp,
   Clock,
-  Activity,
-  ChevronRight
+  ChevronRight,
+  ArrowUpRight,
+  ArrowDownRight,
+  Percent
 } from 'lucide-react'
 import StatCard, { FeaturedStat } from '../components/StatCard'
 import { dashboardApi, investmentsApi } from '../lib/api'
@@ -40,12 +42,6 @@ const categoryLabels: Record<string, string> = {
 function DashboardSkeleton() {
   return (
     <div className="space-y-8 animate-pulse">
-      {/* Header skeleton */}
-      <div className="space-y-2">
-        <div className="h-8 w-48 bg-surface-elevated rounded-lg" />
-        <div className="h-4 w-72 bg-surface rounded-lg" />
-      </div>
-      
       {/* Featured stat skeleton */}
       <div className="h-48 bg-surface-elevated rounded-3xl" />
       
@@ -75,6 +71,9 @@ export default function Dashboard() {
   }
 
   const totalValue = stats?.total_value || 0
+  const totalInvested = stats?.total_invested || 0
+  const totalReturn = stats?.total_return || 0
+  const totalReturnPct = stats?.total_return_pct || 0
   const totalInvestments = stats?.total_investments || 0
   const totalFiles = stats?.total_files || 0
   const completedAnalyses = stats?.completed_analyses || 0
@@ -82,29 +81,6 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 fade-in">
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Activity className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Dashboard</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">
-            Resumen del Portafolio
-          </h1>
-          <p className="text-text-secondary mt-1">
-            Gestiona el portafolio de inversiones familiares
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2 text-xs text-text-muted">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span>En vivo</span>
-          <span className="text-border-strong">|</span>
-          <span>{new Date().toLocaleDateString('es-CL', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-        </div>
-      </div>
-
       {/* Featured Total Value */}
       <FeaturedStat
         label="Valor Total del Portafolio"
@@ -116,34 +92,34 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         <StatCard
+          title="Retorno Total"
+          value={formatCurrency(totalReturn)}
+          description={totalInvested > 0 ? `Invertido: ${formatCurrency(totalInvested)}` : "Sin datos de compra"}
+          icon={totalReturn >= 0 ? ArrowUpRight : ArrowDownRight}
+          variant={totalReturn >= 0 ? "accent" : "default"}
+          delay={0}
+        />
+        <StatCard
+          title="Retorno %"
+          value={`${totalReturnPct >= 0 ? '+' : ''}${totalReturnPct.toFixed(2)}%`}
+          description="Rendimiento del portafolio"
+          icon={Percent}
+          variant={totalReturnPct >= 0 ? "accent" : "default"}
+          delay={50}
+        />
+        <StatCard
           title="Inversiones"
           value={formatNumber(totalInvestments)}
           description="Activos monitoreados"
           icon={Trees}
           variant="default"
-          delay={0}
+          delay={100}
         />
         <StatCard
           title="Archivos"
           value={formatNumber(totalFiles)}
           description="Documentos y media"
           icon={FileText}
-          variant="default"
-          delay={50}
-        />
-        <StatCard
-          title="Análisis AI"
-          value={formatNumber(completedAnalyses)}
-          description={`${pendingAnalyses} pendientes`}
-          icon={Brain}
-          variant="accent"
-          delay={100}
-        />
-        <StatCard
-          title="Categorías"
-          value={Object.keys(stats?.investments_by_category || {}).length}
-          description="Diversificación de activos"
-          icon={TrendingUp}
           variant="default"
           delay={150}
         />

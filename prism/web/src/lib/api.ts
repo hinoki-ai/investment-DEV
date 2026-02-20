@@ -59,6 +59,9 @@ export interface AnalysisResult {
 export interface DashboardStats {
   total_investments: number
   total_value: number
+  total_invested?: number
+  total_return?: number
+  total_return_pct?: number
   total_files: number
   pending_analyses: number
   completed_analyses: number

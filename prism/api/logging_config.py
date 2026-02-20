@@ -86,16 +86,7 @@ def configure_logging():
         stream=sys.stdout,
         level=getattr(logging, log_level),
     )
-    
-    # Redirect standard library logging through structlog
-    structlog.configure(
-        processors=shared_processors + [
-            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-        ],
-        logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True,
-    )
+
 
 
 def get_logger(name: str = None) -> structlog.stdlib.BoundLogger:
@@ -263,5 +254,3 @@ def log_ai_request(
         logger.info("ai_request_completed", **log_data)
 
 
-# Initialize logging on module import
-configure_logging()

@@ -14,9 +14,9 @@
     "url": "https://github.com/your-org/investments/issues"
   },
   "scripts": {
-    "build": "cd web && npm ci && npm run build",
-    "dev": "cd web && npm run dev",
-    "preview": "cd web && npm run preview",
+    "build": "cd prism/web && npm ci && npm run build",
+    "dev": "cd prism/web && npm run dev",
+    "preview": "cd prism/web && npm run preview",
     "test": "npm run test:api && npm run test:worker && npm run test:web",
     "test:api": "cd api && pytest -v",
     "test:worker": "cd worker && pytest -v || true",

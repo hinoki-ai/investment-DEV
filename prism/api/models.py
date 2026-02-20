@@ -5,7 +5,7 @@ SQLALCHEMY MODELS - Database Schema Implementation
 """
 import enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import (
@@ -109,7 +109,7 @@ class FileRegistry(Base):
     file_hash = Column(String(64), nullable=True)
     
     uploaded_by = Column(String(255), nullable=True)
-    uploaded_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    uploaded_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     source_device = Column(String(50), nullable=True)
     
     status = Column(Enum(FileStatus), default=FileStatus.PENDING, nullable=False)
@@ -120,8 +120,8 @@ class FileRegistry(Base):
     tags = Column(ARRAY(String), default=list)
     custom_metadata = Column(JSON, default=dict)
     
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     processed_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
@@ -165,8 +165,8 @@ class ProcessingJob(Base):
     result_id = Column(UUID(as_uuid=True), ForeignKey("analysis_results.id"), nullable=True)
     error_message = Column(Text, nullable=True)
     
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     scheduled_at = Column(DateTime(timezone=True), nullable=True)
     
     # Relationships
@@ -211,7 +211,7 @@ class AnalysisResult(Base):
     processing_time_ms = Column(Integer, nullable=True)
     tokens_used = Column(Integer, nullable=True)
     
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     # Relationships
     job = relationship("ProcessingJob", back_populates="result", foreign_keys=[job_id])
@@ -262,8 +262,8 @@ class Investment(Base):
     tags = Column(ARRAY(String), default=list)
     custom_metadata = Column(JSON, default=dict)
     
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     created_by = Column(String(255), nullable=True)
     
     # Relationships
@@ -302,8 +302,8 @@ class Document(Base):
     tags = Column(ARRAY(String), default=list)
     custom_metadata = Column(JSON, default=dict)
     
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     # Relationships
     investment = relationship("Investment", back_populates="documents")
@@ -337,7 +337,7 @@ class ValuationHistory(Base):
     
     notes = Column(Text, nullable=True)
     
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     created_by = Column(String(255), nullable=True)
     
     # Relationships
@@ -362,7 +362,7 @@ class ActivityLog(Base):
     action = Column(String(50), nullable=False)
     
     performed_by = Column(String(255), nullable=True)
-    performed_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    performed_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     old_values = Column(JSON, nullable=True)
     new_values = Column(JSON, nullable=True)
