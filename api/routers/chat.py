@@ -184,16 +184,21 @@ Portfolio Summary:
 """)
     
     if investment_context:
-        context_parts.append(f"""
-Selected Investment: {investment_context['name']}
-- Category: {investment_context['category']}
-- Status: {investment_context['status']}
-- Location: {investment_context['city']}, {investment_context['state']}, {investment_context['country']}
-- Purchase Price: ${investment_context['purchase_price']:,.2f}""" if investment_context.get('purchase_price') else """
-- Purchase Date: {investment_context['purchase_date']}""" if investment_context.get('purchase_date') else ""
-- Current Value: ${investment_context['current_value']:,.2f}""" if investment_context.get('current_value') else ""
-- Land Area: {investment_context['land_area_hectares']} hectares""" if investment_context.get('land_area_hectares') else ""
-- Description: {investment_context['description']}""")
+        inv_parts = [f"Selected Investment: {investment_context['name']}"]
+        inv_parts.append(f"- Category: {investment_context['category']}")
+        inv_parts.append(f"- Status: {investment_context['status']}")
+        inv_parts.append(f"- Location: {investment_context['city']}, {investment_context['state']}, {investment_context['country']}")
+        if investment_context.get('purchase_price'):
+            inv_parts.append(f"- Purchase Price: ${investment_context['purchase_price']:,.2f}")
+        if investment_context.get('purchase_date'):
+            inv_parts.append(f"- Purchase Date: {investment_context['purchase_date']}")
+        if investment_context.get('current_value'):
+            inv_parts.append(f"- Current Value: ${investment_context['current_value']:,.2f}")
+        if investment_context.get('land_area_hectares'):
+            inv_parts.append(f"- Land Area: {investment_context['land_area_hectares']} hectares")
+        if investment_context.get('description'):
+            inv_parts.append(f"- Description: {investment_context['description']}")
+        context_parts.append("\n".join(inv_parts))
     
     if files_context:
         files_list = "\n".join([
