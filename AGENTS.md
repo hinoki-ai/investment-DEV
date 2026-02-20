@@ -143,7 +143,7 @@ The system follows a **three-layer architecture**:
 │   ├── storage.py                # Object storage abstraction
 │   ├── requirements.txt          # Python dependencies
 │   ├── Dockerfile                # API container image
-│   └── wrangler.toml             # Cloudflare Workers config
+│   └── tests/                    # API tests
 ├── worker/                       # Layer 3: Intelligence Worker
 │   ├── main.py                   # Worker orchestrator (job polling loop)
 │   ├── ai_client.py              # Multi-provider AI client
@@ -182,11 +182,22 @@ The system follows a **three-layer architecture**:
 │   ├── vv                        # Main deployment script
 │   ├── ui.sh                     # UI helper functions
 │   └── vv-simple.sh              # Simplified deployer
+├── scripts/                      # Utility scripts
+│   ├── deploy-railway.sh         # Railway deployment
+│   ├── railway-setup.sh          # Railway setup
+│   ├── setup/init-dev.sh         # Development setup
+│   ├── health-check/health.sh    # Health checks
+│   └── migration/                # Backup/restore scripts
 ├── docker-compose.yml            # Complete local stack
+├── docker-compose.prod.yml       # Production Docker Compose
+├── docker-compose.test.yml       # Testing Docker Compose
 ├── Makefile                      # Development commands
 ├── vercel.json                   # Vercel deployment config
+├── railway.json                  # Railway deployment config
 ├── .vvrc                         # VV deployer configuration
 ├── package.json                  # Root package.json (build orchestration)
+├── pyproject.toml                # Python project configuration, linting, testing
+├── .pre-commit-config.yaml       # Pre-commit hooks
 └── .env.example                  # Environment configuration template
 ```
 
@@ -219,26 +230,71 @@ docker-compose down -v
 ### Makefile Commands
 
 ```bash
-make build          # Build all Docker images
-make up             # Start all services
-make up-d           # Start all services (detached)
-make down           # Stop all services
-make logs           # View all logs
-make logs-api       # View API logs
-make logs-worker    # View Worker logs
-make api            # Start API only (with infrastructure)
-make worker         # Start only Worker service
-make web            # Start only Web service
-make db             # Start database services only
-make shell-api      # Open shell in API container
-make shell-db       # Open psql shell
-make clean          # Remove containers and volumes
-make reset          # Reset everything (WARNING: destroys data)
+make help              # Show all available commands
+make build             # Build all Docker images
+make up                # Start all services
+make up-d              # Start all services (detached)
+make down              # Stop all services
+make logs              # View all logs
+make logs-api          # View API logs
+make logs-worker       # View Worker logs
+make api               # Start API only (with infrastructure)
+make worker            # Start only Worker service
+make web               # Start only Web service
+make db                # Start database services only
+make shell-db          # Open psql shell
+make clean             # Remove containers and volumes
+make reset             # Reset everything (WARNING: destroys data!)
 
 # Development helpers
-make dev-web        # Run web dev server locally (cd web && npm run dev)
-make dev-api        # Run API locally (cd api && uvicorn main:app --reload)
-make dev-worker     # Run Worker locally (cd worker && python main.py)
+make dev-web           # Run web dev server locally (cd web && npm run dev)
+make dev-api           # Run API locally (cd api && uvicorn main:app --reload)
+make dev-worker        # Run Worker locally (cd worker && python main.py)
+
+# Testing (minimal by design)
+make test              # Run all tests
+make test-api          # Run API tests (pytest)
+make test-api-cov      # Run API tests with coverage
+
+# Linting & Formatting
+make lint              # Run all linters
+make lint-api          # Lint API code (ruff + mypy)
+make lint-web          # Lint Web code
+make format            # Format all code
+
+# Database
+make migrate           # Run database migrations
+make migrate-fresh     # Reset database with fresh schema
+make db-backup         # Create database backup
+make db-restore        # Restore database from backup
+
+# Production
+make prod-up           # Start production stack locally
+make prod-down         # Stop production stack
+make prod-backup       # Backup production database
+
+# Mobile
+make mobile-build      # Build Android app
+make mobile-install    # Install Android app to connected device
+```
+
+### NPM Scripts (Root)
+
+```bash
+npm run build          # Build web for production
+npm run dev            # Run web dev server
+npm run test           # Run all tests
+npm run test:api       # Run API tests
+npm run test:worker    # Run Worker tests
+npm run test:web       # Run Web tests
+npm run lint           # Run all linters
+npm run lint:api       # Lint API (ruff + mypy)
+npm run lint:worker    # Lint Worker
+npm run lint:web       # Lint Web
+npm run format         # Format all code
+npm run format:api     # Format API (ruff)
+npm run format:worker  # Format Worker
+npm run format:web     # Format Web (prettier)
 ```
 
 ### Local Development (Without Docker)
@@ -263,17 +319,6 @@ python main.py
 cd web
 npm install
 npm run dev
-```
-
-### Frontend Only (Vite Development Server)
-
-```bash
-cd web
-npm install
-npm run dev        # Development server on http://localhost:5173
-npm run build      # Production build to web/dist/
-npm run preview    # Preview production build
-npm run lint       # Run ESLint
 ```
 
 ---
@@ -418,28 +463,89 @@ from models import InvestmentCreate, InvestmentResponse
 
 ---
 
-## Testing Instructions
+## Linting and Formatting
 
-### API Testing
+### Python
+
+- **Ruff** - Fast Python linter and formatter
+  - Line length: 88
+  - Target version: Python 3.12
+  - Quote style: double
+  - Indent: space
+  - Line ending: lf
+- **mypy** - Static type checking (strict mode)
 
 ```bash
-# Run API tests (pytest)
-cd api
-pytest
+# API
+ruff check .
+ruff format .
+ruff check --fix .
+mypy . --ignore-missing-imports
 
-# With coverage
-pytest --cov=.
+# Worker
+ruff check .
+ruff format .
 ```
 
-### Frontend Testing
+### TypeScript/JavaScript
+
+- **ESLint** - Linting with TypeScript support
+- **Prettier** - Code formatting
 
 ```bash
-# Lint check
 cd web
 npm run lint
+npx prettier --write 'src/**/*.{ts,tsx}'
+```
 
-# Type check
-npx tsc --noEmit
+### Pre-commit Hooks
+
+Configured in `.pre-commit-config.yaml`:
+- Trailing whitespace removal
+- End-of-file fixer
+- YAML/JSON/TOML validation
+- Large file checks (max 1000KB)
+- Ruff linting and formatting
+- mypy type checking
+- ESLint for TypeScript
+- Hadolint for Dockerfiles
+- Commitizen for commit messages
+- Gitleaks for secrets detection
+- SQLFluff for SQL formatting
+
+```bash
+# Install hooks
+pre-commit install
+pre-commit install --hook-type commit-msg
+
+# Run on all files
+pre-commit run --all-files
+```
+
+---
+
+## Testing Instructions
+
+### Test Philosophy
+
+> **Tests are intentionally minimal.** This is a personal tool for 2 people, not a product for customers.
+
+### Running Tests
+
+```bash
+# API tests (pytest)
+cd api
+pytest -v
+
+# With coverage
+pytest --cov=. --cov-report=html -v
+
+# Web tests
+cd web
+npm run test
+
+# All tests from root
+make test
 ```
 
 ### Manual Testing
@@ -477,6 +583,12 @@ The API and Worker are deployed via Docker:
 - `railway.json` - Railway deployment configuration
 - `render.yaml` - Render deployment configuration
 - Both services share the same Docker image with different entrypoints
+
+```bash
+# Railway deployment
+make railway-login      # One-time setup
+make railway-deploy     # Deploy to Railway
+```
 
 ### Infrastructure Setup
 

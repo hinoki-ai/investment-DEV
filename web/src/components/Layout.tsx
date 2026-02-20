@@ -12,8 +12,7 @@ import {
   PanelLeft,
   ChevronDown,
   FolderOpen,
-  BarChart3,
-  Settings,
+  Download,
   type LucideIcon
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
@@ -23,12 +22,15 @@ interface LayoutProps {
 }
 
 // Types for navigation structure
-interface NavItem {
-  path?: string
+interface NavItemBase {
   label: string
-  icon?: LucideIcon
+  icon: LucideIcon
   badge?: string
   badgeColor?: 'neutral' | 'cream' | 'success' | 'warning'
+}
+
+interface NavItem extends NavItemBase {
+  path: string
 }
 
 interface NavSection {
@@ -45,6 +47,19 @@ interface NavGroup {
 }
 
 type NavElement = NavItem | NavSection | NavGroup
+
+// Type guards
+const isNavSection = (el: NavElement): el is NavSection => {
+  return 'type' in el && el.type === 'section'
+}
+
+const isNavGroup = (el: NavElement): el is NavGroup => {
+  return 'type' in el && el.type === 'group'
+}
+
+const isNavItem = (el: NavElement): el is NavItem => {
+  return !('type' in el) && 'path' in el
+}
 
 // Navigation structure with nested categories
 const navigation: NavElement[] = [
@@ -77,14 +92,12 @@ const navigation: NavElement[] = [
 // Check if a group contains the active path
 const isGroupActive = (group: NavGroup, pathname: string): boolean => {
   return group.items.some(item => {
-    if (!item.path) return false
     return pathname === item.path || (item.path !== '/' && pathname.startsWith(item.path))
   })
 }
 
 // Check if an item is active
-const isItemActive = (item: NavItem, pathname: string): boolean => {
-  if (!item.path) return false
+const isItemActive = (item: { path: string }, pathname: string): boolean => {
   return pathname === item.path || (item.path !== '/' && pathname.startsWith(item.path))
 }
 
@@ -98,7 +111,7 @@ export default function Layout({ children }: LayoutProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     const initial = new Set<string>()
     navigation.forEach(el => {
-      if (el.type === 'group') {
+      if (isNavGroup(el)) {
         if (el.defaultExpanded || isGroupActive(el, location.pathname)) {
           initial.add(el.label)
         }
@@ -112,7 +125,7 @@ export default function Layout({ children }: LayoutProps) {
     setExpandedGroups(prev => {
       const next = new Set(prev)
       navigation.forEach(el => {
-        if (el.type === 'group' && isGroupActive(el, location.pathname)) {
+        if (isNavGroup(el) && isGroupActive(el, location.pathname)) {
           next.add(el.label)
         }
       })
@@ -170,7 +183,7 @@ export default function Layout({ children }: LayoutProps) {
   // Render navigation element
   const renderNavElement = (el: NavElement, index: number) => {
     // Section header
-    if ('type' in el && el.type === 'section') {
+    if (isNavSection(el)) {
       return (
         <div 
           key={`section-${index}`}
@@ -184,7 +197,7 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     // Group with nested items
-    if ('type' in el && el.type === 'group') {
+    if (isNavGroup(el)) {
       const GroupIcon = el.icon
       const isActive = isGroupActive(el, location.pathname)
       const isGroupExpanded = expandedGroups.has(el.label)
@@ -243,7 +256,7 @@ export default function Layout({ children }: LayoutProps) {
                 return (
                   <Link
                     key={`${el.label}-item-${itemIndex}`}
-                    to={item.path || '#'}
+                    to={item.path}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group/item ${
                       itemActive 
                         ? 'text-cream bg-surface' 
@@ -266,56 +279,59 @@ export default function Layout({ children }: LayoutProps) {
     }
 
     // Regular nav item (flat)
-    const item = el as NavItem
-    const Icon = item.icon
-    const active = isItemActive(item, location.pathname)
-    
-    return (
-      <Link
-        key={`item-${index}`}
-        to={item.path || '#'}
-        className={`flex items-center gap-3 rounded-xl transition-all duration-200 group relative mb-1 ${
-          active 
-            ? 'bg-surface text-cream' 
-            : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
-        } ${isExpanded ? 'px-4 py-3' : 'p-3 justify-center'}`}
-        title={!isExpanded ? item.label : undefined}
-      >
-        <div className={`relative ${active ? 'text-cream' : 'text-text-muted group-hover:text-text-primary'}`}>
-          <Icon className="h-5 w-5 flex-shrink-0" />
-          {active && (
-            <span className="absolute -inset-1 bg-cream/10 rounded-full blur-sm" />
-          )}
-        </div>
-        <span className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${
-          isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
-        }`}>
-          {item.label}
-        </span>
-        {active && isExpanded && (
-          <ChevronRight className="h-4 w-4 ml-auto text-cream/60 flex-shrink-0" />
-        )}
-        
-        {/* Tooltip for collapsed state */}
-        {!isExpanded && (
-          <div className="absolute left-full ml-3 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
-            {item.label}
-            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
+    if (isNavItem(el)) {
+      const Icon = el.icon
+      const active = isItemActive(el, location.pathname)
+      
+      return (
+        <Link
+          key={`item-${index}`}
+          to={el.path}
+          className={`flex items-center gap-3 rounded-xl transition-all duration-200 group relative mb-1 ${
+            active 
+              ? 'bg-surface text-cream' 
+              : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
+          } ${isExpanded ? 'px-4 py-3' : 'p-3 justify-center'}`}
+          title={!isExpanded ? el.label : undefined}
+        >
+          <div className={`relative ${active ? 'text-cream' : 'text-text-muted group-hover:text-text-primary'}`}>
+            <Icon className="h-5 w-5 flex-shrink-0" />
+            {active && (
+              <span className="absolute -inset-1 bg-cream/10 rounded-full blur-sm" />
+            )}
           </div>
-        )}
-      </Link>
-    )
+          <span className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${
+            isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'
+          }`}>
+            {el.label}
+          </span>
+          {active && isExpanded && (
+            <ChevronRight className="h-4 w-4 ml-auto text-cream/60 flex-shrink-0" />
+          )}
+          
+          {/* Tooltip for collapsed state */}
+          {!isExpanded && (
+            <div className="absolute left-full ml-3 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
+              {el.label}
+              <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
+            </div>
+          )}
+        </Link>
+      )
+    }
+
+    return null
   }
 
   // Get current page label for header
   const getCurrentPageLabel = (): string => {
     for (const el of navigation) {
-      if ('path' in el && el.path && isItemActive(el, location.pathname)) {
+      if (isNavItem(el) && isItemActive(el, location.pathname)) {
         return el.label
       }
-      if ('type' in el && el.type === 'group') {
+      if (isNavGroup(el)) {
         for (const item of el.items) {
-          if (item.path && isItemActive(item, location.pathname)) {
+          if (isItemActive(item, location.pathname)) {
             return item.label
           }
         }
@@ -378,19 +394,34 @@ export default function Layout({ children }: LayoutProps) {
         <div className={`p-4 space-y-3 transition-all duration-300 ${isExpanded ? '' : 'px-2'}`}>
           <div className={`h-px bg-border transition-all duration-300 ${isExpanded ? 'mx-2' : 'mx-0'}`} />
           
-          {/* Upload Button */}
-          <Link
-            to="/investments"
-            className={`glyph-btn glyph-btn-primary transition-all duration-300 ${
-              isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
-            }`}
-            title={!isExpanded ? "Upload Document" : undefined}
-          >
-            <Upload className="h-4 w-4 flex-shrink-0" />
-            <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-              Upload Document
-            </span>
-          </Link>
+          {/* Upload & Download Buttons */}
+          <div className="space-y-2">
+            <Link
+              to="/investments"
+              className={`glyph-btn glyph-btn-primary transition-all duration-300 ${
+                isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
+              }`}
+              title={!isExpanded ? "Upload Document" : undefined}
+            >
+              <Upload className="h-4 w-4 flex-shrink-0" />
+              <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+                Upload Document
+              </span>
+            </Link>
+            <a
+              href="/releases/nexus-v1.0.apk"
+              download
+              className={`glyph-btn glyph-btn-secondary transition-all duration-300 ${
+                isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
+              }`}
+              title={!isExpanded ? "Download App" : undefined}
+            >
+              <Download className="h-4 w-4 flex-shrink-0" />
+              <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+                Download Android App
+              </span>
+            </a>
+          </div>
 
           {/* Footer Info */}
           <div className={`flex items-center justify-between pt-2 transition-all duration-300 ${isExpanded ? 'px-2' : 'flex-col gap-2'}`}>
@@ -399,7 +430,7 @@ export default function Layout({ children }: LayoutProps) {
                 <img src="/favinv.png" alt="" className="w-4 h-4 object-contain" />
               </div>
               <span className={`text-xs text-text-muted overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                PRISM
+                Nest
               </span>
             </div>
             <div className={`flex items-center gap-2 text-xs text-text-muted ${isExpanded ? '' : 'flex-col'}`}>
@@ -421,6 +452,15 @@ export default function Layout({ children }: LayoutProps) {
           {getCurrentPageLabel()}
         </h1>
         <div className="flex items-center gap-4">
+          <a
+            href="/releases/nexus-v1.0.apk"
+            download
+            className="glyph-btn glyph-btn-secondary flex items-center gap-2"
+            title="Download Android App"
+          >
+            <Download className="h-4 w-4" />
+            <span>Get App</span>
+          </a>
           <span className="text-xs text-text-muted">{new Date().toLocaleDateString()}</span>
         </div>
       </header>
@@ -475,7 +515,7 @@ export default function Layout({ children }: LayoutProps) {
             <nav className="px-4">
               {navigation.map((el, index) => {
                 // Section header
-                if ('type' in el && el.type === 'section') {
+                if (isNavSection(el)) {
                   return (
                     <div 
                       key={`mobile-section-${index}`}
@@ -487,11 +527,9 @@ export default function Layout({ children }: LayoutProps) {
                 }
                 
                 // Group
-                if ('type' in el && el.type === 'group') {
+                if (isNavGroup(el)) {
                   const GroupIcon = el.icon
-                  const isGroupActive = el.items.some(item => 
-                    item.path && (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
-                  )
+                  const groupActive = isGroupActive(el, location.pathname)
                   const isGroupExpanded = expandedGroups.has(el.label)
                   
                   return (
@@ -499,12 +537,12 @@ export default function Layout({ children }: LayoutProps) {
                       <button
                         onClick={() => toggleGroup(el.label)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                          isGroupActive 
+                          groupActive 
                             ? 'text-cream bg-surface/80' 
                             : 'text-text-secondary hover:text-text-primary hover:bg-surface/40'
                         }`}
                       >
-                        <GroupIcon className={`h-5 w-5 flex-shrink-0 ${isGroupActive ? 'text-cream' : 'text-text-muted'}`} />
+                        <GroupIcon className={`h-5 w-5 flex-shrink-0 ${groupActive ? 'text-cream' : 'text-text-muted'}`} />
                         <span className="font-medium text-sm flex-1 text-left">{el.label}</span>
                         <ChevronDown 
                           className={`h-4 w-4 text-text-muted transition-transform duration-300 ${
@@ -519,12 +557,12 @@ export default function Layout({ children }: LayoutProps) {
                         <div className="mt-1 ml-4 pl-4 border-l border-border space-y-0.5">
                           {el.items.map((item, itemIndex) => {
                             const ItemIcon = item.icon
-                            const itemActive = item.path && (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
+                            const itemActive = isItemActive(item, location.pathname)
                             
                             return (
                               <Link
                                 key={`mobile-${el.label}-item-${itemIndex}`}
-                                to={item.path || '#'}
+                                to={item.path}
                                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
                                   itemActive 
                                     ? 'text-cream bg-surface' 
@@ -553,25 +591,28 @@ export default function Layout({ children }: LayoutProps) {
                 }
                 
                 // Regular item
-                const item = el as NavItem
-                const Icon = item.icon
-                const active = item.path && (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)))
+                if (isNavItem(el)) {
+                  const Icon = el.icon
+                  const active = isItemActive(el, location.pathname)
+                  
+                  return (
+                    <Link
+                      key={`mobile-item-${index}`}
+                      to={el.path}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1 ${
+                        active 
+                          ? 'bg-surface text-cream' 
+                          : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
+                      }`}
+                    >
+                      <Icon className={`h-5 w-5 flex-shrink-0 ${active ? 'text-cream' : 'text-text-muted'}`} />
+                      <span className="font-medium text-sm flex-1">{el.label}</span>
+                      {active && <ChevronRight className="h-4 w-4 text-cream/60" />}
+                    </Link>
+                  )
+                }
                 
-                return (
-                  <Link
-                    key={`mobile-item-${index}`}
-                    to={item.path || '#'}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1 ${
-                      active 
-                        ? 'bg-surface text-cream' 
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface/50'
-                    }`}
-                  >
-                    <Icon className={`h-5 w-5 flex-shrink-0 ${active ? 'text-cream' : 'text-text-muted'}`} />
-                    <span className="font-medium text-sm flex-1">{item.label}</span>
-                    {active && <ChevronRight className="h-4 w-4 text-cream/60" />}
-                  </Link>
-                )
+                return null
               })}
             </nav>
           </div>
@@ -585,6 +626,14 @@ export default function Layout({ children }: LayoutProps) {
               <Upload className="h-4 w-4" />
               <span>Upload Document</span>
             </Link>
+            <a
+              href="/releases/nexus-v1.0.apk"
+              download
+              className="glyph-btn glyph-btn-secondary w-full justify-center"
+            >
+              <Download className="h-4 w-4" />
+              <span>Download Android App</span>
+            </a>
             <div className="flex items-center justify-between text-xs text-text-muted px-2">
               <span>v1.0.0</span>
               <span className="flex items-center gap-2">

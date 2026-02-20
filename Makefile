@@ -1,5 +1,5 @@
 # =============================================================================
-# NEXUS / Nest - Makefile
+# NEXUS & PRISM - Makefile
 # =============================================================================
 
 .PHONY: help build up down logs test lint format clean
@@ -12,7 +12,7 @@
 # =============================================================================
 
 help: ## Show this help message
-	@echo "NEXUS / Nest - Available commands:"
+	@echo "NEXUS & PRISM - Available commands:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 

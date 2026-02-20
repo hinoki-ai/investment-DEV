@@ -7,7 +7,6 @@ The Family Investment Dashboard uses a three-layer architecture:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      LAYER 1: STORAGE                            │
-│              (Cloudflare R2 / AWS S3 / MinIO)                    │
 │                     Raw binary files only                        │
 └─────────────────────────────────────────────────────────────────┘
                                │
@@ -30,7 +29,7 @@ The Family Investment Dashboard uses a three-layer architecture:
 
 ### Layer 1: Storage
 - Stores raw binary files (images, documents, videos)
-- S3-compatible API (R2, S3, MinIO)
+- S3-compatible object storage API
 - Pre-signed URLs for upload/download
 - No file content passes through API server
 

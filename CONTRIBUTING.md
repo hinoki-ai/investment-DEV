@@ -1,4 +1,4 @@
-# Contributing to NEXUS / Nest
+# Contributing to NEXUS & PRISM
 
 Thank you for your interest in contributing! This document provides guidelines and workflows for contributing to the project.
 

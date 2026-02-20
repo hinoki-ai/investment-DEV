@@ -1,8 +1,8 @@
 # =============================================================================
-# NEXUS / Nest - Docker Compose
+# NEXUS & PRISM - Docker Compose
 # =============================================================================
 # Three-Layer Architecture:
-#   Layer 1: File Storage (MinIO for local dev, R2 in prod)
+#   Layer 1: File Storage (Object Storage)
 #   Layer 2: Coordination Database (PostgreSQL + Redis)
 #   Layer 3: Intelligence Worker (Kimi K2.5 Analysis)
 # =============================================================================

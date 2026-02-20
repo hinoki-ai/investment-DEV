@@ -34,10 +34,12 @@ import {
   LandCreditComboCard,
   ComparisonTable,
   LandCard,
-  CreditCard
+  CreditCard,
+  AdvancedMetricsDashboard,
+  MarketDataPanel
 } from '../components/CreditAnalysis'
 
-type Tab = 'overview' | 'truth' | 'compare' | 'lands' | 'credits' | 'calculator'
+type Tab = 'overview' | 'truth' | 'compare' | 'lands' | 'credits' | 'calculator' | 'analysis'
 
 // Money Card Component - New Design
 function MoneyCard({
@@ -101,14 +103,15 @@ export default function LandAnalyzer() {
   const [customCredit, setCustomCredit] = useState<Partial<CreditScenario>>({
     advertisedCreditAmount: 30000000,
     requiredDownPayment: 6000000,
-    annualInterestRate: 4.6,
+    annualInterestRate: 4.19,
     termYears: 20,
-    notaryFees: 500000,
-    registrationFees: 250000,
-    appraisalFee: 350000,
-    insuranceFees: 150000,
-    stampTax: 192000,
-    otherFees: 100000,
+    notaryFees: 100000,
+    registrationFees: 180000,
+    appraisalFee: 100000,
+    insuranceFees: 180000,
+    stampTax: 48000,
+    otherFees: 50000,
+    isDFL2: true,
   })
 
   const allLands = useMemo(() => [...SAMPLE_LANDS], [])
@@ -176,17 +179,18 @@ export default function LandAnalyzer() {
         customCredit.advertisedCreditAmount,
         customCredit.requiredDownPayment || 0
       ),
-      annualInterestRate: customCredit.annualInterestRate || 4.6,
+      annualInterestRate: customCredit.annualInterestRate || 4.19,
       termYears: customCredit.termYears || 20,
-      notaryFees: customCredit.notaryFees || 0,
-      registrationFees: customCredit.registrationFees || 0,
-      appraisalFee: customCredit.appraisalFee || 0,
-      insuranceFees: customCredit.insuranceFees || 0,
-      stampTax: customCredit.stampTax || 0,
-      otherFees: customCredit.otherFees || 0,
-      ufValueAtPurchase: 39728,
+      notaryFees: customCredit.notaryFees || 100000,
+      registrationFees: customCredit.registrationFees || 180000,
+      appraisalFee: customCredit.appraisalFee || 100000,
+      insuranceFees: customCredit.insuranceFees || 180000,
+      stampTax: customCredit.stampTax || 48000,
+      otherFees: customCredit.otherFees || 50000,
+      ufValueAtPurchase: 39740,
       currency: 'CLP',
-      requiredMonthlyIncome: 1500000,
+      isDFL2: customCredit.isDFL2 ?? true,
+      requiredMonthlyIncome: 1800000,
       maxPaymentToIncomeRatio: 0.25
     }
     
@@ -196,6 +200,7 @@ export default function LandAnalyzer() {
   const tabs = [
     { id: 'overview' as Tab, label: 'Resumen', icon: BarChart3 },
     { id: 'truth' as Tab, label: 'La Verdad', icon: AlertTriangle },
+    { id: 'analysis' as Tab, label: 'Análisis Detallado', icon: Target },
     { id: 'compare' as Tab, label: 'Comparar', icon: TrendingUp },
     { id: 'lands' as Tab, label: 'Terrenos', icon: Trees },
     { id: 'credits' as Tab, label: 'Créditos', icon: Building2 },
@@ -219,7 +224,7 @@ export default function LandAnalyzer() {
                 Land & Credit Analyzer
               </h1>
               <p className="mt-2 text-text-secondary max-w-2xl">
-                Uncover the true costs of mortgage credits in Chile. Analyze land investment opportunities with precise mathematics.
+                Análisis financiero REAL con datos del mercado chileno 2025-2026. Tasas actuales, fórmulas internacionales, métricas avanzadas.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -285,6 +290,16 @@ export default function LandAnalyzer() {
           <CreditsTab 
             credits={allCredits}
             selectedCredit={selectedCredit}
+            onSelectCredit={setSelectedCredit}
+          />
+        )}
+        {activeTab === 'analysis' && (
+          <AnalysisTab 
+            selectedLand={selectedLand}
+            selectedCredit={selectedCredit}
+            allLands={allLands}
+            allCredits={allCredits}
+            onSelectLand={setSelectedLand}
             onSelectCredit={setSelectedCredit}
           />
         )}
@@ -606,6 +621,108 @@ function CreditsTab({
 }
 
 // ============================================================================
+// ANALYSIS TAB
+// ============================================================================
+
+function AnalysisTab({ 
+  selectedLand, 
+  selectedCredit,
+  allLands,
+  allCredits,
+  onSelectLand,
+  onSelectCredit
+}: { 
+  selectedLand: LandOpportunity | null
+  selectedCredit: CreditScenario | null
+  allLands: LandOpportunity[]
+  allCredits: CreditScenario[]
+  onSelectLand: (land: LandOpportunity) => void
+  onSelectCredit: (credit: CreditScenario) => void
+}) {
+  const currentCombo = useMemo(() => {
+    if (!selectedLand || !selectedCredit) return null
+    return {
+      land: selectedLand,
+      credit: selectedCredit,
+      analysis: analyzeLandCreditCombo(selectedLand, selectedCredit)
+    }
+  }, [selectedLand, selectedCredit])
+
+  const land = selectedLand || allLands[0]
+  const credit = selectedCredit || allCredits[0]
+  const combo = currentCombo || {
+    land,
+    credit,
+    analysis: analyzeLandCreditCombo(land, credit)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Panel - Selection */}
+        <div className="space-y-6">
+          {/* Land Selection */}
+          <div className="glass-card p-4">
+            <h3 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3 flex items-center gap-2">
+              <Trees className="h-4 w-4" />
+              Seleccionar Terreno
+            </h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {allLands.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => onSelectLand(l)}
+                  className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
+                    land.id === l.id
+                      ? 'bg-cream/10 border border-cream/20'
+                      : 'bg-surface border border-border hover:border-border-strong'
+                  }`}
+                >
+                  <p className="font-medium text-text-primary truncate">{l.name}</p>
+                  <p className="text-xs text-text-muted">{formatCurrency(l.askingPrice)} • {l.location.commune}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Credit Selection */}
+          <div className="glass-card p-4">
+            <h3 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3 flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Seleccionar Crédito
+            </h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {allCredits.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => onSelectCredit(c)}
+                  className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
+                    credit.id === c.id
+                      ? 'bg-cream/10 border border-cream/20'
+                      : 'bg-surface border border-border hover:border-border-strong'
+                  }`}
+                >
+                  <p className="font-medium text-text-primary">{c.bank}</p>
+                  <p className="text-xs text-text-muted">{c.annualInterestRate}% • {c.termYears} años {c.isDFL2 && '• DFL2'}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Market Data */}
+          <MarketDataPanel />
+        </div>
+
+        {/* Right Panel - Analysis */}
+        <div className="lg:col-span-2">
+          <AdvancedMetricsDashboard combo={combo} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
 // CALCULATOR TAB
 // ============================================================================
 
@@ -742,24 +859,41 @@ function CalculatorTab({
                 className="input-field"
               />
             </div>
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-success-dim border border-success/20">
+              <input
+                type="checkbox"
+                id="isDFL2"
+                checked={customCredit.isDFL2}
+                onChange={(e) => setCustomCredit({ ...customCredit, isDFL2: e.target.checked })}
+                className="w-4 h-4 rounded border-border"
+              />
+              <label htmlFor="isDFL2" className="text-sm text-success font-medium cursor-pointer">
+                Aplica beneficio DFL2 (ahorro 0.6% en impuesto al mutuo)
+              </label>
+            </div>
+
             <details className="group">
               <summary className="cursor-pointer text-sm text-text-muted hover:text-text-primary flex items-center gap-1 transition-colors">
                 <ChevronDown className="h-4 w-4 group-open:rotate-180 transition-transform" />
-                Operational Expenses
+                Gastos Operacionales Detallados
               </summary>
               <div className="mt-3 space-y-3">
                 {[
-                  { key: 'notaryFees', label: 'Notary Fees' },
-                  { key: 'registrationFees', label: 'CBR Registration' },
-                  { key: 'appraisalFee', label: 'Appraisal' },
-                  { key: 'insuranceFees', label: 'Insurance' },
-                  { key: 'stampTax', label: 'Stamp Tax (0.8%)' },
-                ].map(({ key, label }) => (
+                  { key: 'notaryFees', label: 'Gastos Notariales', hint: '~UF 2.5' },
+                  { key: 'registrationFees', label: 'Inscripción CBR', hint: '~UF 2.5' },
+                  { key: 'appraisalFee', label: 'Tasación', hint: '~UF 2.5' },
+                  { key: 'insuranceFees', label: 'Seguros', hint: 'Desgravamen + Incendio' },
+                  { key: 'stampTax', label: `Impuesto al Mutuo (${customCredit.isDFL2 ? '0.2%' : '0.8%'})`, hint: customCredit.isDFL2 ? 'Ahorro con DFL2' : 'Normal' },
+                  { key: 'otherFees', label: 'Otros gastos', hint: 'Gestión, etc.' },
+                ].map(({ key, label, hint }) => (
                   <div key={key}>
-                    <label className="block text-xs text-text-muted mb-1">{label}</label>
+                    <label className="block text-xs text-text-muted mb-1">
+                      {label}
+                      <span className="text-text-muted/60 ml-1">({hint})</span>
+                    </label>
                     <input
                       type="number"
-                      value={customCredit[key as keyof typeof customCredit]}
+                      value={customCredit[key as keyof typeof customCredit] as number}
                       onChange={(e) => setCustomCredit({ ...customCredit, [key]: Number(e.target.value) })}
                       className="input-field"
                     />
@@ -773,17 +907,34 @@ function CalculatorTab({
 
       {/* Results */}
       {customAnalysis && (
-        <div className="glass-card-elevated p-6">
-          <h3 className="text-xl font-bold text-text-primary mb-4">Analysis Result</h3>
-          <LandCreditComboCard combo={customAnalysis} />
+        <div className="space-y-6">
+          <div className="glass-card-elevated p-6">
+            <h3 className="text-xl font-bold text-text-primary mb-4">Resultado del Análisis</h3>
+            <LandCreditComboCard combo={customAnalysis} />
+          </div>
+          
+          {/* Advanced Metrics */}
+          <AdvancedMetricsDashboard combo={customAnalysis} />
           
           {customAnalysis.analysis.score >= 70 && (
-            <div className="mt-4 bg-success-dim border border-success/20 rounded-xl p-4 flex items-center gap-3">
+            <div className="bg-success-dim border border-success/20 rounded-xl p-4 flex items-center gap-3">
               <CheckCircle className="h-6 w-6 text-success" />
               <div>
-                <p className="font-semibold text-success">Excellent opportunity!</p>
+                <p className="font-semibold text-success">¡Excelente oportunidad!</p>
                 <p className="text-sm text-text-secondary">
-                  This combination offers good returns with calculated risk.
+                  Esta combinación ofrece buenos retornos con riesgo calculado.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {customAnalysis.analysis.score < 50 && (
+            <div className="bg-warning-dim border border-warning/20 rounded-xl p-4 flex items-center gap-3">
+              <AlertTriangle className="h-6 w-6 text-warning" />
+              <div>
+                <p className="font-semibold text-warning">Revisar con precaución</p>
+                <p className="text-sm text-text-secondary">
+                  Esta combinación presenta indicadores de riesgo. Considera alternativas.
                 </p>
               </div>
             </div>

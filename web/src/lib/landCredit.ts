@@ -355,7 +355,7 @@ export function calculateMonthlyPayment(
  */
 export function calculateMonthlyInsurance(
   creditAmount: number,
-  loanTermYears: number,
+  _loanTermYears: number,
   age: number = 35
 ): number {
   // Simplified insurance calculation
@@ -638,7 +638,6 @@ export function calculateAdvancedMetrics(
 ): AdvancedMetrics {
   // Cash-on-Cash Return
   const annualEquityBuildup = trueCost.effectiveCredit / credit.termYears
-  const annualAppreciation = land.askingPrice * (land.expectedAppreciationAnnual / 100)
   const annualCashFlow = annualRent - (trueCost.monthlyPayment * 12) + annualEquityBuildup
   const cashOnCashReturn = calculateCashOnCashReturn(
     Math.max(0, annualCashFlow),
@@ -754,11 +753,12 @@ export function analyzeLandCreditCombo(
   
   // Residual land value calculation (if development potential exists)
   let residualValue: ResidualLandValue | undefined
-  if (land.developmentPotential?.buildableArea) {
-    const gdv = land.developmentPotential.buildableArea * 1500000 // $1.5M/m² estimated
+  const buildableArea = (land.developmentPotential as any)?.buildableArea
+  if (buildableArea) {
+    const gdv = buildableArea * 1500000 // $1.5M/m² estimated
     residualValue = calculateResidualLandValue(
       gdv,
-      land.developmentPotential.buildableArea * 800000, // $800k/m² construction
+      buildableArea * 800000, // $800k/m² construction
       gdv * 0.10, // 10% professional fees
       gdv * 0.05, // 5% finance
       gdv * 0.03, // 3% marketing
