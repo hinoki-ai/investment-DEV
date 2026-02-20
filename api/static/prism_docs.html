@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS API — Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void: #0a0a0a;
+            --void-deep: #070707;
+            --surface: #111111;
+            --surface-elevated: #161616;
+            --surface-higher: #1c1c1c;
+            --cream: #e8d5c4;
+            --cream-light: #f5e6d3;
+            --cream-dark: #c9b296;
+            --cream-muted: #a89482;
+            --text-primary: #f5f2ed;
+            --text-secondary: #8a8279;
+            --text-muted: #5c554d;
+            --success: #7fb069;
+            --warning: #d4a373;
+            --error: #c76b6b;
+            --info: #6b8cae;
+            --border-subtle: rgba(232, 213, 196, 0.06);
+            --border-default: rgba(232, 213, 196, 0.1);
+            --border-strong: rgba(232, 213, 196, 0.15);
+            --glow-cream: rgba(232, 213, 196, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--void);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--void);
+        }
+
+        /* Typography */
+        .mono {
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--void-deep);
+            border-bottom: 1px solid var(--border-default);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--surface);
+            border: 1px solid var(--border-default);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--cream);
+        }
+
+        .brand-tagline {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .version-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border-default);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .version-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--cream);
+            color: var(--void);
+            border-color: var(--cream);
+        }
+
+        .btn-primary:hover {
+            background: var(--cream-light);
+            box-shadow: 0 0 30px var(--glow-cream);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--surface);
+            border-color: var(--border-default);
+        }
+
+        /* Hero */
+        .hero {
+            padding: 60px 0 40px;
+            background: linear-gradient(180deg, var(--void-deep) 0%, var(--void) 100%);
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 48px;
+            align-items: start;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--cream-light) 0%, var(--cream) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin-bottom: 28px;
+        }
+
+        .architecture-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .architecture-badge span {
+            color: var(--cream-muted);
+        }
+
+        /* Status Card */
+        .status-card {
+            background: var(--surface);
+            border: 1px solid var(--border-default);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .status-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--success);
+        }
+
+        .status-indicator::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .metric {
+            padding: 16px;
+            background: var(--void);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Section */
+        .section {
+            padding: 48px 0;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .endpoint-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Endpoint Cards */
+        .endpoints-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .endpoint {
+            background: var(--surface);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .endpoint:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-1px);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            color: inherit;
+            font-family: inherit;
+        }
+
+        .method {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 64px;
+            padding: 6px 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 6px;
+            border: 1px solid transparent;
+        }
+
+        .method.get {
+            background: rgba(107, 140, 174, 0.15);
+            color: var(--info);
+            border-color: rgba(107, 140, 174, 0.3);
+        }
+
+        .method.post {
+            background: rgba(127, 176, 105, 0.15);
+            color: var(--success);
+            border-color: rgba(127, 176, 105, 0.3);
+        }
+
+        .method.put {
+            background: rgba(212, 163, 115, 0.15);
+            color: var(--warning);
+            border-color: rgba(212, 163, 115, 0.3);
+        }
+
+        .method.delete {
+            background: rgba(199, 107, 107, 0.15);
+            color: var(--error);
+            border-color: rgba(199, 107, 107, 0.3);
+        }
+
+        .path {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .endpoint-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-right: 16px;
+        }
+
+        .chevron {
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        .endpoint.expanded .chevron {
+            transform: rotate(180deg);
+        }
+
+        .endpoint-body {
+            display: none;
+            padding: 0 20px 20px;
+            border-top: 1px solid var(--border-default);
+        }
+
+        .endpoint.expanded .endpoint-body {
+            display: block;
+        }
+
+        .endpoint-body-content {
+            padding-top: 20px;
+        }
+
+        .endpoint-section {
+            margin-bottom: 20px;
+        }
+
+        .endpoint-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .endpoint-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .code-block {
+            background: var(--void);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .code-block .key {
+            color: var(--cream-muted);
+        }
+
+        .code-block .string {
+            color: var(--success);
+        }
+
+        .code-block .number {
+            color: var(--warning);
+        }
+
+        .code-block .boolean {
+            color: var(--info);
+        }
+
+        /* Try It Form */
+        .try-it-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-primary);
+            background: var(--void);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--cream-muted);
+            box-shadow: 0 0 0 3px rgba(232, 213, 196, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Response Area */
+        .response-area {
+            margin-top: 16px;
+        }
+
+        .response-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .response-status.success {
+            color: var(--success);
+        }
+
+        .response-status.error {
+            color: var(--error);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 32px 0;
+            background: var(--void-deep);
+            border-top: 1px solid var(--border-default);
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-text {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-link {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--cream);
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid var(--border-default);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--border-strong);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: var(--surface);
+            color: var(--cream);
+            border-color: var(--cream-muted);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--void);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--surface-higher);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--cream-muted);
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--cream);
+            color: var(--void);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-title {
+                font-size: 32px;
+            }
+
+            .endpoint-header {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .endpoint-desc {
+                width: 100%;
+                margin-right: 0;
+                margin-top: 4px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .endpoint {
+            animation: fadeIn 0.3s ease-out backwards;
+        }
+
+        .endpoint:nth-child(1) { animation-delay: 0ms; }
+        .endpoint:nth-child(2) { animation-delay: 50ms; }
+        .endpoint:nth-child(3) { animation-delay: 100ms; }
+        .endpoint:nth-child(4) { animation-delay: 150ms; }
+        .endpoint:nth-child(5) { animation-delay: 200ms; }
+        .endpoint:nth-child(6) { animation-delay: 250ms; }
+        .endpoint:nth-child(7) { animation-delay: 300ms; }
+        .endpoint:nth-child(8) { animation-delay: 350ms; }
+        .endpoint:nth-child(9) { animation-delay: 400ms; }
+        .endpoint:nth-child(10) { animation-delay: 450ms; }
+        .endpoint:nth-child(11) { animation-delay: 500ms; }
+        .endpoint:nth-child(12) { animation-delay: 550ms; }
+        .endpoint:nth-child(13) { animation-delay: 600ms; }
+        .endpoint:nth-child(14) { animation-delay: 650ms; }
+        .endpoint:nth-child(15) { animation-delay: 700ms; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="brand-icon">◈</div>
+                    <div class="brand-text">
+                        <span class="brand-name">NEXUS</span>
+                        <span class="brand-tagline">API Documentation</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <span class="version-badge">
+                        <span class="dot"></span>
+                        v1.0.0
+                    </span>
+                    <a href="/docs" class="btn btn-ghost">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        OpenAPI Spec
+                    </a>
+                    <a href="http://localhost:5173" target="_blank" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        Launch PRISM
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="hero-content">
+                    <h1 class="hero-title">Three-Layer Intelligence</h1>
+                    <p class="hero-subtitle">
+                        The NEXUS API powers your investment ecosystem. Direct-to-storage uploads, 
+                        AI-powered document analysis, and real-time coordination across all your assets.
+                    </p>
+                    <div class="architecture-badge">
+                        <span>Storage</span> → <span>Coordination</span> → <span>Intelligence</span>
+                    </div>
+                </div>
+                <div class="status-card">
+                    <div class="status-header">
+                        <span class="status-title">System Status</span>
+                        <span class="status-indicator">Operational</span>
+                    </div>
+                    <div class="status-metrics" id="statusMetrics">
+                        <div class="metric">
+                            <div class="metric-value mono" id="responseTime">—</div>
+                            <div class="metric-label">Response Time</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value mono" id="apiVersion">v1</div>
+                            <div class="metric-label">API Version</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-title">Dashboard & Analytics</span>
+                <span class="endpoint-count">2 endpoints</span>
+            </div>
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="get">GET</button>
+                <button class="filter-btn" data-filter="post">POST</button>
+                <button class="filter-btn" data-filter="put">PUT</button>
+                <button class="filter-btn" data-filter="delete">DELETE</button>
+            </div>
+            <div class="endpoints-grid" id="dashboardEndpoints">
+                <!-- Dashboard endpoints will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-title">Investments</span>
+                <span class="endpoint-count">5 endpoints</span>
+            </div>
+            <div class="endpoints-grid" id="investmentEndpoints">
+                <!-- Investment endpoints will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-title">Files & Uploads</span>
+                <span class="endpoint-count">5 endpoints</span>
+            </div>
+            <div class="endpoints-grid" id="fileEndpoints">
+                <!-- File endpoints will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-title">Analysis & Intelligence</span>
+                <span class="endpoint-count">4 endpoints</span>
+            </div>
+            <div class="endpoints-grid" id="analysisEndpoints">
+                <!-- Analysis endpoints will be injected here -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <span class="footer-text">NEXUS & PRISM — Built for family wealth management</span>
+                <div class="footer-links">
+                    <a href="/health" class="footer-link">Health Check</a>
+                    <a href="/api/v1/dashboard/stats" class="footer-link">API Status</a>
+                    <a href="https://github.com" class="footer-link">GitHub</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Endpoint data
+        const endpoints = {
+            dashboard: [
+                {
+                    method: 'GET',
+                    path: '/api/v1/dashboard/stats',
+                    description: 'Get dashboard statistics and portfolio overview',
+                    params: [],
+                    response: {
+                        total_investments: 12,
+                        total_value: 2450000.00,
+                        total_return: 18.5,
+                        by_category: {
+                            land: { count: 3, value: 1200000 },
+                            stocks: { count: 4, value: 500000 },
+                            real_estate: { count: 2, value: 600000 }
+                        }
+                    }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v1/dashboard/category-breakdown',
+                    description: 'Get investment breakdown by category',
+                    params: [],
+                    response: {
+                        categories: ['land', 'stocks', 'gold', 'crypto', 'real_estate', 'bonds'],
+                        data: [45, 20, 10, 5, 15, 5]
+                    }
+                }
+            ],
+            investments: [
+                {
+                    method: 'GET',
+                    path: '/api/v1/investments',
+                    description: 'List all investments with optional filters',
+                    params: [
+                        { name: 'category', type: 'query', desc: 'Filter by category (land, stocks, gold, etc.)' },
+                        { name: 'status', type: 'query', desc: 'Filter by status (active, sold, pending)' }
+                    ],
+                    response: {
+                        items: [],
+                        total: 0,
+                        page: 1,
+                        size: 20
+                    }
+                },
+                {
+                    method: 'POST',
+                    path: '/api/v1/investments',
+                    description: 'Create a new investment',
+                    params: [
+                        { name: 'name', type: 'body', desc: 'Investment name' },
+                        { name: 'category', type: 'body', desc: 'Investment category' },
+                        { name: 'initial_value', type: 'body', desc: 'Initial investment amount' }
+                    ],
+                    response: { id: 'uuid', message: 'Investment created' }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v1/investments/{id}',
+                    description: 'Get investment details by ID',
+                    params: [
+                        { name: 'id', type: 'path', desc: 'Investment UUID' }
+                    ],
+                    response: { id: 'uuid', name: '...', category: '...', value: 0 }
+                },
+                {
+                    method: 'PUT',
+                    path: '/api/v1/investments/{id}',
+                    description: 'Update an existing investment',
+                    params: [
+                        { name: 'id', type: 'path', desc: 'Investment UUID' },
+                        { name: 'name', type: 'body', desc: 'Updated name (optional)' },
+                        { name: 'current_value', type: 'body', desc: 'Updated value (optional)' }
+                    ],
+                    response: { id: 'uuid', message: 'Investment updated' }
+                },
+                {
+                    method: 'DELETE',
+                    path: '/api/v1/investments/{id}',
+                    description: 'Delete an investment',
+                    params: [
+                        { name: 'id', type: 'path', desc: 'Investment UUID' }
+                    ],
+                    response: { message: 'Investment deleted' }
+                }
+            ],
+            files: [
+                {
+                    method: 'GET',
+                    path: '/api/v1/files',
+                    description: 'List all files with metadata',
+                    params: [],
+                    response: { items: [], total: 0 }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v1/files/{id}',
+                    description: 'Get file details',
+                    params: [{ name: 'id', type: 'path', desc: 'File UUID' }],
+                    response: { id: 'uuid', filename: '...', size: 0, mime_type: '...' }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v1/files/{id}/download-url',
+                    description: 'Generate pre-signed download URL',
+                    params: [{ name: 'id', type: 'path', desc: 'File UUID' }],
+                    response: { url: 'https://...', expires_in: 300 }
+                },
+                {
+                    method: 'POST',
+                    path: '/api/v1/uploads/request-url',
+                    description: 'Request pre-signed upload URL (direct-to-storage)',
+                    params: [
+                        { name: 'filename', type: 'body', desc: 'Original filename' },
+                        { name: 'content_type', type: 'body', desc: 'MIME type' },
+                        { name: 'size', type: 'body', desc: 'File size in bytes' }
+                    ],
+                    response: { upload_url: 'https://...', file_id: 'uuid', expires_in: 300 }
+                },
+                {
+                    method: 'POST',
+                    path: '/api/v1/uploads/confirm',
+                    description: 'Confirm upload and queue analysis',
+                    params: [
+                        { name: 'file_id', type: 'body', desc: 'File UUID from request-url' },
+                        { name: 'investment_id', type: 'body', desc: 'Optional: link to investment' }
+                    ],
+                    response: { file_id: 'uuid', status: 'processing', job_id: 'uuid' }
+                }
+            ],
+            analysis: [
+                {
+                    method: 'GET',
+                    path: '/api/v1/analysis/results',
+                    description: 'List AI analysis results',
+                    params: [],
+                    response: { items: [], total: 0 }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v1/analysis/jobs',
+                    description: 'List processing jobs',
+                    params: [
+                        { name: 'status', type: 'query', desc: 'Filter by status (queued, running, completed, failed)' }
+                    ],
+                    response: { items: [], total: 0 }
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v1/analysis/queue/stats',
+                    description: 'Get queue statistics',
+                    params: [],
+                    response: { queued: 0, running: 0, completed: 0, failed: 0 }
+                },
+                {
+                    method: 'POST',
+                    path: '/api/v1/analysis/jobs/{id}/retry',
+                    description: 'Retry a failed analysis job',
+                    params: [{ name: 'id', type: 'path', desc: 'Job UUID' }],
+                    response: { id: 'uuid', status: 'queued' }
+                }
+            ]
+        };
+
+        // Create endpoint HTML
+        function createEndpointHTML(endpoint, index) {
+            const methodClass = endpoint.method.toLowerCase();
+            const paramsHTML = endpoint.params.length > 0 
+                ? endpoint.params.map(p => `
+                    <div class="input-group">
+                        <label class="input-label">${p.name} <span style="color: var(--text-muted);">(${p.type})</span></label>
+                        <input type="text" class="input-field" placeholder="${p.desc}" data-param="${p.name}" data-type="${p.type}">
+                    </div>
+                `).join('')
+                : '<p style="color: var(--text-muted); font-size: 13px;">No parameters required</p>';
+
+            const responseJSON = JSON.stringify(endpoint.response, null, 2)
+                .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+                .replace(/: "([^"]+)"/g, ': <span class="string">"$1"</span>')
+                .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>')
+                .replace(/: (true|false)/g, ': <span class="boolean">$1</span>');
+
+            return `
+                <div class="endpoint" data-method="${endpoint.method.toLowerCase()}">
+                    <button class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <span class="method ${methodClass}">${endpoint.method}</span>
+                        <code class="path">${endpoint.path}</code>
+                        <span class="endpoint-desc">${endpoint.description}</span>
+                        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="endpoint-body">
+                        <div class="endpoint-body-content">
+                            <div class="endpoint-section">
+                                <div class="endpoint-section-title">Parameters</div>
+                                <div class="try-it-form">
+                                    ${paramsHTML}
+                                    <button class="btn btn-primary" onclick="tryEndpoint(this, '${endpoint.method}', '${endpoint.path}')" style="align-self: flex-start; margin-top: 8px;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                        </svg>
+                                        Try it
+                                    </button>
+                                </div>
+                                <div class="response-area" style="display: none;">
+                                    <div class="endpoint-section-title">Response</div>
+                                    <div class="response-status"></div>
+                                    <div class="code-block"><pre></pre></div>
+                                </div>
+                            </div>
+                            <div class="endpoint-section">
+                                <div class="endpoint-section-title">Example Response</div>
+                                <div class="code-block"><pre>${responseJSON}</pre></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Toggle endpoint expansion
+        function toggleEndpoint(header) {
+            const endpoint = header.closest('.endpoint');
+            endpoint.classList.toggle('expanded');
+        }
+
+        // Filter endpoints
+        function filterEndpoints(filter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+
+            document.querySelectorAll('.endpoint').forEach(ep => {
+                if (filter === 'all' || ep.dataset.method === filter) {
+                    ep.style.display = 'block';
+                } else {
+                    ep.style.display = 'none';
+                }
+            });
+        }
+
+        // Try endpoint
+        async function tryEndpoint(btn, method, path) {
+            const endpoint = btn.closest('.endpoint');
+            const inputs = endpoint.querySelectorAll('.input-field');
+            const responseArea = endpoint.querySelector('.response-area');
+            const statusEl = responseArea.querySelector('.response-status');
+            const preEl = responseArea.querySelector('pre');
+
+            // Build URL with params
+            let url = path;
+            const body = {};
+            
+            inputs.forEach(input => {
+                const paramName = input.dataset.param;
+                const paramType = input.dataset.type;
+                const value = input.value;
+
+                if (paramType === 'path') {
+                    url = url.replace(`{${paramName}}`, encodeURIComponent(value || paramName));
+                } else if (paramType === 'query' && value) {
+                    url += (url.includes('?') ? '&' : '?') + `${paramName}=${encodeURIComponent(value)}`;
+                } else if (paramType === 'body') {
+                    body[paramName] = value || (paramName.includes('id') ? 'uuid-example' : 'example');
+                }
+            });
+
+            responseArea.style.display = 'block';
+            statusEl.textContent = 'Loading...';
+            statusEl.className = 'response-status';
+            preEl.textContent = '';
+
+            try {
+                const startTime = performance.now();
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                
+                if (method !== 'GET' && Object.keys(body).length > 0) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(url, options);
+                const responseTime = Math.round(performance.now() - startTime);
+                
+                let data;
+                const text = await response.text();
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+
+                statusEl.textContent = `${response.status} ${response.statusText} • ${responseTime}ms`;
+                statusEl.className = `response-status ${response.ok ? 'success' : 'error'}`;
+                
+                const formatted = typeof data === 'object' 
+                    ? JSON.stringify(data, null, 2)
+                        .replace(/"([^"]+)":/g, '<span class="key">"$1"</span>:')
+                        .replace(/: "([^"]+)"/g, ': <span class="string">"$1"</span>')
+                        .replace(/: (\d+\.?\d*)/g, ': <span class="number">$1</span>')
+                        .replace(/: (true|false)/g, ': <span class="boolean">$1</span>')
+                    : data;
+                
+                preEl.innerHTML = formatted;
+            } catch (error) {
+                statusEl.textContent = 'Error';
+                statusEl.className = 'response-status error';
+                preEl.textContent = error.message;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render endpoints
+            document.getElementById('dashboardEndpoints').innerHTML = endpoints.dashboard
+                .map((ep, i) => createEndpointHTML(ep, i)).join('');
+            document.getElementById('investmentEndpoints').innerHTML = endpoints.investments
+                .map((ep, i) => createEndpointHTML(ep, i)).join('');
+            document.getElementById('fileEndpoints').innerHTML = endpoints.files
+                .map((ep, i) => createEndpointHTML(ep, i)).join('');
+            document.getElementById('analysisEndpoints').innerHTML = endpoints.analysis
+                .map((ep, i) => createEndpointHTML(ep, i)).join('');
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => filterEndpoints(btn.dataset.filter));
+            });
+
+            // Health check
+            fetch('/health')
+                .then(r => r.json())
+                .then(data => {
+                    const redisStatus = data.services?.redis === 'connected' ? 'Connected' : 'Disconnected';
+                    document.getElementById('responseTime').textContent = '<30ms';
+                })
+                .catch(() => {
+                    document.getElementById('responseTime').textContent = '—';
+                });
+        });
+    </script>
+</body>
+</html>

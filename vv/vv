@@ -92,18 +92,18 @@ load_vv_config() {
     local cfg
     for cfg in "$HOME/.config/vv/config" "$PROJECT_ROOT/.vvrc"; do
         if [[ -f "$cfg" ]]; then
-            # Source config file
+            # Source config file - but respect existing env vars (env vars take precedence)
             while IFS='=' read -r key val; do
                 [[ -z "$key" ]] && continue
                 [[ "$key" =~ ^# ]] && continue
                 case "$key" in
-                    VERBOSE) [[ "$val" == "true" ]] && VV_VERBOSE=true || VV_VERBOSE=false ;;
-                    DRY_RUN) [[ "$val" == "true" ]] && VV_DRY_RUN=true || VV_DRY_RUN=false ;;
-                    MONITOR) [[ "$val" == "true" ]] && VV_MONITOR=true || VV_MONITOR=false ;;
-                    PREBUILD) [[ "$val" == "true" ]] && VV_PREBUILD=true || VV_PREBUILD=false ;;
-                    OPEN) [[ "$val" == "true" ]] && VV_OPEN=true || VV_OPEN=false ;;
-                    PROD) [[ "$val" == "true" ]] && VV_PROD=true || VV_PROD=false ;;
-                    AUTOCOMMIT) [[ "$val" == "true" ]] && VV_AUTOCOMMIT=true || VV_AUTOCOMMIT=false ;;
+                    VERBOSE) [[ -z "${VV_VERBOSE:-}" ]] && { [[ "$val" == "true" ]] && VV_VERBOSE=true || VV_VERBOSE=false; } ;;
+                    DRY_RUN) [[ -z "${VV_DRY_RUN:-}" ]] && { [[ "$val" == "true" ]] && VV_DRY_RUN=true || VV_DRY_RUN=false; } ;;
+                    MONITOR) [[ -z "${VV_MONITOR:-}" ]] && { [[ "$val" == "true" ]] && VV_MONITOR=true || VV_MONITOR=false; } ;;
+                    PREBUILD) [[ -z "${VV_PREBUILD:-}" ]] && { [[ "$val" == "true" ]] && VV_PREBUILD=true || VV_PREBUILD=false; } ;;
+                    OPEN) [[ -z "${VV_OPEN:-}" ]] && { [[ "$val" == "true" ]] && VV_OPEN=true || VV_OPEN=false; } ;;
+                    PROD) [[ -z "${VV_PROD:-}" ]] && { [[ "$val" == "true" ]] && VV_PROD=true || VV_PROD=false; } ;;
+                    AUTOCOMMIT) [[ -z "${VV_AUTOCOMMIT:-}" ]] && { [[ "$val" == "true" ]] && VV_AUTOCOMMIT=true || VV_AUTOCOMMIT=false; } ;;
                 esac
             done < "$cfg"
             ui_note "Loaded config: $cfg"
@@ -297,11 +297,14 @@ else
     ENV_NAME="preview"
 fi
 
-# Detect build tool/framework
+# Detect build tool/framework (check web/ subdirectory as well)
 BUILD_TOOL="Unknown"
+WEB_ROOT="$PROJECT_ROOT/web"
 if [[ -f "$PROJECT_ROOT/next.config.ts" ]] || [[ -f "$PROJECT_ROOT/next.config.js" ]] || [[ -f "$PROJECT_ROOT/next.config.mjs" ]]; then
     BUILD_TOOL="Next.js"
-elif [[ -f "$PROJECT_ROOT/vite.config.ts" ]] || [[ -f "$PROJECT_ROOT/vite.config.js" ]]; then
+elif [[ -f "$PROJECT_ROOT/vite.config.ts" ]] || [[ -f "$PROJECT_ROOT/vite.config.js" ]] || [[ -f "$PROJECT_ROOT/vite.config.mjs" ]]; then
+    BUILD_TOOL="Vite"
+elif [[ -f "$WEB_ROOT/vite.config.ts" ]] || [[ -f "$WEB_ROOT/vite.config.js" ]] || [[ -f "$WEB_ROOT/vite.config.mjs" ]]; then
     BUILD_TOOL="Vite"
 elif [[ -f "$PROJECT_ROOT/astro.config.mjs" ]] || [[ -f "$PROJECT_ROOT/astro.config.ts" ]]; then
     BUILD_TOOL="Astro"
