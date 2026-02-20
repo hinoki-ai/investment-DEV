@@ -12,8 +12,6 @@ import {
   Copy,
   Check,
   Upload,
-  Settings,
-  ChevronDown,
   Key,
   Cpu
 } from 'lucide-react'
@@ -528,7 +526,7 @@ export default function Chat() {
 
               {/* Model Settings Dropdown */}
               {showModelSettings && (
-                <div className="absolute left-0 bottom-full mb-2 w-72 bg-surface-elevated border border-border rounded-xl shadow-2xl p-4 space-y-4">
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-surface-elevated border border-border rounded-xl shadow-2xl p-4 space-y-4 z-40">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-text-primary">Modelo</span>
                     <button 
@@ -612,6 +610,14 @@ export default function Chat() {
           </button>
         </div>
       </div>
+
+      {/* Click outside to close model settings */}
+      {showModelSettings && (
+        <div 
+          className="fixed inset-0 z-30" 
+          onClick={() => setShowModelSettings(false)}
+        />
+      )}
     </div>
   )
 }

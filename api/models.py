@@ -118,7 +118,7 @@ class FileRegistry(Base):
     document_id = Column(UUID(as_uuid=True), ForeignKey("documents.id"), nullable=True)
     
     tags = Column(ARRAY(String), default=list)
-    metadata = Column(JSON, default=dict)
+    custom_metadata = Column(JSON, default=dict)
     
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -260,7 +260,7 @@ class Investment(Base):
     status = Column(Enum(InvestmentStatus), default=InvestmentStatus.ACTIVE)
     
     tags = Column(ARRAY(String), default=list)
-    metadata = Column(JSON, default=dict)
+    custom_metadata = Column(JSON, default=dict)
     
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -300,7 +300,7 @@ class Document(Base):
     is_key_document = Column(Boolean, default=False)
     
     tags = Column(ARRAY(String), default=list)
-    metadata = Column(JSON, default=dict)
+    custom_metadata = Column(JSON, default=dict)
     
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
