@@ -59,12 +59,44 @@ async def lifespan(app: FastAPI):
 # =============================================================================
 
 app = FastAPI(
-    title="NEXUS API",
-    description="Three-layer architecture: Storage | Coordination | Intelligence",
+    title="◈ NEXUS API",
+    description="""
+    **Three-Layer Intelligence for Investment Management**
+    
+    NEXUS powers the PRISM dashboard with a sophisticated architecture:
+    
+    - **Layer 1: Storage** — Direct-to-storage file uploads (S3/R2 compatible)
+    - **Layer 2: Coordination** — PostgreSQL + Redis for state management
+    - **Layer 3: Intelligence** — Multi-provider AI analysis (Kimi, GPT-4o, Claude, Gemini)
+    
+    ### Key Features
+    
+    * 📁 **Direct Uploads** — Files never pass through the API, go straight to storage
+    * 🤖 **AI Analysis** — Automatic document parsing and investment analysis
+    * 📊 **Real-time Stats** — Dashboard metrics and portfolio tracking
+    * 🔗 **Multi-device** — Upload from phone, analyze on desktop
+    
+    ### Authentication
+    
+    JWT-based authentication (coming soon). For now, internal network only.
+    
+    ### Rate Limits
+    
+    - Standard: 100 requests/minute
+    - Uploads: 10/minute
+    - Analysis: 5/minute
+    """,
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/openapi",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    contact={
+        "name": "NEXUS & PRISM",
+        "url": "http://localhost:5173",
+    },
+    license_info={
+        "name": "MIT",
+    },
 )
 
 # Mount static files

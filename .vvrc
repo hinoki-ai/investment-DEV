@@ -1,9 +1,9 @@
 # VV Configuration for Investments Project
-# Version: 0.12.5
+# Version: 0.12.6
 
 # Deployment settings
+# NOTE: Environment variables take precedence over these settings
 VERBOSE=true
-DRY_RUN=false
 PROD=true
 OPEN=true
 MONITOR=true
