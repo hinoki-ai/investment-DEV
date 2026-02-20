@@ -4,18 +4,16 @@ import {
   Send,
   Bot,
   User,
-  Paperclip,
   X,
   FileText,
   Trees,
-  ChevronDown,
   Loader2,
-  Cpu,
   Trash2,
   Copy,
-  Check
+  Check,
+  Upload
 } from 'lucide-react'
-import { chatApi } from '../lib/api'
+import { chatApi, uploadsApi } from '../lib/api'
 
 // Types
 interface Message {
@@ -55,12 +53,16 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedInvestment, setSelectedInvestment] = useState<InvestmentOption | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<FileOption[]>([])
-  const [showContextMenu, setShowContextMenu] = useState(false)
+
   const [copiedId, setCopiedId] = useState<string | null>(null)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+
+  // File input ref for direct upload
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set())
 
   // Fetch data for context selection
   const { data: investments } = useQuery({
@@ -68,11 +70,64 @@ export default function Chat() {
     queryFn: chatApi.getInvestmentsForContext,
   })
 
-  const { data: files } = useQuery({
-    queryKey: ['chat-files', selectedInvestment?.id],
-    queryFn: () => chatApi.getFilesForContext(selectedInvestment?.id),
-    enabled: showContextMenu,
-  })
+  // Handle direct file upload
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    for (const file of Array.from(files)) {
+      const fileId = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+      setUploadingFiles(prev => new Set(prev).add(fileId))
+
+      try {
+        // 1. Request upload URL
+        const uploadRequest = await uploadsApi.requestUrl({
+          filename: file.name,
+          content_type: file.type || 'application/octet-stream',
+        })
+
+        // 2. Upload directly to storage
+        const uploadResponse = await fetch(uploadRequest.upload_url, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+          },
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error('Upload failed')
+        }
+
+        // 3. Confirm upload
+        await uploadsApi.confirm({
+          file_id: uploadRequest.file_id,
+          request_analysis: true,
+        })
+
+        // 4. Add to selected files
+        setSelectedFiles(prev => [...prev, {
+          id: uploadRequest.file_id,
+          filename: file.name,
+          mime_type: file.type,
+          size_bytes: file.size,
+        }])
+      } catch (error) {
+        console.error('Upload error:', error)
+      } finally {
+        setUploadingFiles(prev => {
+          const next = new Set(prev)
+          next.delete(fileId)
+          return next
+        })
+      }
+    }
+
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
 
   // Auto-scroll to bottom
   const scrollToBottom = useCallback(() => {
@@ -243,168 +298,17 @@ export default function Chat() {
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Bot className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Prism Chat</span>
-          </div>
-          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Chat</h1>
-          <p className="text-text-secondary mt-1">
-            Tu asistente de inversiones familiar
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {/* Context Selector */}
-          <div className="relative">
-            <button
-              onClick={() => setShowContextMenu(!showContextMenu)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${
-                showContextMenu || selectedInvestment || selectedFiles.length > 0
-                  ? 'bg-cream/10 border-cream/30 text-cream'
-                  : 'bg-surface border-border text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              <Paperclip className="h-4 w-4" />
-              <span className="text-sm font-medium">
-                {selectedInvestment 
-                  ? selectedInvestment.name 
-                  : selectedFiles.length > 0 
-                    ? `${selectedFiles.length} archivo(s)`
-                    : 'Añadir Contexto'
-                }
-              </span>
-              <ChevronDown className={`h-4 w-4 transition-transform ${showContextMenu ? 'rotate-180' : ''}`} />
-            </button>
-
-            {/* Context Dropdown */}
-            {showContextMenu && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-surface-elevated border border-border rounded-2xl shadow-2xl z-50 overflow-hidden">
-                {/* Selected Items */}
-                {(selectedInvestment || selectedFiles.length > 0) && (
-                  <div className="p-3 border-b border-border bg-surface/50">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-text-muted uppercase">Seleccionados</span>
-                      <button
-                        onClick={() => {
-                          setSelectedInvestment(null)
-                          setSelectedFiles([])
-                        }}
-                        className="text-xs text-error hover:underline"
-                      >
-                        Limpiar
-                      </button>
-                    </div>
-                    {selectedInvestment && (
-                      <div className="flex items-center gap-2 p-2 rounded-lg bg-cream/10 mb-2">
-                        <Trees className="h-4 w-4 text-cream" />
-                        <span className="text-sm text-cream flex-1 truncate">{selectedInvestment.name}</span>
-                        <button 
-                          onClick={() => setSelectedInvestment(null)}
-                          className="text-cream/60 hover:text-cream"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
-                    {selectedFiles.map(file => (
-                      <div key={file.id} className="flex items-center gap-2 p-2 rounded-lg bg-surface mb-1">
-                        <FileText className="h-4 w-4 text-text-muted" />
-                        <span className="text-sm text-text-primary flex-1 truncate">{file.filename}</span>
-                        <button 
-                          onClick={() => setSelectedFiles(prev => prev.filter(f => f.id !== file.id))}
-                          className="text-text-muted hover:text-error"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Investments List */}
-                <div className="max-h-48 overflow-y-auto">
-                  <div className="px-3 py-2 text-xs font-medium text-text-muted uppercase sticky top-0 bg-surface-elevated">
-                    Inversiones
-                  </div>
-                  {investments?.map((inv: InvestmentOption) => (
-                    <button
-                      key={inv.id}
-                      onClick={() => {
-                        setSelectedInvestment(inv)
-                        setShowContextMenu(false)
-                      }}
-                      className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-surface transition-colors ${
-                        selectedInvestment?.id === inv.id ? 'bg-cream/5' : ''
-                      }`}
-                    >
-                      <Trees className={`h-4 w-4 ${
-                        selectedInvestment?.id === inv.id ? 'text-cream' : 'text-text-muted'
-                      }`} />
-                      <div className="text-left flex-1 min-w-0">
-                        <p className={`text-sm truncate ${
-                          selectedInvestment?.id === inv.id ? 'text-cream' : 'text-text-primary'
-                        }`}>
-                          {inv.name}
-                        </p>
-                        <p className="text-xs text-text-muted">{inv.category} • {inv.city}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Files List */}
-                {files && files.length > 0 && (
-                  <div className="max-h-48 overflow-y-auto border-t border-border">
-                    <div className="px-3 py-2 text-xs font-medium text-text-muted uppercase sticky top-0 bg-surface-elevated">
-                      Archivos Recientes
-                    </div>
-                    {files.map((file: FileOption) => (
-                      <button
-                        key={file.id}
-                        onClick={() => {
-                          if (!selectedFiles.find(f => f.id === file.id)) {
-                            setSelectedFiles(prev => [...prev, file])
-                          }
-                          setShowContextMenu(false)
-                        }}
-                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-surface transition-colors ${
-                          selectedFiles.find(f => f.id === file.id) ? 'bg-cream/5' : ''
-                        }`}
-                      >
-                        <FileText className={`h-4 w-4 ${
-                          selectedFiles.find(f => f.id === file.id) ? 'text-cream' : 'text-text-muted'
-                        }`} />
-                        <div className="text-left flex-1 min-w-0">
-                          <p className={`text-sm truncate ${
-                            selectedFiles.find(f => f.id === file.id) ? 'text-cream' : 'text-text-primary'
-                          }`}>
-                            {file.filename}
-                          </p>
-                          <p className="text-xs text-text-muted">
-                            {(file.size_bytes ? (file.size_bytes / 1024).toFixed(1) : '0')} KB
-                          </p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Clear Chat */}
-          {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="p-2 text-text-muted hover:text-error hover:bg-error/10 rounded-xl transition-colors"
-              title="Limpiar chat"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+      <div className="flex items-center justify-end mb-4">
+        {/* Clear Chat */}
+        {messages.length > 0 && (
+          <button
+            onClick={clearChat}
+            className="p-2 text-text-muted hover:text-error hover:bg-error/10 rounded-xl transition-colors"
+            title="Limpiar chat"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Messages Area */}
@@ -561,6 +465,27 @@ export default function Chat() {
         )}
 
         <div className="relative flex items-end gap-2 bg-surface border border-border rounded-2xl p-3 focus-within:border-cream/30 focus-within:ring-1 focus-within:ring-cream/20 transition-all">
+          {/* File Upload Button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading || uploadingFiles.size > 0}
+            className="flex-shrink-0 p-2.5 rounded-xl text-text-muted hover:text-cream hover:bg-surface-elevated transition-colors disabled:opacity-50"
+            title="Adjuntar archivo"
+          >
+            {uploadingFiles.size > 0 ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+          </button>
+
           <textarea
             ref={textareaRef}
             value={inputValue}
@@ -588,26 +513,7 @@ export default function Chat() {
             )}
           </button>
         </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-2 px-1">
-          <div className="flex items-center gap-2 text-[10px] text-text-muted">
-            <Cpu className="h-3 w-3" />
-            <span>Prism Chat</span>
-          </div>
-          <div className="text-[10px] text-text-muted">
-            Enter para enviar • Shift+Enter para nueva línea
-          </div>
-        </div>
       </div>
-
-      {/* Click outside to close context menu */}
-      {showContextMenu && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setShowContextMenu(false)}
-        />
-      )}
     </div>
   )
 }
