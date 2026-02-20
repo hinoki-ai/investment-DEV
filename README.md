@@ -1,13 +1,15 @@
-# 🔷 NEXUS / Nest
+# 🔷 NEXUS & PRISM
 
 A **personal investment tracking system** built for exactly 2 people: **me and my wife**.
 
 > ⚠️ **Scope Note:** This isn't a product for customers. It's a tool tailored to our specific needs. We skip tests, multi-user security, and edge cases we don't actually have. If it works for us, it's perfect.
 
 Built with **separation of concerns** at its core:
-- **Layer 1: Storage** - Raw files (R2/S3/MinIO)
+- **NEXUS** - Intelligence & Coordination Engine (API + Worker)
+- **PRISM** - Web Dashboard (React)
+- **Layer 1: Storage** - Raw files (Object Storage)
 - **Layer 2: Coordination** - Metadata, state, relationships (PostgreSQL)
-- **Layer 3: Intelligence** - AI analysis (Kimi K2.5)
+- **Layer 3: Intelligence** - AI analysis (Multi-provider)
 
 ---
 
@@ -15,10 +17,10 @@ Built with **separation of concerns** at its core:
 
 | Feature | Description |
 |---------|-------------|
-| 📱 Phone Uploads | Direct upload from phones to cloud storage (no file passes through API) |
+| 📱 Phone Uploads | Direct upload from phones to storage (no file passes through API) |
 | 🧠 AI Analysis | Automatic document analysis with Kimi K2.5 |
-| 🗄️ Central Storage | All files organized in structured S3-compatible storage |
-| 💻 Web Dashboard | React-based dashboard for viewing and management |
+| 🗄️ Central Storage | All files organized in structured object storage |
+| 💻 Web Dashboard | PRISM - React-based dashboard for viewing and management |
 | 🔄 Multi-Device | Access from phones, laptops, tablets |
 | 📊 Investment Tracking | Land, stocks, gold, crypto, and more |
 | 📈 Portfolio Analytics | Value tracking, returns, document counts |
@@ -37,7 +39,6 @@ Built with **separation of concerns** at its core:
          ▼                       ▼                       ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      LAYER 1: STORAGE                            │
-│              (Cloudflare R2 / AWS S3 / MinIO)                    │
 │                     Raw binary files only                        │
 └─────────────────────────────────────────────────────────────────┘
                                │

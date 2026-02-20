@@ -1,4 +1,4 @@
-# NEXUS & Nest - Agent Guide
+# NEXUS & PRISM - Agent Guide
 
 This document provides essential context for AI coding agents working on this project.
 
@@ -70,12 +70,12 @@ This document provides essential context for AI coding agents working on this pr
 
 ## Project Overview
 
-**NEXUS** is the intelligence and coordination engine. **Nest** is the web companion. Together they form a production-ready investment tracking system designed for family asset management. Supports multiple investment types (land, stocks, gold, crypto, real estate, bonds) with AI-powered document analysis.
+**NEXUS** is the intelligence and coordination engine. **PRISM** is the web dashboard. Together they form a production-ready investment tracking system designed for family asset management. Supports multiple investment types (land, stocks, gold, crypto, real estate, bonds) with AI-powered document analysis.
 
 **Key Features:**
 - Direct phone uploads to storage (no file passes through API)
 - Multi-provider AI document analysis (Kimi K2.5, OpenAI GPT-4o, Anthropic Claude, Google Gemini, Ollama)
-- Web dashboard for portfolio management
+- PRISM web dashboard for portfolio management
 - Native Android app for mobile uploads
 - Multi-device access (phones, laptops, tablets)
 - Structured storage organization
@@ -140,7 +140,7 @@ The system follows a **three-layer architecture**:
 │   ├── main.py                   # FastAPI application entry
 │   ├── models.py                 # SQLAlchemy ORM models
 │   ├── database.py               # Database connection & session
-│   ├── storage.py                # S3-compatible storage abstraction
+│   ├── storage.py                # Object storage abstraction
 │   ├── requirements.txt          # Python dependencies
 │   ├── Dockerfile                # API container image
 │   └── wrangler.toml             # Cloudflare Workers config
@@ -312,9 +312,8 @@ VITE_API_URL=http://localhost:8000
 
 ### Storage Configuration
 
-- **Local Development:** MinIO (http://localhost:9000)
-- **Production:** Cloudflare R2 or AWS S3
 - Files are organized as: `{prefix}/{investment_id?}/{uuid}-{filename}`
+- Supports any S3-compatible object storage
 
 ---
 
@@ -553,7 +552,7 @@ Examples:
 
 ## Mobile App
 
-### Android (R2 Portal)
+### Android Mobile App
 
 Located in `mobile/android/`:
 - **Language:** Kotlin

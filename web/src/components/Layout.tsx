@@ -399,7 +399,7 @@ export default function Layout({ children }: LayoutProps) {
                 <img src="/favinv.png" alt="" className="w-4 h-4 object-contain" />
               </div>
               <span className={`text-xs text-text-muted overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Nest
+                PRISM
               </span>
             </div>
             <div className={`flex items-center gap-2 text-xs text-text-muted ${isExpanded ? '' : 'flex-col'}`}>
