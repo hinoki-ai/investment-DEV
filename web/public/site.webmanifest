@@ -1,11 +1,11 @@
 {
-  "name": "Nest",
-  "short_name": "Nest",
-  "description": "Nest - Investment Portal with AI-powered document analysis",
+  "name": "PRISM",
+  "short_name": "PRISM",
+  "description": "Your investment lens. Connected to NEXUS."
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

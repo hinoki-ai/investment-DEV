@@ -1,4 +1,4 @@
-# NEXUS / Nest - Agent Guide
+# NEXUS & Nest - Agent Guide
 
 This document provides essential context for AI coding agents working on this project.
 
@@ -70,15 +70,15 @@ This document provides essential context for AI coding agents working on this pr
 
 ## Project Overview
 
-**NEXUS** (Cloud Portal + AI Worker) and **Nest** (Web Dashboard) form a production-ready, three-layer investment tracking system designed for family asset management. It supports multiple investment types (land, stocks, gold, crypto, real estate, bonds) with AI-powered document analysis.
+**NEXUS** is the intelligence and coordination engine. **Nest** is the web companion. Together they form a production-ready investment tracking system designed for family asset management. Supports multiple investment types (land, stocks, gold, crypto, real estate, bonds) with AI-powered document analysis.
 
 **Key Features:**
-- Direct phone uploads to cloud storage (no file passes through API)
+- Direct phone uploads to storage (no file passes through API)
 - Multi-provider AI document analysis (Kimi K2.5, OpenAI GPT-4o, Anthropic Claude, Google Gemini, Ollama)
 - Web dashboard for portfolio management
 - Native Android app for mobile uploads
 - Multi-device access (phones, laptops, tablets)
-- Structured S3-compatible storage organization
+- Structured storage organization
 
 ---
 
@@ -89,7 +89,6 @@ The system follows a **three-layer architecture**:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      LAYER 1: STORAGE                            │
-│              (Cloudflare R2 / AWS S3 / MinIO)                    │
 │                     Raw binary files only                        │
 └─────────────────────────────────────────────────────────────────┘
                                │
@@ -117,7 +116,7 @@ The system follows a **three-layer architecture**:
 | **Backend API** | Python 3.12, FastAPI, SQLAlchemy 2.0, Pydantic v2 |
 | **Database** | PostgreSQL 16, Redis 7 |
 | **AI Worker** | Python, Multi-provider (Kimi, OpenAI, Claude, Gemini, Ollama) |
-| **Storage** | S3-compatible (Cloudflare R2, AWS S3, MinIO) |
+| **Storage** | Object Storage (S3-compatible) |
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
 | **Mobile** | Native Android (Kotlin, Jetpack Compose) |
 | **State Management** | TanStack Query (React Query), Zustand |
