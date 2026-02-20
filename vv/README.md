@@ -24,7 +24,9 @@ VV_DRY_RUN=true ./vv/vv    # Dry run
 
 ## Configuration
 
-Edit `.vvrc` in the project root or set environment variables:
+Environment variables take precedence over `.vvrc` config file settings.
+
+### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -32,8 +34,20 @@ Edit `.vvrc` in the project root or set environment variables:
 | `VV_DRY_RUN` | Simulate without deploying | `false` |
 | `VV_VERBOSE` | Show detailed output | `true` |
 | `VV_OPEN` | Open browser after deploy | `true` |
+| `VV_AUTOCOMMIT` | Auto-commit changes | `true` |
 | `VV_TOKEN` | Vercel API token | - |
 | `VV_SCOPE` | Vercel team scope | - |
+
+### Config File (.vvrc)
+
+Edit `.vvrc` in the project root for persistent settings (overridden by env vars):
+
+```ini
+VERBOSE=true
+PROD=true
+OPEN=true
+AUTOCOMMIT=true
+```
 
 ## Colors
 
@@ -45,4 +59,4 @@ Edit `.vvrc` in the project root or set environment variables:
 
 ## Version
 
-0.12.5
+0.12.6

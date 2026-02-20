@@ -394,9 +394,21 @@ VITE_API_URL=http://localhost:8000
 
 ## API Endpoints
 
+### Documentation URLs
+
+| URL | Description |
+|-----|-------------|
+| `/` or `/docs` | **Beautiful PRISM-styled documentation** — Interactive API explorer with warm dark theme |
+| `/openapi` | Standard Swagger UI (OpenAPI spec) |
+| `/redoc` | ReDoc documentation |
+| `/health` | Health check endpoint (JSON) |
+
+### Endpoints
+
 ```
 GET  /health                    # Health check (includes Redis status)
-GET  /                         # API info
+GET  /                         # Beautiful API documentation (HTML)
+GET  /docs                      # Redirects to beautiful docs
 
 # Dashboard
 GET  /api/v1/dashboard/stats           # Dashboard statistics

@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# ARAMAC VERCEL DEPLOYER
+# ARAMAC VERCEL DEPLOYER v0.12.6
 # Deploy projects to Vercel with monitoring and reporting
+# 
+# Features:
+#   - Environment variables take precedence over .vvrc config
+#   - Auto-detects frameworks (Next.js, Vite, Astro, SvelteKit, Nuxt, Gatsby)
+#   - Supports web/ subdirectory for frontend projects
+#   - Convex deployment integration
 # ═══════════════════════════════════════════════════════════════════════════════
 
 set -Eeuo pipefail
@@ -53,7 +59,7 @@ while [[ "$PROJECT_ROOT" != "/" ]]; do
 done
 
 if [[ ! -f "$PROJECT_ROOT/package.json" ]]; then
-    ui_header "Vercel Deployer" "0.12.4"
+    ui_header "Vercel Deployer" "0.12.6"
     ui_box_open
     ui_error "No package.json found"
     ui_info "Please run from a project directory"
@@ -82,7 +88,7 @@ log_to_file() {
 # HEADER
 # =============================================================================
 
-ui_header "Vercel Deployer" "0.12.4" "$(date +%H:%M:%S)" "true"
+ui_header "Vercel Deployer" "0.12.6" "$(date +%H:%M:%S)" "true"
 
 # =============================================================================
 # CONFIG LOADING
