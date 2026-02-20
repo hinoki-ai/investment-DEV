@@ -77,6 +77,7 @@ export default function Files() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredFiles = filesArray.filter((f: any) => {
     const matchesSearch = f.original_filename?.toLowerCase().includes(search.toLowerCase())
     const matchesStatus = !status || f.status === status
@@ -164,6 +165,7 @@ export default function Files() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-subtle">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {filteredFiles.map((file: any) => {
                     const Icon = getFileIcon(file.mime_type)
                     const iconColorClass = getFileIconColor(file.mime_type)
@@ -219,6 +221,7 @@ export default function Files() {
 
           {/* Mobile Card View */}
           <div className="sm:hidden space-y-3">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {filteredFiles.map((file: any) => {
               const Icon = getFileIcon(file.mime_type)
               const iconColorClass = getFileIconColor(file.mime_type)

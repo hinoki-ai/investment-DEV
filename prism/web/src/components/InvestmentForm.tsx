@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { 
-  Trees, 
-  MapPin, 
-  DollarSign, 
-  Calendar, 
+import {
+  Trees,
+  MapPin,
+  DollarSign,
+  Calendar,
   Tag,
   Percent,
   FileText,
@@ -11,7 +11,8 @@ import {
   Globe
 } from 'lucide-react'
 import { Investment } from '../lib/api'
-import { LabelWithTooltip, INVESTMENT_TOOLTIPS } from './HelpTooltip'
+import { LabelWithTooltip } from './HelpTooltip'
+import { INVESTMENT_TOOLTIPS } from '../lib/tooltips'
 
 // ============================================================================
 // TYPES
@@ -106,9 +107,8 @@ function FormInput({ label, icon: Icon, hint, error, className = '', tooltip, ..
       <div className="relative">
         <input
           {...props}
-          className={`w-full px-4 py-2.5 bg-void border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-cream/20 focus:border-cream/30 transition-all duration-200 ${
-            error ? 'border-error' : 'border-border hover:border-border-strong'
-          } ${className}`}
+          className={`w-full px-4 py-2.5 bg-void border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-cream/20 focus:border-cream/30 transition-all duration-200 ${error ? 'border-error' : 'border-border hover:border-border-strong'
+            } ${className}`}
         />
       </div>
       {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
@@ -148,9 +148,8 @@ function FormSelect({ label, icon: Icon, options, error, className = '', tooltip
       <div className="relative">
         <select
           {...props}
-          className={`w-full px-4 py-2.5 bg-void border rounded-lg text-text-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cream/20 focus:border-cream/30 transition-all duration-200 ${
-            error ? 'border-error' : 'border-border hover:border-border-strong'
-          } ${className}`}
+          className={`w-full px-4 py-2.5 bg-void border rounded-lg text-text-primary appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-cream/20 focus:border-cream/30 transition-all duration-200 ${error ? 'border-error' : 'border-border hover:border-border-strong'
+            } ${className}`}
         >
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -199,9 +198,8 @@ function FormTextarea({ label, icon: Icon, hint, error, className = '', tooltip,
       )}
       <textarea
         {...props}
-        className={`w-full px-4 py-2.5 bg-void border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-cream/20 focus:border-cream/30 transition-all duration-200 resize-none ${
-          error ? 'border-error' : 'border-border hover:border-border-strong'
-        } ${className}`}
+        className={`w-full px-4 py-2.5 bg-void border rounded-lg text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-cream/20 focus:border-cream/30 transition-all duration-200 resize-none ${error ? 'border-error' : 'border-border hover:border-border-strong'
+          } ${className}`}
       />
       {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
       {error && <p className="text-xs text-error">{error}</p>}
@@ -212,12 +210,12 @@ function FormTextarea({ label, icon: Icon, hint, error, className = '', tooltip,
 // ============================================================================
 // TAGS INPUT COMPONENT
 // ============================================================================
-function TagsInput({ 
-  tags, 
-  onChange 
-}: { 
+function TagsInput({
+  tags,
+  onChange
+}: {
   tags: string[]
-  onChange: (tags: string[]) => void 
+  onChange: (tags: string[]) => void
 }) {
   const [input, setInput] = useState('')
 
@@ -285,12 +283,12 @@ function TagsInput({
 // ============================================================================
 // CATEGORY SELECTOR
 // ============================================================================
-function CategorySelector({ 
-  value, 
-  onChange 
-}: { 
+function CategorySelector({
+  value,
+  onChange
+}: {
   value: Investment['category']
-  onChange: (category: Investment['category']) => void 
+  onChange: (category: Investment['category']) => void
 }) {
   return (
     <div className="space-y-1.5">
@@ -306,11 +304,10 @@ function CategorySelector({
             key={cat.value}
             type="button"
             onClick={() => onChange(cat.value)}
-            className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all duration-200 ${
-              value === cat.value
+            className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all duration-200 ${value === cat.value
                 ? 'bg-cream/10 border-cream/30 text-cream'
                 : 'bg-void border-border text-text-secondary hover:border-border-strong hover:text-text-primary'
-            }`}
+              }`}
           >
             <span className="text-xl">{cat.icon}</span>
             <span className="text-[10px] font-medium hidden sm:block">{cat.label}</span>
@@ -324,12 +321,12 @@ function CategorySelector({
 // ============================================================================
 // MAIN INVESTMENT FORM
 // ============================================================================
-export function InvestmentForm({ 
-  initialData, 
-  onSubmit, 
-  onCancel, 
+export function InvestmentForm({
+  initialData,
+  onSubmit,
+  onCancel,
   isSubmitting = false,
-  mode 
+  mode
 }: InvestmentFormProps) {
   const [formData, setFormData] = useState<InvestmentFormData>({
     name: '',
@@ -355,19 +352,19 @@ export function InvestmentForm({
 
   const validate = (): boolean => {
     const newErrors: Partial<Record<keyof InvestmentFormData, string>> = {}
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required'
     }
-    
+
     if (formData.purchase_price !== undefined && formData.purchase_price < 0) {
       newErrors.purchase_price = 'Price cannot be negative'
     }
-    
+
     if (formData.current_value !== undefined && formData.current_value < 0) {
       newErrors.current_value = 'Value cannot be negative'
     }
-    
+
     if (formData.ownership_percentage < 0 || formData.ownership_percentage > 100) {
       newErrors.ownership_percentage = 'Must be between 0 and 100'
     }
@@ -406,11 +403,10 @@ export function InvestmentForm({
             key={section.id}
             type="button"
             onClick={() => setActiveSection(section.id)}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeSection === section.id
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${activeSection === section.id
                 ? 'bg-surface text-cream'
                 : 'text-text-muted hover:text-text-primary'
-            }`}
+              }`}
           >
             {section.label}
           </button>
@@ -420,9 +416,9 @@ export function InvestmentForm({
       {/* Basic Info Section */}
       {activeSection === 'basic' && (
         <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-200">
-          <CategorySelector 
-            value={formData.category} 
-            onChange={(cat) => updateField('category', cat)} 
+          <CategorySelector
+            value={formData.category}
+            onChange={(cat) => updateField('category', cat)}
           />
 
           <FormInput
@@ -612,7 +608,7 @@ export function InvestmentForm({
             </button>
           )}
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button
             type="button"

@@ -28,11 +28,11 @@ import {
   CURRENT_UF_VALUE,
   getScoreColor
 } from '../lib/landCredit'
-import { 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle, 
-  XCircle, 
+import {
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
   Minus,
   Calculator,
   Percent,
@@ -43,19 +43,20 @@ import {
   Award,
   Scale
 } from 'lucide-react'
-import { HelpTooltip, INVESTMENT_TOOLTIPS } from './HelpTooltip'
+import { HelpTooltip } from './HelpTooltip'
+import { INVESTMENT_TOOLTIPS } from '../lib/tooltips'
 
 // ============================================================================
 // UTILITY COMPONENTS
 // ============================================================================
 
 // Recommendation badge component
-function RecommendationBadge({ 
-  recommendation, 
-  score 
-}: { 
+function RecommendationBadge({
+  recommendation,
+  score
+}: {
   recommendation: string
-  score: number 
+  score: number
 }) {
   const config: Record<string, { color: string; label: string; icon: React.ReactNode }> = {
     strong_buy: {
@@ -134,15 +135,15 @@ function ScoreGauge({ score, size = 'md' }: { score: number; size?: 'sm' | 'md' 
 }
 
 // Metric card component
-function MetricCard({ 
-  label, 
-  value, 
+function MetricCard({
+  label,
+  value,
   subtext,
   icon: Icon,
   color = 'cream',
   highlight = false,
   tooltip
-}: { 
+}: {
   label: string
   value: string
   subtext?: string
@@ -158,7 +159,7 @@ function MetricCard({
     warning: 'text-warning',
     info: 'text-info'
   }
-  
+
   return (
     <div className={`rounded-xl p-4 ${highlight ? 'bg-cream/5 border border-cream/10' : 'bg-surface border border-border'}`}>
       <div className="flex items-center gap-2 mb-2">
@@ -195,7 +196,7 @@ export function CreditTruthRevealer({ credit, className = '' }: CreditTruthRevea
     { label: 'Otros gastos', amount: credit.otherFees },
   ]
 
-  const savingsFromDFL2 = credit.isDFL2 
+  const savingsFromDFL2 = credit.isDFL2
     ? (credit.effectiveCreditAmount * 0.006) // 0.8% - 0.2% = 0.6% savings
     : 0
 
@@ -209,7 +210,7 @@ export function CreditTruthRevealer({ credit, className = '' }: CreditTruthRevea
             La Verdad del Crédito
           </h3>
           <p className="mt-2 text-text-secondary">
-            El banco dice "{formatCurrency(credit.advertisedCreditAmount)} de crédito" 
+            El banco dice "{formatCurrency(credit.advertisedCreditAmount)} de crédito"
             pero exige {formatCurrency(credit.requiredDownPayment)} de pie.
             <strong className="block mt-2 text-lg text-text-primary">
               En realidad solo recibes {formatCurrency(trueCost.effectiveCredit)}
@@ -387,7 +388,7 @@ export function AmortizationChart({ credit, monthlyInsurance = 0, className = ''
       credit.termYears,
       monthlyInsurance
     )
-    
+
     return schedule.filter((_, index) => index % 12 === 0 || index === schedule.length - 1).map(p => ({
       year: Math.floor(p.month / 12),
       month: p.month,
@@ -410,27 +411,27 @@ export function AmortizationChart({ credit, monthlyInsurance = 0, className = ''
           <AreaChart data={data}>
             <defs>
               <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#e8d5c4" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#e8d5c4" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#e8d5c4" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#e8d5c4" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(232, 213, 196, 0.1)" />
-            <XAxis 
-              dataKey="year" 
+            <XAxis
+              dataKey="year"
               stroke="#8a8279"
               tickFormatter={(value) => `Año ${value}`}
               tick={{ fill: '#8a8279', fontSize: 11 }}
             />
-            <YAxis 
+            <YAxis
               stroke="#8a8279"
               tickFormatter={(value) => formatCompactNumber(value)}
               tick={{ fill: '#8a8279', fontSize: 11 }}
             />
-            <Tooltip 
+            <Tooltip
               formatter={(value: number) => formatCurrency(value)}
               labelFormatter={(label) => `Año ${label}`}
-              contentStyle={{ 
-                backgroundColor: '#111111', 
+              contentStyle={{
+                backgroundColor: '#111111',
                 border: '1px solid rgba(232, 213, 196, 0.1)',
                 borderRadius: '12px'
               }}
@@ -501,13 +502,13 @@ export function PaymentBreakdownChart({ credit, className = '' }: PaymentBreakdo
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip 
+            <Tooltip
               formatter={(value: number, name: string) => [
                 formatCurrency(value),
                 `${name} (${((value / total) * 100).toFixed(1)}%)`
               ]}
-              contentStyle={{ 
-                backgroundColor: '#111111', 
+              contentStyle={{
+                backgroundColor: '#111111',
                 border: '1px solid rgba(232, 213, 196, 0.1)',
                 borderRadius: '12px'
               }}
@@ -560,7 +561,7 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
             </p>
           </div>
         </div>
-        
+
         <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3">
           <MetricCard
             label="ROI 5 Años"
@@ -712,15 +713,15 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
               ]}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(232, 213, 196, 0.1)" />
                 <XAxis dataKey="year" stroke="#8a8279" tick={{ fill: '#8a8279', fontSize: 11 }} />
-                <YAxis 
+                <YAxis
                   stroke="#8a8279"
                   tickFormatter={(value) => formatCompactNumber(value)}
                   tick={{ fill: '#8a8279', fontSize: 11 }}
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => formatCurrency(value)}
-                  contentStyle={{ 
-                    backgroundColor: '#111111', 
+                  contentStyle={{
+                    backgroundColor: '#111111',
                     border: '1px solid rgba(232, 213, 196, 0.1)',
                     borderRadius: '12px'
                   }}
@@ -764,7 +765,7 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
           {analysis.residualValue.residualLandValue > combo.land.askingPrice && (
             <p className="text-xs text-success mt-3">
               <CheckCircle className="h-3 w-3 inline mr-1" />
-              El terreno está {formatCurrency(analysis.residualValue.residualLandValue - combo.land.askingPrice)} 
+              El terreno está {formatCurrency(analysis.residualValue.residualLandValue - combo.land.askingPrice)}
               {' '}por debajo de su valor residual. ¡Oportunidad de desarrollo!
             </p>
           )}
@@ -788,11 +789,10 @@ export function LandCreditComboCard({ combo, isBest = false, className = '' }: L
   const { land, credit, analysis } = combo
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${
-      isBest 
-        ? 'border-success/30 bg-success-dim' 
+    <div className={`relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 ${isBest
+        ? 'border-success/30 bg-success-dim'
         : 'border-border bg-surface hover:border-border-strong'
-    } ${className}`}>
+      } ${className}`}>
       {isBest && (
         <div className="absolute top-3 right-3">
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-success text-void text-xs font-semibold">
@@ -801,7 +801,7 @@ export function LandCreditComboCard({ combo, isBest = false, className = '' }: L
           </span>
         </div>
       )}
-      
+
       <div className={`flex items-start justify-between ${isBest ? 'pr-16' : ''}`}>
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-lg text-text-primary truncate">{land.name}</h3>
@@ -925,12 +925,11 @@ export function ComparisonTable({ combos, className = '' }: ComparisonTableProps
                   {formatPercent(combo.analysis.advancedMetrics.capRate)}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm ${
-                    combo.analysis.score >= 80 ? 'bg-success-dim text-success' :
-                    combo.analysis.score >= 60 ? 'bg-info-dim text-info' :
-                    combo.analysis.score >= 40 ? 'bg-surface text-text-muted' :
-                    'bg-error-dim text-error'
-                  }`}>
+                  <span className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-bold text-sm ${combo.analysis.score >= 80 ? 'bg-success-dim text-success' :
+                      combo.analysis.score >= 60 ? 'bg-info-dim text-info' :
+                        combo.analysis.score >= 40 ? 'bg-surface text-text-muted' :
+                          'bg-error-dim text-error'
+                    }`}>
                     {combo.analysis.score}
                   </span>
                 </td>
@@ -984,7 +983,7 @@ export function LandCard({ land, isSelected = false, onClick, className = '' }: 
           {zoning.label}
         </span>
       </div>
-      
+
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <div>
           <span className="text-text-muted text-xs">Precio:</span>
@@ -1059,7 +1058,7 @@ export function CreditCard({ credit, isSelected = false, onClick, className = ''
           )}
         </div>
       </div>
-      
+
       <div className="mt-3 space-y-1 text-sm">
         <div className="flex justify-between">
           <span className="text-text-muted text-xs">Tasa:</span>
@@ -1104,7 +1103,7 @@ export function MarketDataPanel({ className = '' }: { className?: string }) {
         <Info className="h-4 w-4" />
         Datos de Mercado Chile 2025-2026
       </h3>
-      
+
       <div className="space-y-4">
         <div>
           <h4 className="text-sm font-medium text-text-primary mb-2">Valor UF (Feb 2026)</h4>

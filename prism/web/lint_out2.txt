@@ -1,0 +1,63 @@
+
+> prism@1.0.0 lint
+> eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0
+
+
+/home/hinoki/HinokiDEV/Investments/prism/web/src/components/HelpTooltip.tsx
+  1:1  error  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  2:1  error  Unused eslint-disable directive (no problems were reported from 'react-refresh/only-export-components')
+
+/home/hinoki/HinokiDEV/Investments/prism/web/src/pages/Investments.tsx
+   72:52  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   77:28  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   91:70  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  112:95  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  158:53  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  160:19  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  161:15  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  161:23  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  192:29  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 290) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 312) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 334) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 351) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 361) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 368) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  277:9   warning  The 'investmentsArray' conditional could make the dependencies of useMemo Hook (at line 373) change on every render. To fix this, wrap the initialization of 'investmentsArray' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  282:18  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  282:26  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  292:62  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  307:63  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  318:19  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  319:16  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  325:21  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  326:18  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  332:17  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  332:25  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  339:21  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  340:17  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  340:25  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  343:31  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  356:21  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  357:18  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  366:43  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  366:53  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  371:44  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  371:54  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  376:51  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  489:56  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  498:50  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  535:69  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  550:55  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  694:48  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  745:49  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+/home/hinoki/HinokiDEV/Investments/prism/web/src/pages/LandAnalyzer.tsx
+   90:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  116:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  618:91  error    Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  743:55  error    Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+
+✖ 49 problems (40 errors, 9 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
+

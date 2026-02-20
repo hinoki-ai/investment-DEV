@@ -34,7 +34,8 @@ import {
   AdvancedMetricsDashboard,
   MarketDataPanel
 } from '../components/CreditAnalysis'
-import { HelpTooltip, LabelWithTooltip, INVESTMENT_TOOLTIPS } from '../components/HelpTooltip'
+import { HelpTooltip, LabelWithTooltip } from '../components/HelpTooltip'
+import { INVESTMENT_TOOLTIPS } from '../lib/tooltips'
 
 // Money Card Component - New Design
 function MoneyCard({
@@ -56,13 +57,12 @@ function MoneyCard({
 }) {
   const TrendIcon = trend === 'up' ? ArrowUpRight : trend === 'down' ? ArrowDownRight : null
   const trendColor = trend === 'up' ? 'text-success' : trend === 'down' ? 'text-error' : 'text-text-muted'
-  
+
   return (
-    <div className={`rounded-2xl border p-5 transition-all duration-300 card-hover ${
-      highlight 
-        ? 'bg-cream/5 border-cream/20' 
-        : 'bg-surface border-border'
-    }`}>
+    <div className={`rounded-2xl border p-5 transition-all duration-300 card-hover ${highlight
+      ? 'bg-cream/5 border-cream/20'
+      : 'bg-surface border-border'
+      }`}>
       <p className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">{title}</p>
       <p className={`font-mono text-2xl font-semibold ${highlight ? 'text-cream' : 'text-text-primary'}`}>
         {currency === '%' ? `${amount.toFixed(1)}%` : formatCurrency(amount)}
@@ -87,20 +87,20 @@ function MoneyCard({
 let sharedSelectedLand: LandOpportunity | null = null
 let sharedSelectedCredit: CreditScenario | null = null
 
-export function useLandAnalyzerState() {
+function useLandAnalyzerState() {
   const [selectedLand, setSelectedLand] = useState<LandOpportunity | null>(sharedSelectedLand)
   const [selectedCredit, setSelectedCredit] = useState<CreditScenario | null>(sharedSelectedCredit)
-  
+
   const updateSelectedLand = (land: LandOpportunity | null) => {
     sharedSelectedLand = land
     setSelectedLand(land)
   }
-  
+
   const updateSelectedCredit = (credit: CreditScenario | null) => {
     sharedSelectedCredit = credit
     setSelectedCredit(credit)
   }
-  
+
   return {
     selectedLand,
     selectedCredit,
@@ -113,7 +113,7 @@ export function useLandAnalyzerState() {
 // DATA HOOK
 // ============================================================================
 
-export function useLandAnalyzerData() {
+function useLandAnalyzerData() {
   const allLands = useMemo(() => [...SAMPLE_LANDS], [])
   const allCredits = useMemo(() => [...SAMPLE_CREDITS], [])
 
@@ -143,7 +143,7 @@ export function useLandAnalyzerData() {
 export function OverviewView() {
   const { allCombos, comparison } = useLandAnalyzerData()
   const topScored = allCombos.slice().sort((a, b) => b.analysis.score - a.analysis.score).slice(0, 5)
-  
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -194,8 +194,8 @@ export function OverviewView() {
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {topScored.map((combo, index) => (
-            <LandCreditComboCard 
-              key={`${combo.land.id}-${combo.credit.id}`} 
+            <LandCreditComboCard
+              key={`${combo.land.id}-${combo.credit.id}`}
               combo={combo}
               className={index === 0 ? 'ring-2 ring-success/50' : ''}
             />
@@ -212,7 +212,7 @@ export function OverviewView() {
 
 export function CompareView() {
   const { comparison } = useLandAnalyzerData()
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -264,7 +264,7 @@ export function CompareView() {
 export function LandsView() {
   const { allLands } = useLandAnalyzerData()
   const { selectedLand, setSelectedLand } = useLandAnalyzerState()
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -330,7 +330,7 @@ export function LandsView() {
 export function CreditsView() {
   const { allCredits } = useLandAnalyzerData()
   const { selectedCredit, setSelectedCredit } = useLandAnalyzerState()
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -405,11 +405,10 @@ export function AnalysisView() {
                 <button
                   key={l.id}
                   onClick={() => setSelectedLand(l)}
-                  className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
-                    land.id === l.id
-                      ? 'bg-cream/10 border border-cream/20'
-                      : 'bg-surface border border-border hover:border-border-strong'
-                  }`}
+                  className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${land.id === l.id
+                    ? 'bg-cream/10 border border-cream/20'
+                    : 'bg-surface border border-border hover:border-border-strong'
+                    }`}
                 >
                   <p className="font-medium text-text-primary truncate">{l.name}</p>
                   <p className="text-xs text-text-muted">{formatCurrency(l.askingPrice)} • {l.location.commune}</p>
@@ -429,11 +428,10 @@ export function AnalysisView() {
                 <button
                   key={c.id}
                   onClick={() => setSelectedCredit(c)}
-                  className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
-                    credit.id === c.id
-                      ? 'bg-cream/10 border border-cream/20'
-                      : 'bg-surface border border-border hover:border-border-strong'
-                  }`}
+                  className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${credit.id === c.id
+                    ? 'bg-cream/10 border border-cream/20'
+                    : 'bg-surface border border-border hover:border-border-strong'
+                    }`}
                 >
                   <p className="font-medium text-text-primary">{c.bank}</p>
                   <p className="text-xs text-text-muted">{c.annualInterestRate}% • {c.termYears} años {c.isDFL2 && '• DFL2'}</p>
@@ -469,7 +467,7 @@ export function CalculatorView() {
     hasBasicServices: true,
     hasRoadAccess: true,
   })
-  
+
   const [customCredit, setCustomCredit] = useState<Partial<CreditScenario>>({
     advertisedCreditAmount: 30000000,
     requiredDownPayment: 6000000,
@@ -486,7 +484,7 @@ export function CalculatorView() {
 
   const customAnalysis = useMemo(() => {
     if (!customLand.askingPrice || !customCredit.advertisedCreditAmount) return null
-    
+
     const land: LandOpportunity = {
       id: 'custom',
       name: 'Terreno Personalizado',
@@ -495,7 +493,7 @@ export function CalculatorView() {
       landAreaSquareMeters: customLand.landAreaSquareMeters || 1000,
       pricePerSquareMeter: (customLand.askingPrice || 0) / (customLand.landAreaSquareMeters || 1000),
       appraisalValue: customLand.appraisalValue || customLand.askingPrice,
-      belowAppraisalBy: customLand.appraisalValue 
+      belowAppraisalBy: customLand.appraisalValue
         ? ((customLand.appraisalValue - customLand.askingPrice) / customLand.appraisalValue) * 100
         : 0,
       zoning: customLand.zoning || 'residential',
@@ -507,7 +505,7 @@ export function CalculatorView() {
       listingDate: new Date().toISOString(),
       notes: ''
     }
-    
+
     const credit: CreditScenario = {
       id: 'custom',
       name: 'Crédito Personalizado',
@@ -532,7 +530,7 @@ export function CalculatorView() {
       requiredMonthlyIncome: 1800000,
       maxPaymentToIncomeRatio: 0.25
     }
-    
+
     return { land, credit, analysis: analyzeLandCreditCombo(land, credit) }
   }, [customLand, customCredit])
 
@@ -617,6 +615,7 @@ export function CalculatorView() {
               />
               <select
                 value={customLand.zoning}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 onChange={(e) => setCustomLand({ ...customLand, zoning: e.target.value as any })}
                 className="input-field mt-2"
               >
@@ -742,6 +741,7 @@ export function CalculatorView() {
                         <LabelWithTooltip
                           label={label}
                           tooltipContent={tooltip.content}
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           tooltipExample={(tooltip as any).example}
                         />
                       ) : (
@@ -772,10 +772,10 @@ export function CalculatorView() {
             <h3 className="text-xl font-bold text-text-primary mb-4">Resultado del Análisis</h3>
             <LandCreditComboCard combo={customAnalysis} />
           </div>
-          
+
           {/* Advanced Metrics */}
           <AdvancedMetricsDashboard combo={customAnalysis} />
-          
+
           {customAnalysis.analysis.score >= 70 && (
             <div className="bg-success-dim border border-success/20 rounded-xl p-4 flex items-center gap-3">
               <CheckCircle className="h-6 w-6 text-success" />
@@ -787,7 +787,7 @@ export function CalculatorView() {
               </div>
             </div>
           )}
-          
+
           {customAnalysis.analysis.score < 50 && (
             <div className="bg-warning-dim border border-warning/20 rounded-xl p-4 flex items-center gap-3">
               <AlertTriangle className="h-6 w-6 text-warning" />
