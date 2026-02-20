@@ -81,7 +81,7 @@ export default function Chat() {
   }, [modelName])
 
   // Fetch data for context selection
-  const { data: investments } = useQuery({
+  const { data: _investments } = useQuery({
     queryKey: ['chat-investments'],
     queryFn: chatApi.getInvestmentsForContext,
   })
