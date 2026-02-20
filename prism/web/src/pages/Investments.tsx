@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /*
 ===============================================================================
 INVERSIONES PAGE - Maximum Power Investment Dashboard
@@ -274,7 +275,7 @@ export default function Investments() {
     queryKey: ['portfolio-summary'], queryFn: () => analyticsApi.getPortfolioSummary(),
   })
 
-  const investmentsArray = Array.isArray(investments) ? investments : []
+  const investmentsArray = useMemo(() => Array.isArray(investments) ? investments : [], [investments])
 
   // Sort & filter
   const sortedInvestments = useMemo(() => {
