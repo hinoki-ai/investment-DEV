@@ -170,11 +170,12 @@ else
     exit 1
 fi
 
-# Check project config
-if [[ -f "$PROJECT_ROOT/wrangler.toml" ]]; then
+# Check project config (look in prism/web subdirectory)
+WEB_DIR="$PROJECT_ROOT/prism/web"
+if [[ -f "$WEB_DIR/wrangler.toml" ]]; then
     ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Project: ${C_HIGHLIGHT}Configured"
 else
-    ui_error "No wrangler.toml found"
+    ui_error "No wrangler.toml found in prism/web"
     ui_info "Check project configuration"
 fi
 
@@ -485,7 +486,7 @@ else
     ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building and deploying..."
     
     # Run deployment and capture exit code properly
-    (wrangler pages deploy "$PROJECT_ROOT/dist" --project-name="$CF_PROJECT" --branch="production" 2>&1 | tee -a "$DEPLOYMENT_LOG" > "$tmp_out"; echo $? > "$tmp_out.exit") &
+    (cd "$WEB_DIR" && wrangler pages deploy dist --project-name="$CF_PROJECT" --branch="production" 2>&1 | tee -a "$DEPLOYMENT_LOG" > "$tmp_out"; echo $? > "$tmp_out.exit") &
     wrangler_pid=$!
     
     # Continue spinner while deployment runs
