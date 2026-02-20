@@ -6,8 +6,8 @@ COMMON IMPORTS HELPER - Properly loads db_models and schemas without conflicts
 import sys
 
 # Add paths for imports
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/prism/api')
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/prism/shared')
 
 # Import database
 from database import get_async_db, redis_client

@@ -4,6 +4,40 @@ This document provides essential context for AI coding agents working on this pr
 
 ---
 
+## 🚀 QUICK REFERENCE FOR AI AGENTS
+
+### Deploy Website (inv.aramac.dev)
+```bash
+cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
+```
+**Platform:** Cloudflare Pages (NOT Vercel)  
+**Domain:** https://inv.aramac.dev  
+**Build folder:** `prism/web/dist`
+
+### Project Structure
+```
+/home/hinoki/HinokiDEV/Investments/
+├── prism/web/          # Frontend (React + Vite) ← DEPLOY THIS
+├── prism/api/          # Backend API (FastAPI)
+├── prism/worker/       # AI Worker
+└── AGENTS.md           # This file
+```
+
+### All Routes to Test
+```
+/                           # Dashboard
+/investments                # Investments list
+/investments/:id            # Investment detail
+/files                      # Files
+/analysis                   # Analysis
+/land-analyzer              # Land analyzer (with sub-routes)
+/chat                       # AI Chat
+```
+
+---
+
+---
+
 ## 🚨 MEGA RULE: CLI-First Self-Sufficiency
 
 > **Agents MUST attempt to solve ALL tasks themselves using CLI tools and services before asking for user intervention.**
@@ -737,25 +771,57 @@ make test
 
 ## Deployment
 
-### Frontend (Vercel / Cloudflare Pages)
+### 🎯 FRONTEND DEPLOYMENT - Cloudflare Pages (inv.aramac.dev)
 
-**Quick Deploy:**
+**IMPORTANT:** The website is hosted on **Cloudflare Pages**, NOT Vercel.
+Domain: `https://inv.aramac.dev`
+Project name: `investment-aramac`
+Build output: `prism/web/dist`
+
+**ONE-LINE DEPLOY:**
 ```bash
-# Deploy to Cloudflare Pages
-cd web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac
-
-# Or use Vercel CLI
-cd web && vercel --prod
+cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
 ```
 
-**VV Deployer (Original):**
+**STEP BY STEP:**
 ```bash
-# Deploy to production
-./vv/vv
+# 1. Go to web directory
+cd /home/hinoki/HinokiDEV/Investments/prism/web
 
-# Or with options
-VV_PROD=false ./vv/vv      # Deploy to preview
-VV_DRY_RUN=true ./vv/vv    # Dry run
+# 2. Build the project
+npm run build
+
+# 3. Deploy to Cloudflare Pages
+npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
+```
+
+**VERIFY DEPLOYMENT:**
+```bash
+# Check if site is live
+curl -I https://inv.aramac.dev
+
+# Should return: HTTP/2 200
+```
+
+**TROUBLESHOOTING:**
+- If `wrangler` is not found: `npm install -g wrangler`
+- If build fails: Check `npm install` first
+- Project is already configured in `/prism/web/wrangler.toml`
+- DNS is already configured (inv.aramac.dev → Cloudflare Pages)
+
+---
+
+### Backend (Railway/Render)
+
+The API and Worker are deployed via Docker:
+- `railway.json` - Railway deployment configuration
+- `render.yaml` - Render deployment configuration
+- Both services share the same Docker image with different entrypoints
+
+```bash
+# Railway deployment
+make railway-login      # One-time setup
+make railway-deploy     # Deploy to Railway
 ```
 
 ### Backend (Railway/Render)
