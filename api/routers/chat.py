@@ -29,6 +29,7 @@ The router auto-detects which provider to use based on available API keys.
 """
 import json
 import os
+import sys
 from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
@@ -38,13 +39,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel
 
-import sys
+# Import API SQLAlchemy models first (local)
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
+from models import Investment, FileRegistry
+
+# Then import shared Pydantic schemas
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
 from models import InvestmentResponse, FileRegistryResponse
 
 from database import get_async_db
 from storage import get_storage_service
-import models as db_models
 
 router = APIRouter()
 storage = get_storage_service()
@@ -139,7 +143,7 @@ Current context: You are chatting within the Prism web dashboard.
 async def get_investment_context(db: AsyncSession, investment_id: str) -> dict:
     """Get investment data for context."""
     result = await db.execute(
-        select(db_models.Investment).where(db_models.Investment.id == investment_id)
+        select(Investment).where(Investment.id == investment_id)
     )
     inv = result.scalar_one_or_none()
     if not inv:
@@ -168,7 +172,7 @@ async def get_files_context(db: AsyncSession, file_ids: List[str]) -> List[dict]
         return []
     
     result = await db.execute(
-        select(db_models.FileRegistry).where(db_models.FileRegistry.id.in_(file_ids))
+        select(FileRegistry).where(FileRegistry.id.in_(file_ids))
     )
     files = result.scalars().all()
     
@@ -187,7 +191,7 @@ async def get_files_context(db: AsyncSession, file_ids: List[str]) -> List[dict]
 
 async def get_portfolio_summary(db: AsyncSession) -> dict:
     """Get portfolio summary for general context."""
-    result = await db.execute(select(db_models.Investment))
+    result = await db.execute(select(Investment))
     investments = result.scalars().all()
     
     total_value = sum(
@@ -488,7 +492,7 @@ async def get_investments_for_context(
 ):
     """Get investments list for chat context selection."""
     result = await db.execute(
-        select(db_models.Investment).order_by(db_models.Investment.name)
+        select(Investment).order_by(Investment.name)
     )
     investments = result.scalars().all()
     
@@ -510,10 +514,10 @@ async def get_files_for_context(
     db: AsyncSession = Depends(get_async_db)
 ):
     """Get files list for chat attachment selection."""
-    query = select(db_models.FileRegistry).order_by(desc(db_models.FileRegistry.created_at))
+    query = select(FileRegistry).order_by(desc(FileRegistry.created_at))
     
     if investment_id:
-        query = query.where(db_models.FileRegistry.investment_id == investment_id)
+        query = query.where(FileRegistry.investment_id == investment_id)
     
     result = await db.execute(query.limit(50))
     files = result.scalars().all()

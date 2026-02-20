@@ -3,6 +3,7 @@
 DASHBOARD ROUTER - Statistics and overview endpoints
 ===============================================================================
 """
+import sys
 from decimal import Decimal
 from typing import Dict
 
@@ -10,12 +11,15 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
 
-import sys
+# Import API SQLAlchemy models first (local)
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
+from models import Investment, FileRegistry, ProcessingJob, AnalysisResult, JobStatus
+
+# Then import shared Pydantic schemas
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-from models import DashboardStats, InvestmentCategory
+from models import DashboardStats, InvestmentCategory, FileRegistryResponse, AnalysisResultResponse
 
 from database import get_async_db
-import models as db_models
 
 
 router = APIRouter()
@@ -28,37 +32,37 @@ async def get_dashboard_stats(
     """Get dashboard statistics."""
     
     # Total investments
-    result = await db.execute(select(func.count(db_models.Investment.id)))
+    result = await db.execute(select(func.count(Investment.id)))
     total_investments = result.scalar()
     
     # Total value
     result = await db.execute(
-        select(func.coalesce(func.sum(db_models.Investment.current_value), Decimal(0)))
+        select(func.coalesce(func.sum(Investment.current_value), Decimal(0)))
     )
     total_value = result.scalar()
     
     # Total files
-    result = await db.execute(select(func.count(db_models.FileRegistry.id)))
+    result = await db.execute(select(func.count(FileRegistry.id)))
     total_files = result.scalar()
     
     # Pending analyses
     result = await db.execute(
-        select(func.count(db_models.ProcessingJob.id))
-        .where(db_models.ProcessingJob.status.in_([db_models.JobStatus.QUEUED, db_models.JobStatus.RUNNING]))
+        select(func.count(ProcessingJob.id))
+        .where(ProcessingJob.status.in_([JobStatus.QUEUED, JobStatus.RUNNING]))
     )
     pending_analyses = result.scalar()
     
     # Completed analyses
     result = await db.execute(
-        select(func.count(db_models.ProcessingJob.id))
-        .where(db_models.ProcessingJob.status == db_models.JobStatus.COMPLETED)
+        select(func.count(ProcessingJob.id))
+        .where(ProcessingJob.status == JobStatus.COMPLETED)
     )
     completed_analyses = result.scalar()
     
     # Investments by category
     result = await db.execute(
-        select(db_models.Investment.category, func.count(db_models.Investment.id))
-        .group_by(db_models.Investment.category)
+        select(Investment.category, func.count(Investment.id))
+        .group_by(Investment.category)
     )
     investments_by_category = {
         cat.value: count for cat, count in result.all()
@@ -66,23 +70,19 @@ async def get_dashboard_stats(
     
     # Recent uploads
     result = await db.execute(
-        select(db_models.FileRegistry)
-        .order_by(desc(db_models.FileRegistry.created_at))
+        select(FileRegistry)
+        .order_by(desc(FileRegistry.created_at))
         .limit(5)
     )
     recent_uploads = result.scalars().all()
     
     # Recent analyses
     result = await db.execute(
-        select(db_models.AnalysisResult)
-        .order_by(desc(db_models.AnalysisResult.created_at))
+        select(AnalysisResult)
+        .order_by(desc(AnalysisResult.created_at))
         .limit(5)
     )
     recent_analyses = result.scalars().all()
-    
-    import sys
-    sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-    from models import FileRegistryResponse, AnalysisResultResponse
     
     return {
         "total_investments": total_investments,
@@ -119,11 +119,11 @@ async def get_category_breakdown(
     """Get investment breakdown by category with values."""
     result = await db.execute(
         select(
-            db_models.Investment.category,
-            func.count(db_models.Investment.id),
-            func.coalesce(func.sum(db_models.Investment.current_value), Decimal(0))
+            Investment.category,
+            func.count(Investment.id),
+            func.coalesce(func.sum(Investment.current_value), Decimal(0))
         )
-        .group_by(db_models.Investment.category)
+        .group_by(Investment.category)
     )
     
     breakdown = []
@@ -157,24 +157,24 @@ async def get_recent_activity(
     
     # Recent files
     result = await db.execute(
-        select(db_models.FileRegistry)
-        .order_by(desc(db_models.FileRegistry.created_at))
+        select(FileRegistry)
+        .order_by(desc(FileRegistry.created_at))
         .limit(limit)
     )
     recent_files = result.scalars().all()
     
     # Recent jobs
     result = await db.execute(
-        select(db_models.ProcessingJob)
-        .order_by(desc(db_models.ProcessingJob.created_at))
+        select(ProcessingJob)
+        .order_by(desc(ProcessingJob.created_at))
         .limit(limit)
     )
     recent_jobs = result.scalars().all()
     
     # Recent investments
     result = await db.execute(
-        select(db_models.Investment)
-        .order_by(desc(db_models.Investment.created_at))
+        select(Investment)
+        .order_by(desc(Investment.created_at))
         .limit(limit)
     )
     recent_investments = result.scalars().all()

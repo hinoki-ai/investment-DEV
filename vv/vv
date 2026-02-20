@@ -243,6 +243,39 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
     if git rev-parse --verify origin/"$CURRENT_BRANCH" &>/dev/null; then
         commits_ahead=$(git rev-list --count HEAD ^origin/"$CURRENT_BRANCH" 2>/dev/null || echo "0")
         commits_behind=$(git rev-list --count origin/"$CURRENT_BRANCH" ^HEAD 2>/dev/null || echo "0")
+        
+        # Pull remote changes if behind
+        if [[ "$commits_behind" -gt 0 ]]; then
+            ui_box_line "${C_TEXT}Pulling $commits_behind commit(s) from remote..."
+            
+            pull_tmp_out=$(mktemp)
+            set +e
+            trap '' ERR
+            git pull origin "$CURRENT_BRANCH" --rebase > "$pull_tmp_out" 2>&1 </dev/null
+            pull_exit=$?
+            set -e
+            trap on_error ERR
+            
+            if [[ $pull_exit -eq 0 ]]; then
+                rm -f "$pull_tmp_out"
+                ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Pull: ${C_SUCCESS}Complete"
+                # Recalculate commits ahead after pull
+                commits_ahead=$(git rev-list --count HEAD ^origin/"$CURRENT_BRANCH" 2>/dev/null || echo "0")
+            else
+                ui_error "Git pull failed with exit code $pull_exit"
+                if [[ -s "$pull_tmp_out" ]]; then
+                    ui_info "Error details:"
+                    while IFS= read -r line; do
+                        ui_box_line "${C_MUTED}  $line"
+                    done < "$pull_tmp_out"
+                fi
+                rm -f "$pull_tmp_out"
+                ui_segment_close
+                trap '' ERR
+                exit 1
+            fi
+        fi
+        
         if [[ "$commits_ahead" -gt 0 ]]; then
             if [[ "$VV_AUTOCOMMIT" == true ]]; then
                 ui_box_line "${C_TEXT}Pushing $commits_ahead commit(s)..."
@@ -281,9 +314,7 @@ if [[ -d "$PROJECT_ROOT/.git" ]]; then
             else
                 ui_warn "Remote: $commits_ahead commits ahead"
             fi
-        elif [[ "$commits_behind" -gt 0 ]]; then
-            ui_info "Remote: $commits_behind commits behind"
-        else
+        elif [[ "$commits_behind" -eq 0 ]]; then
             ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Remote: ${C_HIGHLIGHT}Synced"
         fi
     else
