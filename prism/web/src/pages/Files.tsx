@@ -58,6 +58,9 @@ export default function Files() {
     queryFn: () => filesApi.list(),
   })
 
+  // Ensure files is an array - API might return non-array on error
+  const filesArray = Array.isArray(files) ? files : []
+
   const handleDownload = async (fileId: string, filename: string) => {
     try {
       const { download_url } = await filesApi.getDownloadUrl(fileId)
@@ -76,13 +79,13 @@ export default function Files() {
     }
   }
 
-  const filteredFiles = files?.filter((f: any) => {
-    const matchesSearch = f.original_filename.toLowerCase().includes(search.toLowerCase())
+  const filteredFiles = filesArray.filter((f: any) => {
+    const matchesSearch = f.original_filename?.toLowerCase().includes(search.toLowerCase())
     const matchesStatus = !status || f.status === status
     return matchesSearch && matchesStatus
   })
 
-  const totalSize = files?.reduce((acc: number, f: any) => acc + (f.file_size_bytes || 0), 0)
+  const totalSize = filesArray.reduce((acc: number, f: any) => acc + (f.file_size_bytes || 0), 0)
 
   return (
     <div className="space-y-6 fade-in">

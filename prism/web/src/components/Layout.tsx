@@ -7,12 +7,10 @@ import {
   Menu,
   X,
   ChevronRight,
-  PanelLeft,
   ChevronDown,
   Download,
   FolderOpen,
   MessageSquare,
-  Clock,
   BarChart3,
   Smartphone,
   type LucideIcon
@@ -20,7 +18,7 @@ import {
 import { useState, useEffect, useCallback } from 'react'
 import MarketDataTicker from './MarketDataTicker'
 
-// Compact time display component for the header
+// Compact time display component for the header - First line: CHILE + time, Second line: long date
 function CompactTimeDisplay() {
   const [currentTime, setCurrentTime] = useState<Date>(new Date())
   
@@ -31,12 +29,9 @@ function CompactTimeDisplay() {
     return () => clearInterval(timer)
   }, [])
   
-  const formatChileanDateTime = (date: Date): string => {
-    return date.toLocaleString('es-CL', {
+  const formatChileanTime = (date: Date): string => {
+    return date.toLocaleTimeString('es-CL', {
       timeZone: 'America/Santiago',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -44,14 +39,26 @@ function CompactTimeDisplay() {
     })
   }
   
+  const formatChileanDateLong = (date: Date): string => {
+    return date.toLocaleDateString('es-CL', {
+      timeZone: 'America/Santiago',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  }
+  
   return (
-    <div className="flex items-center gap-2">
-      <Clock className="h-3 w-3 text-text-muted flex-shrink-0" />
-      <div className="min-w-0">
-        <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider">Chile</div>
-        <div className="font-mono text-[11px] text-text-primary truncate">
-          {formatChileanDateTime(currentTime)}
-        </div>
+    <div className="flex flex-col gap-0.5">
+      <div className="flex items-baseline gap-2">
+        <span className="text-[12px] font-bold text-cream uppercase tracking-wider">Chile</span>
+        <span className="font-mono text-[14px] text-text-primary font-semibold">
+          {formatChileanTime(currentTime)}
+        </span>
+      </div>
+      <div className="text-[11px] text-text-secondary capitalize">
+        {formatChileanDateLong(currentTime)}
       </div>
     </div>
   )
@@ -337,33 +344,28 @@ export default function Layout({ children }: LayoutProps) {
           isExpanded ? 'w-72' : 'w-14'
         }`}
       >
-        {/* Compact Header: Favicon + Toggle + Time/Date */}
-        <div className="p-3">
-          <div className={`flex items-center gap-2 p-2 rounded-xl bg-surface/40 border border-border/50 ${isExpanded ? '' : 'justify-center'}`}>
-            {/* Favicon */}
-            <Link to="/" className="flex-shrink-0">
-              <div className="relative w-8 h-8 flex items-center justify-center">
-                <div className="absolute inset-0 bg-cream/10 rounded-lg border border-cream/20" />
+        {/* Compact Header: Large Favicon (toggle) + Time/Date Panel */}
+        <div className="p-3 pb-2">
+          <div className={`flex items-center gap-3 ${isExpanded ? '' : 'justify-center flex-col'}`}>
+            {/* Large Favicon - Acts as sidebar toggle */}
+            <button
+              onClick={toggleSidebar}
+              className="flex-shrink-0 relative group"
+              title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <div className="relative w-12 h-12 flex items-center justify-center">
+                <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20 group-hover:bg-cream/15 transition-colors" />
                 <img 
                   src="/favinv.png" 
                   alt="FavInv" 
-                  className="relative w-4 h-4 object-contain opacity-90"
+                  className="relative w-7 h-7 object-contain opacity-90"
                 />
               </div>
-            </Link>
-            
-            {/* Sidebar Toggle Button */}
-            <button
-              onClick={toggleSidebar}
-              className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-lg flex-shrink-0"
-              title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            >
-              <PanelLeft className={`h-4 w-4 transition-transform duration-300 ${!isExpanded ? 'rotate-180' : ''}`} />
             </button>
             
-            {/* Time/Date (only when expanded) */}
+            {/* Time/Date Panel (only when expanded) */}
             {isExpanded && (
-              <div className="flex-1 min-w-0 pl-2 border-l border-border/50">
+              <div className="flex-1 min-w-0 py-1.5 px-3 bg-surface/30 rounded-lg border border-border/30">
                 <CompactTimeDisplay />
               </div>
             )}

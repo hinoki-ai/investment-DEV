@@ -13,7 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -26,31 +26,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.family.investments.portal.data.local.SettingsDataStore
 import com.family.investments.portal.data.model.UploadStatus
 import com.family.investments.portal.network.ApiService
 import com.family.investments.portal.network.UploadManager
 import com.family.investments.portal.ui.components.FileItem
 import com.family.investments.portal.ui.components.GlyphButton
 import com.family.investments.portal.ui.theme.*
-import kotlinx.coroutines.launch
 
 @Composable
 fun UploadScreen(
     sharedUris: List<Uri> = emptyList()
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     
-    val settingsDataStore = remember { SettingsDataStore(context) }
-    val settings by settingsDataStore.settings.collectAsState(
-        initial = com.family.investments.portal.data.model.AppSettings()
-    )
-    
+    // HARDCODED - NO SETTINGS
     val uploadManager = remember {
         UploadManager(
             context = context,
-            apiService = ApiService.create(settings.apiUrl)
+            apiService = ApiService.create("https://prisma-api-aramac.koyeb.app")
         )
     }
     
@@ -61,14 +54,14 @@ fun UploadScreen(
     // Handle shared files
     LaunchedEffect(sharedUris) {
         if (sharedUris.isNotEmpty()) {
-            uploadManager.addFiles(sharedUris, settings.deviceId)
+            uploadManager.addFiles(sharedUris, "nexus-mobile")
         }
     }
     
     // Auto-upload when files added
     LaunchedEffect(pendingCount) {
         if (pendingCount > 0) {
-            uploadManager.uploadAll(settings.deviceId, settings.autoAnalyze)
+            uploadManager.uploadAll("nexus-mobile", true)
         }
     }
     
@@ -77,7 +70,7 @@ fun UploadScreen(
         contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris: List<Uri> ->
         if (uris.isNotEmpty()) {
-            uploadManager.addFiles(uris, settings.deviceId)
+            uploadManager.addFiles(uris, "nexus-mobile")
         }
     }
     
@@ -137,13 +130,14 @@ fun UploadScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(24.dp)
                             ) {
-                                // Big circular upload button
-                                FilledIconButton(
+                                // Big square upload button with rounded corners
+                                Button(
                                     onClick = {
                                         checkAndRequestPermissions(context, permissionLauncher, filePickerLauncher)
                                     },
                                     modifier = Modifier.size(120.dp),
-                                    colors = IconButtonDefaults.filledIconButtonColors(
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = ButtonDefaults.buttonColors(
                                         containerColor = Cream,
                                         contentColor = Void
                                     )

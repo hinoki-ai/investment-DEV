@@ -262,9 +262,9 @@ export default function Dashboard() {
           </div>
           
           <div className="p-2">
-            {(investments as any[])?.length ? (
+            {Array.isArray(investments) && investments.length > 0 ? (
               <div className="space-y-1">
-                {(investments as any[]).slice(0, 5).map((inv, index) => (
+                {investments.slice(0, 5).map((inv, index) => (
                   <Link
                     key={inv.id}
                     to={`/investments/${inv.id}`}

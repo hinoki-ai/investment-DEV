@@ -21,16 +21,16 @@ export default function DownloadPage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [apkInfo, setApkInfo] = useState<APKInfo>({
-    version: '1.0.0',
-    size: '11 MB',
-    filename: 'nexus-v1.0.apk',
+    version: '1.0.2',
+    size: '10.4 MB',
+    filename: 'nexus-latest-release.apk',
     updated: new Date().toLocaleDateString('es-CL')
   })
 
   // Check for APK file on mount
   useEffect(() => {
     // Try to get APK info from HEAD request
-    fetch('/releases/nexus-v1.0.apk', { method: 'HEAD' })
+    fetch('/releases/nexus-latest-release.apk', { method: 'HEAD' })
       .then(response => {
         const contentLength = response.headers.get('content-length')
         if (contentLength) {

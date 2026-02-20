@@ -12,7 +12,7 @@ cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && vercel --pro
 ```
 **Platform:** Vercel (DNS delegated from GoDaddy)  
 **Domain:** https://inv.aramac.dev  
-**Build folder:** `prism/web/dist`
+**Build folder:** prism/web/dist
 
 ### Project Structure
 ```
@@ -20,6 +20,9 @@ cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && vercel --pro
 ├── prism/web/          # Frontend (React + Vite) ← DEPLOY THIS
 ├── prism/api/          # Backend API (FastAPI)
 ├── prism/worker/       # AI Worker
+├── prism/database/     # PostgreSQL schema
+├── prism/shared/       # Shared Pydantic models
+├── nexus/mobile/       # Android app (Kotlin)
 └── AGENTS.md           # This file
 ```
 
@@ -32,9 +35,8 @@ cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && vercel --pro
 /analysis                   # Analysis
 /land-analyzer              # Land analyzer (with sub-routes)
 /chat                       # AI Chat
+/download                   # Mobile app download page
 ```
-
----
 
 ---
 
@@ -110,7 +112,7 @@ cd /home/hinoki/HinokiDEV/Investments/prism/web && npm run build && vercel --pro
 - Direct phone uploads to storage (no file passes through API)
 - Multi-provider AI document analysis (Kimi K2.5, OpenAI GPT-4o, Anthropic Claude, Google Gemini, Ollama)
 - PRISM web dashboard for portfolio management
-- Native Android app for mobile uploads
+- Native Android app for mobile uploads (NEXUS mobile)
 - Multi-device access (phones, laptops, tablets)
 - Structured storage organization
 
@@ -187,98 +189,87 @@ Worker → Polls jobs + Downloads file + AI Analysis
 
 ```
 .
-├── api/                          # Layer 2: Coordination API (FastAPI)
-│   ├── routers/                  # API endpoint modules
-│   │   ├── investments.py        # Investment CRUD operations
-│   │   ├── files.py              # File management
-│   │   ├── uploads.py            # Direct-to-storage upload flow
-│   │   ├── analysis.py           # Analysis results and jobs
-│   │   ├── dashboard.py          # Statistics and metrics
-│   │   └── chat.py               # AI chat endpoints
-│   ├── static/                   # Static assets
-│   │   ├── prism_docs.html       # Beautiful PRISM-styled API docs
-│   │   └── favicon.svg
-│   ├── tests/                    # API tests
-│   ├── main.py                   # FastAPI application entry
-│   ├── models.py                 # SQLAlchemy ORM models
-│   ├── database.py               # Database connection & session
-│   ├── storage.py                # Object storage abstraction (S3/R2)
-│   ├── requirements.txt          # Python dependencies
-│   ├── Dockerfile                # API container image
-│   └── wrangler.toml             # Cloudflare Workers config
+├── prism/
+│   ├── api/                      # Layer 2: Coordination API (FastAPI)
+│   │   ├── routers/              # API endpoint modules
+│   │   │   ├── investments.py    # Investment CRUD operations
+│   │   │   ├── files.py          # File management
+│   │   │   ├── uploads.py        # Direct-to-storage upload flow
+│   │   │   ├── analysis.py       # Analysis results and jobs
+│   │   │   ├── dashboard.py      # Statistics and metrics
+│   │   │   ├── chat.py           # AI chat endpoints
+│   │   │   ├── health.py         # Health checks
+│   │   │   └── analytics.py      # Analytics endpoints
+│   │   ├── static/               # Static assets
+│   │   │   ├── prism_docs.html   # Beautiful PRISM-styled API docs
+│   │   │   └── favicon.svg
+│   │   ├── main.py               # FastAPI application entry
+│   │   ├── models.py             # SQLAlchemy ORM models
+│   │   ├── database.py           # Database connection & session
+│   │   ├── storage.py            # Object storage abstraction (S3/R2)
+│   │   ├── middleware.py         # FastAPI middleware
+│   │   ├── logging_config.py     # Structured logging
+│   │   ├── metrics.py            # Prometheus metrics
+│   │   ├── requirements.txt      # Python dependencies
+│   │   ├── Dockerfile            # API container image
+│   │   └── wrangler.toml         # Cloudflare Workers config
+│   │
+│   ├── worker/                   # Layer 3: Intelligence Worker
+│   │   ├── main.py               # Worker orchestrator (job polling loop)
+│   │   ├── ai_client.py          # Multi-provider AI client
+│   │   ├── kimi_client.py        # Kimi K2.5 specific client
+│   │   ├── storage.py            # Worker storage client
+│   │   ├── temp/                 # Temporary file downloads
+│   │   ├── requirements.txt      # Python dependencies
+│   │   └── Dockerfile            # Worker container image
+│   │
+│   ├── web/                      # PRISM - Web Dashboard (React + Vite)
+│   │   ├── src/
+│   │   │   ├── pages/            # Dashboard, Investments, Files, Analysis, LandAnalyzer, Chat, Download
+│   │   │   ├── components/       # Reusable UI components (Layout, StatCard, MoneyCard, CreditAnalysis)
+│   │   │   ├── lib/              # API client (api.ts), utilities, landCredit.ts
+│   │   │   ├── hooks/            # Custom React hooks
+│   │   │   ├── App.tsx           # Main app with routes
+│   │   │   ├── main.tsx          # React entry point
+│   │   │   └── index.css         # Global styles with custom design system
+│   │   ├── public/releases/      # Mobile APK releases
+│   │   ├── dist/                 # Build output
+│   │   ├── package.json          # Node.js dependencies
+│   │   ├── tsconfig.json         # TypeScript configuration
+│   │   ├── vite.config.ts        # Vite configuration
+│   │   ├── tailwind.config.js    # Tailwind with custom theme
+│   │   ├── vercel.json           # Vercel deployment config
+│   │   ├── Dockerfile            # Web container image
+│   │   └── wrangler.toml         # Cloudflare Pages config
+│   │
+│   ├── database/                 # Database schema and migrations
+│   │   └── init.sql              # PostgreSQL schema + sample data
+│   │
+│   ├── shared/                   # Shared code between API and Worker
+│   │   └── models.py             # Pydantic schemas
+│   │
+│   ├── edge-workers/             # Cloudflare Edge Workers
+│   │
+│   ├── scripts/                  # Utility scripts
+│   │   └── setup/                # Development setup
+│   │
+│   ├── vv/                       # VV deployer (Vercel deployment script)
+│   │   └── README.md
+│   │
+│   ├── docker-compose.yml        # Complete local stack
+│   ├── docker-compose.prod.yml   # Production Docker Compose
+│   ├── docker-compose.test.yml   # Testing Docker Compose
+│   └── docker-compose.override.yml # Development overrides
 │
-├── worker/                       # Layer 3: Intelligence Worker
-│   ├── main.py                   # Worker orchestrator (job polling loop)
-│   ├── ai_client.py              # Multi-provider AI client
-│   ├── kimi_client.py            # Kimi K2.5 specific client
-│   ├── storage.py                # Worker storage client
-│   ├── temp/                     # Temporary file downloads
-│   ├── tests/                    # Worker tests
-│   ├── requirements.txt          # Python dependencies
-│   └── Dockerfile                # Worker container image
-│
-├── web/                          # PRISM - Web Dashboard (React + Vite)
-│   ├── src/
-│   │   ├── pages/                # Dashboard, Investments, Files, Analysis, LandAnalyzer, Chat
-│   │   ├── components/           # Reusable UI components (Layout, StatCard, MoneyCard, CreditAnalysis)
-│   │   ├── lib/                  # API client (api.ts), utilities, landCredit.ts
-│   │   ├── hooks/                # Custom React hooks
-│   │   ├── App.tsx               # Main app with routes
-│   │   ├── main.tsx              # React entry point
-│   │   └── index.css             # Global styles with custom design system
-│   ├── functions/api/            # Cloudflare Pages Functions (API endpoints)
-│   ├── dist/                     # Build output
-│   ├── package.json              # Node.js dependencies
-│   ├── tsconfig.json             # TypeScript configuration
-│   ├── vite.config.ts            # Vite configuration
-│   ├── tailwind.config.js        # Tailwind with custom theme
-│   ├── Dockerfile                # Web container image
-│   ├── nginx.conf                # Nginx configuration
-│   └── wrangler.toml             # Cloudflare Pages config
-│
-├── mobile/                       # Mobile applications
-│   └── android/                  # Native Android app (Kotlin, Jetpack Compose)
-│       ├── app/src/main/...      # Kotlin source files
-│       ├── build.gradle.kts      # Gradle build config
+├── nexus/
+│   └── mobile/                   # Native Android app (Kotlin, Jetpack Compose)
 │       └── README.md             # Mobile app documentation
-│
-├── database/                     # Database schema and migrations
-│   ├── init.sql                  # PostgreSQL schema + sample data
-│   ├── migrations/               # Database migrations
-│   └── seeds/                    # Sample data seeds
-│
-├── shared/                       # Shared code between API and Worker
-│   └── models.py                 # Pydantic schemas (if exists)
-│
-├── scripts/                      # Utility scripts
-│   ├── deploy-railway.sh         # Railway deployment
-│   ├── railway-setup.sh          # Railway setup
-│   ├── setup/init-dev.sh         # Development setup
-│   ├── health-check/health.sh    # Health checks
-│   └── migration/                # Backup/restore scripts
-│
-├── vv/                           # VV deployer (Vercel deployment script)
-│   ├── vv                        # Main deployment script
-│   ├── ui.sh                     # UI helper functions
-│   └── vv-simple.sh              # Simplified deployer
-│
-├── docs/                         # Documentation
-│   ├── architecture/             # System architecture docs
-│   ├── deployment/               # Deployment guides
-│   └── development/              # Development guides
 │
 ├── .github/                      # GitHub configuration
 │   └── workflows/                # CI/CD workflows
 │
-├── docker-compose.yml            # Complete local stack
-├── docker-compose.prod.yml       # Production Docker Compose
-├── docker-compose.test.yml       # Testing Docker Compose
-├── docker-compose.override.yml   # Development overrides
 ├── Makefile                      # Development commands
-├── vercel.json                   # Vercel deployment config
-├── railway.json                  # Railway deployment config
-├── .vvrc                         # VV deployer configuration
-├── package.json                  # Root package.json (build orchestration)
+├── package.json                  # Root npm configuration
 ├── pyproject.toml                # Python project configuration, linting, testing
 ├── .pre-commit-config.yaml       # Pre-commit hooks
 └── .env.example                  # Environment configuration template
@@ -292,22 +283,22 @@ Worker → Polls jobs + Downloads file + AI Analysis
 
 ```bash
 # Start all services
-docker-compose up -d
+docker-compose -f prism/docker-compose.yml up -d
 
 # Start individual services
-docker-compose up -d postgres redis minio  # Infrastructure only
-docker-compose up api                       # API server
-docker-compose up worker                    # AI worker
-docker-compose up web                       # Dashboard
+docker-compose -f prism/docker-compose.yml up -d postgres redis minio  # Infrastructure only
+docker-compose -f prism/docker-compose.yml up api                       # API server
+docker-compose -f prism/docker-compose.yml up worker                    # AI worker
+docker-compose -f prism/docker-compose.yml up web                       # Dashboard
 
 # View logs
-docker-compose logs -f [service]
+docker-compose -f prism/docker-compose.yml logs -f [service]
 
 # Stop all services
-docker-compose down
+docker-compose -f prism/docker-compose.yml down
 
 # Reset everything (DESTROYS DATA)
-docker-compose down -v
+docker-compose -f prism/docker-compose.yml down -v
 ```
 
 ### Makefile Commands
@@ -330,9 +321,9 @@ make clean             # Remove containers and volumes
 make reset             # Reset everything (WARNING: destroys data!)
 
 # Development helpers
-make dev-web           # Run web dev server locally (cd web && npm run dev)
-make dev-api           # Run API locally (cd api && uvicorn main:app --reload)
-make dev-worker        # Run Worker locally (cd worker && python main.py)
+make dev-web           # Run web dev server locally (cd prism/web && npm run dev)
+make dev-api           # Run API locally (cd prism/api && uvicorn main:app --reload)
+make dev-worker        # Run Worker locally (cd prism/worker && python main.py)
 
 # Testing (minimal by design)
 make test              # Run all tests
@@ -362,16 +353,6 @@ make prod-up           # Start production stack locally
 make prod-down         # Stop production stack
 make prod-backup       # Backup production database
 make prod-logs         # View production logs
-
-# Mobile
-make mobile-build      # Build Android app
-make mobile-install    # Install Android app to connected device
-make mobile-clean      # Clean Android build
-
-# Railway deployment
-make railway-login     # Login to Railway (one-time)
-make railway-setup     # Setup Railway project and PostgreSQL
-make railway-deploy    # Deploy to Railway
 
 # Utilities
 make health            # Run health checks
@@ -408,20 +389,20 @@ npm run clean          # Stop and clean Docker containers
 # 1. Start PostgreSQL and Redis (use your preferred method)
 
 # 2. Run migrations
-psql $DATABASE_URL -f database/init.sql
+psql $DATABASE_URL -f prism/database/init.sql
 
 # 3. Start API (Python 3.12 required)
-cd api
+cd prism/api
 pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0
 
 # 4. Start Worker (another terminal)
-cd worker
+cd prism/worker
 pip install -r requirements.txt
 python main.py
 
 # 5. Start Web (another terminal)
-cd web
+cd prism/web
 npm install
 npm run dev
 ```
@@ -530,6 +511,7 @@ AI_PROVIDER=kimi  # kimi, openai, anthropic, google, ollama
 | `/openapi` | Standard Swagger UI (OpenAPI spec) |
 | `/redoc` | ReDoc documentation |
 | `/health` | Health check endpoint (JSON) |
+| `/metrics` | Prometheus metrics endpoint |
 
 ### Endpoints
 
@@ -537,6 +519,7 @@ AI_PROVIDER=kimi  # kimi, openai, anthropic, google, ollama
 GET  /health                    # Health check (includes Redis status)
 GET  /                         # Beautiful API documentation (HTML)
 GET  /docs                      # Redirects to beautiful docs
+GET  /metrics                   # Prometheus metrics
 
 # Dashboard
 GET  /api/v1/dashboard/stats           # Dashboard statistics
@@ -569,6 +552,10 @@ POST /api/v1/chat                      # Send message (non-streaming)
 POST /api/v1/chat/stream               # Send message (streaming SSE)
 GET  /api/v1/chat/context/investments  # Get investments for context
 GET  /api/v1/chat/context/files        # Get files for context
+
+# Analytics
+GET  /api/v1/analytics/land-credits    # Land credit analytics
+GET  /api/v1/analytics/portfolio       # Portfolio analytics
 ```
 
 ---
@@ -670,14 +657,14 @@ colors: {
 
 ```bash
 # API
-cd api && ruff check .
-cd api && ruff format .
-cd api && ruff check --fix .
-cd api && mypy . --ignore-missing-imports
+cd prism/api && ruff check .
+cd prism/api && ruff format .
+cd prism/api && ruff check --fix .
+cd prism/api && mypy . --ignore-missing-imports
 
 # Worker
-cd worker && ruff check .
-cd worker && ruff format .
+cd prism/worker && ruff check .
+cd prism/worker && ruff format .
 ```
 
 ### TypeScript/JavaScript
@@ -686,7 +673,7 @@ cd worker && ruff format .
 - **Prettier** - Code formatting
 
 ```bash
-cd web
+cd prism/web
 npm run lint
 npx prettier --write 'src/**/*.{ts,tsx}'
 ```
@@ -727,15 +714,15 @@ pre-commit run --all-files
 
 ```bash
 # API tests (pytest)
-cd api
+cd prism/api
 pytest -v
 
 # With coverage
-cd api
+cd prism/api
 pytest --cov=. --cov-report=html -v
 
 # Web tests
-cd web
+cd prism/web
 npm run test
 
 # All tests from root
@@ -806,21 +793,8 @@ curl -I https://inv.aramac.dev
 ### Backend (Railway/Render)
 
 The API and Worker are deployed via Docker:
-- `railway.json` - Railway deployment configuration
-- `render.yaml` - Render deployment configuration
-- Both services share the same Docker image with different entrypoints
-
-```bash
-# Railway deployment
-make railway-login      # One-time setup
-make railway-deploy     # Deploy to Railway
-```
-
-### Backend (Railway/Render)
-
-The API and Worker are deployed via Docker:
-- `railway.json` - Railway deployment configuration
-- `render.yaml` - Render deployment configuration
+- `prism/railway.json` - Railway deployment configuration
+- `prism/railway-worker.json` - Railway worker configuration
 - Both services share the same Docker image with different entrypoints
 
 ```bash
@@ -897,16 +871,16 @@ GET  /api/v1/chat/context/files        # List files for context
 
 ## Mobile App
 
-### Android Mobile App
+### Android Mobile App (NEXUS)
 
-Located in `mobile/android/`:
+Located in `nexus/mobile/`:
 - **Language:** Kotlin
 - **UI Framework:** Jetpack Compose with Material3
 - **Features:** Direct-to-R2 upload, share sheet integration, batch uploads
 
 Build:
 ```bash
-cd mobile/android
+cd nexus/mobile
 ./gradlew assembleDebug    # Debug APK
 ./gradlew assembleRelease  # Release APK
 ```
@@ -914,7 +888,9 @@ cd mobile/android
 The app communicates with the API at:
 - Emulator: `http://10.0.2.2:8000`
 - Physical device: `http://YOUR_IP:8000`
-- Production: `https://api.yourdomain.com`
+- Production: Your deployed API URL
+
+Download page: https://inv.aramac.dev/download
 
 ---
 

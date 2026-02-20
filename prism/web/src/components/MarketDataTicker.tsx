@@ -73,14 +73,15 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
           signal: AbortSignal.timeout(10000)
         })
 
-        if (marketRes.ok) {
+        const contentType = marketRes.headers.get('content-type')
+        if (marketRes.ok && contentType?.includes('application/json')) {
           const marketData = await marketRes.json()
           goldPriceClpPerGram = marketData.gold_clp_per_gram
           silverPriceClpPerGram = marketData.silver_clp_per_gram
           console.log('[MarketData] Gold CLP/g:', goldPriceClpPerGram)
           console.log('[MarketData] Silver CLP/g:', silverPriceClpPerGram)
         } else {
-          console.warn('[MarketData] Market data API failed:', marketRes.status)
+          console.warn('[MarketData] Market data API failed:', marketRes.status, contentType)
         }
       } catch (err) {
         console.error('[MarketData] Metals fetch error:', err)

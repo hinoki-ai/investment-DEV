@@ -133,8 +133,8 @@ fun FileItem(
             AnimatedContent(
                 targetState = file.status,
                 transitionSpec = {
-                    scaleIn(animationSpec = tween(200)) + fadeIn() with
-                    scaleOut(animationSpec = tween(150)) + fadeOut()
+                    fadeIn(animationSpec = tween(150)) with
+                    fadeOut(animationSpec = tween(100))
                 },
                 label = "action"
             ) { status ->
@@ -155,7 +155,7 @@ fun FileItem(
                                 )
                             }
                             
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
                             
                             IconButton(
                                 onClick = onRemove,

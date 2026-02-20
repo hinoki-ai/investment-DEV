@@ -67,8 +67,11 @@ export default function Investments() {
     queryFn: () => investmentsApi.list(),
   })
 
-  const filteredInvestments = investments?.filter((inv: any) => {
-    const matchesSearch = inv.name.toLowerCase().includes(search.toLowerCase()) ||
+  // Ensure investments is an array - API might return non-array on error
+  const investmentsArray = Array.isArray(investments) ? investments : []
+  
+  const filteredInvestments = investmentsArray.filter((inv: any) => {
+    const matchesSearch = inv.name?.toLowerCase().includes(search.toLowerCase()) ||
                          inv.city?.toLowerCase().includes(search.toLowerCase())
     const matchesCategory = !category || inv.category === category
     return matchesSearch && matchesCategory
