@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 
-    Night mode color overrides
-    These colors are used when the device is in dark mode
--->
 <resources>
-    <!-- Status bar color for dark theme -->
-    <color name="status_bar_color">#0F0F1A</color>
-    
-    <!-- Navigation bar color for dark theme -->
-    <color name="navigation_bar_color">#0F0F1A</color>
-    
-    <!-- Accent colors - brighter for dark mode visibility -->
-    <color name="primary_accent">#A78BFA</color>
-    <color name="secondary_accent">#60A5FA</color>
-    <color name="tertiary_accent">#22D3EE</color>
+    <!-- Same warm dark palette for night mode -->
+    <color name="status_bar_color">@color/void</color>
+    <color name="navigation_bar_color">@color/void</color>
 </resources>

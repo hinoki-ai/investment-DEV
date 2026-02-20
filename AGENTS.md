@@ -435,6 +435,12 @@ POST /api/v1/uploads/confirm           # Confirm upload, create document, queue 
 GET  /api/v1/analysis/results          # List analysis results
 GET  /api/v1/analysis/jobs             # List processing jobs
 GET  /api/v1/analysis/queue/stats      # Queue statistics
+
+# Chat (NEXUS AI)
+POST /api/v1/chat                      # Send message (non-streaming)
+POST /api/v1/chat/stream               # Send message (streaming SSE)
+GET  /api/v1/chat/context/investments  # Get investments for context
+GET  /api/v1/chat/context/files        # Get files for context
 ```
 
 ---
@@ -671,6 +677,65 @@ Examples:
 - uploads/abc-123/document.pdf
 - uploads/abc-123/def-456/photo.jpg
 ```
+
+---
+
+## NEXUS AI Chat
+
+A conversational AI interface inspired by **T3 Chat** and **Cursor IDE** for natural language interaction with your investment portfolio.
+
+### Features
+
+| Feature | Description |
+|---------|-------------|
+| **Streaming Responses** | Real-time AI responses with SSE (Server-Sent Events) |
+| **Context Attachments** | Attach investments and files to provide context |
+| **Multi-provider** | Works with Kimi, GPT-4o, Claude, Gemini (same as worker) |
+| **Portfolio Awareness** | AI knows your investments, values, and documents |
+| **File References** | Can reference Cloudflare R2 files by name |
+
+### UI Components
+
+- **Chat Interface** (`/chat`) — Main chat page with message history
+- **Context Selector** — Dropdown to attach investments/files
+- **Streaming Indicator** — Real-time typing animation
+- **Suggested Prompts** — Quick-start questions for common tasks
+
+### API Endpoints
+
+```
+POST /api/v1/chat              # Non-streaming chat
+POST /api/v1/chat/stream       # Streaming chat (SSE)
+GET  /api/v1/chat/context/investments  # List investments for context
+GET  /api/v1/chat/context/files        # List files for context
+```
+
+### Usage Example
+
+```typescript
+// Send a message with context
+const response = await chatApi.sendMessageStream({
+  messages: [{ role: 'user', content: 'Resume mis inversiones de tierra' }],
+  investment_id: 'optional-investment-id',
+  file_ids: ['file-id-1', 'file-id-2']
+})
+
+// Read streaming response
+const reader = response.getReader()
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  // value contains new content chunk
+}
+```
+
+### System Prompt
+
+NEXUS AI is configured with a custom system prompt that:
+- Identifies as the family's investment assistant
+- Has access to portfolio data and Cloudflare files
+- Responds in the user's language (English/Spanish/Portuguese)
+- Provides helpful investment insights with appropriate disclaimers
 
 ---
 

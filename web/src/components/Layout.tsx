@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Download,
   FolderOpen,
+  Bot,
   type LucideIcon
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
@@ -78,6 +79,9 @@ const navigation: NavElement[] = [
     ]
   },
   
+  { type: 'section', label: 'Inteligencia' },
+  { path: '/chat', label: 'NEXUS Chat', icon: Bot, badge: 'AI', badgeColor: 'cream' },
+  
   { type: 'section', label: 'Documentos' },
   {
     type: 'group',
@@ -85,7 +89,7 @@ const navigation: NavElement[] = [
     icon: FileText,
     items: [
       { path: '/files', label: 'Todos los Archivos', icon: FolderOpen },
-      { path: '/analysis', label: 'Análisis AI', icon: Brain, badge: 'New', badgeColor: 'success' },
+      { path: '/analysis', label: 'Análisis', icon: Brain },
     ]
   },
 ]

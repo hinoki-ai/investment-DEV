@@ -1,0 +1,49 @@
+# Python API - deployed separately via Railway/Render
+api/
+worker/
+
+# Mobile app - built separately
+mobile/
+
+# Database
+database/
+
+# Docker files
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+docs/
+*.md
+
+# Git
+.git/
+.gitignore
+
+# Node modules
+node_modules/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Scripts
+scripts/
+
+# Shared (included in API/Worker, not needed for web)
+shared/
+
+# VV deployer
+vv/
+
+# Other
+.secrets/
+.github/

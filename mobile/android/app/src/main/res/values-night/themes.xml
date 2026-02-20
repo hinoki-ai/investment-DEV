@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 
-        Application theme for Night/Dark mode.
-        Overrides colors for better visibility on dark backgrounds.
-    -->
-    <style name="Theme.InvestmentPortal" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- Status bar - darker for dark mode -->
-        <item name="android:statusBarColor">@color/status_bar_color</item>
-        <item name="android:navigationBarColor">@color/navigation_bar_color</item>
+    <!-- Same warm dark theme for night mode -->
+    <style name="Theme.InvestmentPortal" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/void</item>
+        <item name="android:navigationBarColor">@color/void</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
-        
-        <!-- Enable edge-to-edge -->
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
     
-    <!-- 
-        Splash theme for cold start in dark mode.
-    -->
     <style name="Theme.InvestmentPortal.Splash" parent="Theme.InvestmentPortal">
-        <item name="android:windowBackground">@drawable/ic_launcher_background</item>
+        <item name="android:windowBackground">@color/void</item>
     </style>
 </resources>

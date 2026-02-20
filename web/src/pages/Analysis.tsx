@@ -6,7 +6,7 @@ import {
   XCircle,
   Loader2,
   AlertCircle,
-  Zap,
+  Cpu,
   Sparkles,
   Activity
 } from 'lucide-react'
@@ -61,19 +61,19 @@ export default function Analysis() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">AI Powered</span>
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">NEXUS AI</span>
           </div>
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">Análisis</h1>
           <p className="text-text-secondary mt-1">
-            Análisis de documentos con Kimi K2.5 y otras IA
+            Análisis automático de documentos del portafolio
           </p>
         </div>
         
         <div className="flex items-center gap-2 text-xs text-text-muted">
-          <Zap className="h-4 w-4 text-cream" />
-          <span className="text-cream">Kimi K2.5</span>
+          <Cpu className="h-4 w-4 text-cream" />
+          <span className="text-cream">NEXUS AI</span>
           <span className="text-border-strong">|</span>
-          <span>Multi-provider AI</span>
+          <span>Multi-provider</span>
         </div>
       </div>
 

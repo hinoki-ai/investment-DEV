@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from database import async_engine, Base, redis_client
-from routers import investments, files, analysis, dashboard, uploads
+from routers import investments, files, analysis, dashboard, uploads, chat
 
 
 # =============================================================================
@@ -189,6 +189,7 @@ app.include_router(files.router, prefix="/api/v1/files", tags=["Files"])
 app.include_router(uploads.router, prefix="/api/v1/uploads", tags=["Uploads"])
 app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
 app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["Dashboard"])
+app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
 
 
 if __name__ == "__main__":

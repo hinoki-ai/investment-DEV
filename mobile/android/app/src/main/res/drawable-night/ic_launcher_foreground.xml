@@ -5,44 +5,38 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Dark theme: Brighter elements for visibility on dark backgrounds -->
-    
-    <!-- Background glow circle - lighter -->
+    <!-- NEXUS Hexagon Logo - Warm Cream (Night mode) -->
     <path
-        android:fillColor="#3D2C5E"
-        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
-    
-    <!-- Outer ring - lighter -->
-    <path
-        android:fillColor="#4C3D6E"
-        android:pathData="M54,54m-32,0a32,32 0,1 1,64 0a32,32 0,1 1,-64 0" />
-    
-    <!-- Inner circle -->
-    <path
-        android:fillColor="#5D4E7E"
-        android:pathData="M54,54m-24,0a24,24 0,1 1,48 0a24,24 0,1 1,-48 0" />
-    
-    <!-- Cloud body - Brighter Violet for dark theme -->
-    <path
-        android:fillColor="#A78BFA"
-        android:pathData="M72,58c0,-6.6 -5.4,-12 -12,-12c-1.3,0 -2.5,0.2 -3.6,0.6C54.8,41.6 50,38 44.5,38c-7.2,0 -13,5.8 -13,13c0,0.5 0,1 0.1,1.5C27.2,53.6 24,57.4 24,62c0,5 4,9 9,9h39c5,0 9,-4 9,-9S77,58 72,58z" />
-    
-    <!-- Upload arrow - White (stays same) -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,48l-8,8h5v12h6v-12h5L54,48z" />
-    
-    <!-- Decorative dots - brighter -->
-    <path
-        android:fillColor="#60A5FA"
-        android:pathData="M30,70a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:strokeColor="#E8D5C4"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M54,28L76,40.5V65.5L54,78L32,65.5V40.5L54,28z" />
     
     <path
-        android:fillColor="#22D3EE"
-        android:pathData="M72,70a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:fillColor="#E8D5C4"
+        android:fillAlpha="0.08"
+        android:pathData="M54,32L72,42.5V63.5L54,74L36,63.5V42.5L54,32z" />
     
     <path
-        android:fillColor="#34D399"
-        android:pathData="M51,78a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
-        
+        android:strokeColor="#E8D5C4"
+        android:strokeWidth="2"
+        android:strokeAlpha="0.6"
+        android:pathData="M54,35L54,71" />
+    
+    <path
+        android:strokeColor="#E8D5C4"
+        android:strokeWidth="1.5"
+        android:strokeAlpha="0.4"
+        android:pathData="M54,53L72,43" />
+    
+    <path
+        android:strokeColor="#E8D5C4"
+        android:strokeWidth="1.5"
+        android:strokeAlpha="0.4"
+        android:pathData="M54,53L36,43" />
+    
+    <path
+        android:fillColor="#E8D5C4"
+        android:pathData="M54,50.5a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-5 0" />
+    
 </vector>

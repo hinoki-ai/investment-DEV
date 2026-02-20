@@ -100,3 +100,94 @@ export const analysisApi = {
   listJobs: () => api.get('/analysis/jobs').then(r => r.data),
   getQueueStats: () => api.get('/analysis/queue/stats').then(r => r.data),
 }
+
+// Chat Types
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  attachments?: Array<{
+    id: string
+    type: 'investment' | 'file'
+    name: string
+    data: any
+  }>
+}
+
+export interface ChatRequest {
+  messages: ChatMessage[]
+  investment_id?: string
+  file_ids?: string[]
+  stream?: boolean
+  model?: string
+}
+
+export interface ChatResponse {
+  message: ChatMessage
+  usage?: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+  model: string
+}
+
+// Chat API
+export const chatApi = {
+  sendMessage: (data: ChatRequest) => 
+    api.post<ChatResponse>('/chat', data).then(r => r.data),
+  
+  sendMessageStream: async (data: Omit<ChatRequest, 'stream'>): Promise<ReadableStreamDefaultReader<string>> => {
+    const response = await fetch(`${API_URL}/api/v1/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ...data, stream: true }),
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to send message')
+    }
+    
+    // Create a reader that yields strings
+    const reader = response.body?.getReader()
+    const decoder = new TextDecoder()
+    
+    if (!reader) {
+      throw new Error('No response body')
+    }
+    
+    // Return a custom async iterator
+    return {
+      async read(): Promise<{ done: boolean; value: string }> {
+        const result = await reader.read()
+        if (result.done) {
+          return { done: true, value: '' }
+        }
+        return { done: false, value: decoder.decode(result.value, { stream: true }) }
+      },
+      releaseLock: () => reader.releaseLock(),
+      cancel: (reason?: any) => reader.cancel(reason),
+      closed: reader.closed,
+    } as ReadableStreamDefaultReader<string>
+  },
+  
+  getInvestmentsForContext: () => 
+    api.get<Array<{
+      id: string
+      name: string
+      category: string
+      city?: string
+      status?: string
+    }>>('/chat/context/investments').then(r => r.data),
+  
+  getFilesForContext: (investment_id?: string) => 
+    api.get<Array<{
+      id: string
+      filename: string
+      mime_type?: string
+      size_bytes?: number
+      status?: string
+      investment_id?: string
+    }>>('/chat/context/files', { params: investment_id ? { investment_id } : undefined }).then(r => r.data),
+}

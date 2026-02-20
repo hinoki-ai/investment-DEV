@@ -6,6 +6,7 @@ import InvestmentDetail from './pages/InvestmentDetail'
 import Files from './pages/Files'
 import Analysis from './pages/Analysis'
 import LandAnalyzer from './pages/LandAnalyzer'
+import Chat from './pages/Chat'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/files" element={<Files />} />
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/land-analyzer" element={<LandAnalyzer />} />
+        <Route path="/chat" element={<Chat />} />
       </Routes>
     </Layout>
   )
