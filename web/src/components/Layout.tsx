@@ -351,7 +351,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <aside 
         className={`hidden lg:flex fixed left-0 top-0 h-full flex-col border-r border-border bg-void-deep/80 backdrop-blur-xl z-40 transition-all duration-300 ease-out text-[0.9em] ${
-          isExpanded ? 'w-64' : 'w-14'
+          isExpanded ? 'w-72' : 'w-14'
         }`}
       >
         {/* Logo Section with Collapse Button */}
@@ -493,7 +493,7 @@ export default function Layout({ children }: LayoutProps) {
         
         {/* Mobile Sidebar Panel */}
         <aside 
-          className={`absolute left-0 top-16 bottom-0 w-72 bg-void-deep border-r border-border flex flex-col transition-transform duration-300 text-[0.9em] ${
+          className={`absolute left-0 top-16 bottom-0 w-80 bg-void-deep border-r border-border flex flex-col transition-transform duration-300 text-[0.9em] ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >

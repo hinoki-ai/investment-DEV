@@ -528,6 +528,39 @@ else
         # Step 3: Success
         ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Build: ${C_SUCCESS}Complete" "${C_TEXT}"
         ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}URL: ${C_HIGHLIGHT}${DEPLOYMENT_URL}"
+        
+        # Step 4: Configure custom domain if DOMAIN is set in .vvrc
+        DOMAIN="${DOMAIN:-}"
+        if [[ -f "$PROJECT_ROOT/.vvrc" ]] && [[ -z "$DOMAIN" ]]; then
+            DOMAIN=$(grep '^DOMAIN=' "$PROJECT_ROOT/.vvrc" | cut -d'=' -f2 | tr -d ' "')
+        fi
+        
+        if [[ -n "$DOMAIN" ]]; then
+            ui_box_line "${C_TEXT}Configuring custom domain: ${C_HIGHLIGHT}${DOMAIN}..."
+            
+            domain_tmp_out=$(mktemp)
+            set +e
+            trap '' ERR
+            # Add domain to project (redirect stdin to prevent hanging)
+            vercel domains add "$DOMAIN" --cwd "$PROJECT_ROOT" --yes 2>&1 </dev/null > "$domain_tmp_out"
+            domain_exit=$?
+            set -e
+            trap on_error ERR
+            
+            if [[ $domain_exit -eq 0 ]] || grep -q "already configured" "$domain_tmp_out" 2>/dev/null; then
+                if grep -q "already configured" "$domain_tmp_out" 2>/dev/null; then
+                    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Domain: ${C_SUCCESS}Already configured"
+                else
+                    ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Domain: ${C_SUCCESS}Configured"
+                fi
+                CUSTOM_DOMAIN_URL="https://${DOMAIN}"
+            else
+                # Domain might need DNS verification - warn but don't fail
+                ui_warn "Domain configuration requires DNS verification"
+                ui_info "Check Vercel dashboard for DNS records to add"
+            fi
+            rm -f "$domain_tmp_out"
+        fi
     else
         DEPLOYMENT_EXIT_CODE=$vercel_exit
         rm -f "$tmp_out"
@@ -540,9 +573,12 @@ fi
 # OPEN BROWSER
 # =============================================================================
 
-if [[ "$VV_OPEN" == true && -n "$DEPLOYMENT_URL" && "$DEPLOYMENT_EXIT_CODE" -eq 0 ]]; then
+# Use custom domain if available, otherwise use deployment URL
+OPEN_URL="${CUSTOM_DOMAIN_URL:-$DEPLOYMENT_URL}"
+
+if [[ "$VV_OPEN" == true && -n "$OPEN_URL" && "$DEPLOYMENT_EXIT_CODE" -eq 0 ]]; then
     if command -v xdg-open >/dev/null 2>&1; then
-        xdg-open "$DEPLOYMENT_URL" 2>/dev/null || true
+        xdg-open "$OPEN_URL" 2>/dev/null || true
     fi
 fi
 
@@ -557,6 +593,7 @@ ui_segment_title "${C_NOTE}Deployment Summary"
 ui_info "Project: ${C_PRIMARY}${PROJECT_NAME}"
 ui_info "Version: ${C_PEACH}${PROJECT_VERSION}"
 [[ -n "$DEPLOYMENT_URL" ]] && ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}URL: ${C_HIGHLIGHT}${DEPLOYMENT_URL}"
+[[ -n "${CUSTOM_DOMAIN_URL:-}" ]] && ui_box_line "${C_SUCCESS_BRIGHT}${ICON_OK} ${C_TEXT}Custom: ${C_HIGHLIGHT}${CUSTOM_DOMAIN_URL}"
 ui_info "Log: ${C_MUTED}${DEPLOYMENT_LOG}"
 
 # Final status

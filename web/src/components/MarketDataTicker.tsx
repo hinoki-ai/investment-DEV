@@ -188,6 +188,32 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
     })
   }
 
+  // Compact format for large numbers (e.g., 58.032.080 -> 58M)
+  const formatCompact = (value: number | null): string => {
+    if (value === null || value === undefined) return '—'
+    if (value >= 1_000_000_000) {
+      return (value / 1_000_000_000).toFixed(1).replace('.', ',') + 'M'
+    }
+    if (value >= 1_000_000) {
+      return (value / 1_000_000).toFixed(1).replace('.', ',') + 'M'
+    }
+    if (value >= 1_000) {
+      return (value / 1_000).toFixed(1).replace('.', ',') + 'k'
+    }
+    return value.toLocaleString('es-CL')
+  }
+
+  // Get adaptive font size based on value length
+  const getValueFontSize = (value: number | null): string => {
+    if (value === null || value === undefined) return 'text-sm'
+    const formatted = formatCurrency(value)
+    const length = formatted.length
+    if (length > 12) return 'text-[10px]'
+    if (length > 9) return 'text-[11px]'
+    if (length > 6) return 'text-xs'
+    return 'text-sm'
+  }
+
   // Collapsed view - just icons with tooltips
   if (collapsed) {
     return (
@@ -378,37 +404,65 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
         </div>
 
         {/* Bitcoin */}
-        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-orange-500/30 transition-colors">
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-orange-500/30 transition-colors group relative">
           <div className="flex items-center gap-1.5 mb-1">
             <Bitcoin className="h-3 w-3 text-orange-500" />
             <span className="text-[10px] font-medium text-text-muted uppercase">BTC</span>
           </div>
-          <div className="font-mono text-sm text-orange-500 truncate">
+          <div 
+            className={`font-mono text-orange-500 truncate ${getValueFontSize(marketData.bitcoin)}`}
+            title={marketData.bitcoin ? `$${formatCurrency(marketData.bitcoin)}` : '—'}
+          >
             {loading ? (
               <span className="text-text-muted">...</span>
             ) : marketData.bitcoin ? (
-              `$${formatCurrency(marketData.bitcoin)}`
+              marketData.bitcoin >= 1_000_000 ? (
+                <span>${formatCompact(marketData.bitcoin)}</span>
+              ) : (
+                `$${formatCurrency(marketData.bitcoin)}`
+              )
             ) : (
               <span className="text-text-muted text-xs">—</span>
             )}
           </div>
+          {/* Tooltip for full value */}
+          {marketData.bitcoin && marketData.bitcoin >= 1_000_000 && (
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-surface-elevated border border-border rounded text-xs text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-lg">
+              ${formatCurrency(marketData.bitcoin)}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-1.5 h-1.5 bg-surface-elevated border-r border-b border-border rotate-45 -mt-0.5" />
+            </div>
+          )}
         </div>
 
         {/* Ethereum */}
-        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-indigo-400/30 transition-colors">
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-indigo-400/30 transition-colors group relative">
           <div className="flex items-center gap-1.5 mb-1">
             <span className="text-[10px] font-bold text-indigo-400">Ξ</span>
             <span className="text-[10px] font-medium text-text-muted uppercase">ETH</span>
           </div>
-          <div className="font-mono text-sm text-indigo-400 truncate">
+          <div 
+            className={`font-mono text-indigo-400 truncate ${getValueFontSize(marketData.ethereum)}`}
+            title={marketData.ethereum ? `$${formatCurrency(marketData.ethereum)}` : '—'}
+          >
             {loading ? (
               <span className="text-text-muted">...</span>
             ) : marketData.ethereum ? (
-              `$${formatCurrency(marketData.ethereum)}`
+              marketData.ethereum >= 1_000_000 ? (
+                <span>${formatCompact(marketData.ethereum)}</span>
+              ) : (
+                `$${formatCurrency(marketData.ethereum)}`
+              )
             ) : (
               <span className="text-text-muted text-xs">—</span>
             )}
           </div>
+          {/* Tooltip for full value */}
+          {marketData.ethereum && marketData.ethereum >= 1_000_000 && (
+            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-2 py-1 bg-surface-elevated border border-border rounded text-xs text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 shadow-lg">
+              ${formatCurrency(marketData.ethereum)}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full w-1.5 h-1.5 bg-surface-elevated border-r border-b border-border rotate-45 -mt-0.5" />
+            </div>
+          )}
         </div>
       </div>
 

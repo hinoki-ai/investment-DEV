@@ -13,15 +13,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-# Import API SQLAlchemy models first (local)
+# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-from models import FileRegistry, ProcessingJob, Document, FileStatus, JobType, JobStatus
-
-# Then import shared Pydantic schemas
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-from models import UploadUrlRequest, UploadUrlResponse, ConfirmUploadRequest, FileRegistryResponse
-
+import models as db_models
 from database import get_async_db, redis_client
+
+# Import shared Pydantic schemas - use alias to avoid conflict
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
+import models as schemas
+
 from storage import get_storage_service
 
 
@@ -29,9 +29,9 @@ router = APIRouter()
 storage = get_storage_service()
 
 
-@router.post("/request-url", response_model=UploadUrlResponse)
+@router.post("/request-url", response_model=schemas.UploadUrlResponse)
 async def request_upload_url(
-    request: UploadUrlRequest,
+    request: schemas.UploadUrlRequest,
     db: AsyncSession = Depends(get_async_db)
 ):
     """
@@ -50,7 +50,7 @@ async def request_upload_url(
     )
     
     # Create file registry entry
-    file_entry = FileRegistry(
+    file_entry = db_models.FileRegistry(
         original_filename=request.filename,
         storage_key=storage_key,
         storage_bucket=storage.bucket,
@@ -58,7 +58,7 @@ async def request_upload_url(
         source_device=request.source_device,
         investment_id=request.investment_id,
         metadata=request.metadata,
-        status=FileStatus.PENDING
+        status=db_models.FileStatus.PENDING
     )
     
     db.add(file_entry)
@@ -72,7 +72,7 @@ async def request_upload_url(
         expires_in=300  # 5 minutes
     )
     
-    return UploadUrlResponse(
+    return schemas.UploadUrlResponse(
         upload_url=upload_url,
         file_id=file_entry.id,
         storage_key=storage_key,
@@ -82,7 +82,7 @@ async def request_upload_url(
 
 @router.post("/confirm", response_model=dict)
 async def confirm_upload(
-    request: ConfirmUploadRequest,
+    request: schemas.ConfirmUploadRequest,
     db: AsyncSession = Depends(get_async_db)
 ):
     """
@@ -93,7 +93,7 @@ async def confirm_upload(
     """
     # Get file entry
     result = await db.execute(
-        select(FileRegistry).where(FileRegistry.id == request.file_id)
+        select(db_models.FileRegistry).where(db_models.FileRegistry.id == request.file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -115,7 +115,7 @@ async def confirm_upload(
         )
     
     # Update file status
-    file_entry.status = FileStatus.COMPLETED
+    file_entry.status = db_models.FileStatus.COMPLETED
     file_entry.investment_id = request.investment_id or file_entry.investment_id
     
     await db.commit()
@@ -130,7 +130,7 @@ async def confirm_upload(
     # Create document if investment is specified
     document = None
     if request.document_type and request.investment_id:
-        document = Document(
+        document = db_models.Document(
             investment_id=request.investment_id,
             file_id=file_entry.id,
             document_type=request.document_type,
@@ -149,12 +149,12 @@ async def confirm_upload(
     
     # Queue for analysis if requested
     if request.request_analysis:
-        job = ProcessingJob(
-            job_type=request.analysis_type or JobType.DOCUMENT_ANALYSIS,
+        job = db_models.ProcessingJob(
+            job_type=request.analysis_type or db_models.JobType.DOCUMENT_ANALYSIS,
             file_id=file_entry.id,
             investment_id=request.investment_id,
             priority=5,
-            status=JobStatus.QUEUED
+            status=db_models.JobStatus.QUEUED
         )
         db.add(job)
         await db.commit()
@@ -176,14 +176,14 @@ async def confirm_upload(
     return response
 
 
-@router.get("/status/{file_id}", response_model=FileRegistryResponse)
+@router.get("/status/{file_id}", response_model=schemas.FileRegistryResponse)
 async def get_upload_status(
     file_id: UUID,
     db: AsyncSession = Depends(get_async_db)
 ):
     """Get upload status and metadata."""
     result = await db.execute(
-        select(FileRegistry).where(FileRegistry.id == file_id)
+        select(db_models.FileRegistry).where(db_models.FileRegistry.id == file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -193,12 +193,12 @@ async def get_upload_status(
             detail="File not found"
         )
     
-    return FileRegistryResponse.model_validate(file_entry)
+    return schemas.FileRegistryResponse.model_validate(file_entry)
 
 
 @router.post("/request-url/batch", response_model=list)
 async def request_upload_urls_batch(
-    requests: list[UploadUrlRequest],
+    requests: list[schemas.UploadUrlRequest],
     db: AsyncSession = Depends(get_async_db)
 ):
     """
@@ -218,7 +218,7 @@ async def request_upload_urls_batch(
         )
         
         # Create file registry entry
-        file_entry = FileRegistry(
+        file_entry = db_models.FileRegistry(
             original_filename=request.filename,
             storage_key=storage_key,
             storage_bucket=storage.bucket,
@@ -226,7 +226,7 @@ async def request_upload_urls_batch(
             source_device=request.source_device,
             investment_id=request.investment_id,
             metadata=request.metadata,
-            status=FileStatus.PENDING
+            status=db_models.FileStatus.PENDING
         )
         
         db.add(file_entry)
@@ -240,7 +240,7 @@ async def request_upload_urls_batch(
             expires_in=300  # 5 minutes
         )
         
-        responses.append(UploadUrlResponse(
+        responses.append(schemas.UploadUrlResponse(
             upload_url=upload_url,
             file_id=file_entry.id,
             storage_key=storage_key,
@@ -252,7 +252,7 @@ async def request_upload_urls_batch(
 
 @router.post("/confirm/batch", response_model=list)
 async def confirm_uploads_batch(
-    requests: list[ConfirmUploadRequest],
+    requests: list[schemas.ConfirmUploadRequest],
     db: AsyncSession = Depends(get_async_db)
 ):
     """
@@ -266,7 +266,7 @@ async def confirm_uploads_batch(
         try:
             # Get file entry
             result = await db.execute(
-                select(FileRegistry).where(FileRegistry.id == request.file_id)
+                select(db_models.FileRegistry).where(db_models.FileRegistry.id == request.file_id)
             )
             file_entry = result.scalar_one_or_none()
             
@@ -291,7 +291,7 @@ async def confirm_uploads_batch(
                 continue
             
             # Update file status
-            file_entry.status = FileStatus.COMPLETED
+            file_entry.status = db_models.FileStatus.COMPLETED
             file_entry.investment_id = request.investment_id or file_entry.investment_id
             
             await db.commit()
@@ -304,7 +304,7 @@ async def confirm_uploads_batch(
             
             # Create document if investment is specified
             if request.document_type and request.investment_id:
-                document = Document(
+                document = db_models.Document(
                     investment_id=request.investment_id,
                     file_id=file_entry.id,
                     document_type=request.document_type,
@@ -323,12 +323,12 @@ async def confirm_uploads_batch(
             
             # Queue for analysis if requested
             if request.request_analysis:
-                job = ProcessingJob(
-                    job_type=request.analysis_type or JobType.DOCUMENT_ANALYSIS,
+                job = db_models.ProcessingJob(
+                    job_type=request.analysis_type or db_models.JobType.DOCUMENT_ANALYSIS,
                     file_id=file_entry.id,
                     investment_id=request.investment_id,
                     priority=5,
-                    status=JobStatus.QUEUED
+                    status=db_models.JobStatus.QUEUED
                 )
                 db.add(job)
                 await db.commit()

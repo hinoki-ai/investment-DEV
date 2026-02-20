@@ -11,21 +11,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
-# Import API SQLAlchemy models first (local)
+# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-from models import AnalysisResult, ProcessingJob, FileRegistry
-
-# Then import shared Pydantic schemas
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-from models import AnalysisResultResponse, JobStatus
-
+import models as db_models
 from database import get_async_db
+
+# Import shared Pydantic schemas - use alias to avoid conflict
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
+import models as schemas
 
 
 router = APIRouter()
 
 
-@router.get("/results", response_model=List[AnalysisResultResponse])
+@router.get("/results", response_model=List[schemas.AnalysisResultResponse])
 async def list_analysis_results(
     investment_id: Optional[UUID] = None,
     file_id: Optional[UUID] = None,
@@ -35,31 +34,31 @@ async def list_analysis_results(
     db: AsyncSession = Depends(get_async_db)
 ):
     """List analysis results with optional filtering."""
-    query = select(AnalysisResult).order_by(desc(AnalysisResult.created_at))
+    query = select(db_models.AnalysisResult).order_by(desc(db_models.AnalysisResult.created_at))
     
     if investment_id:
-        query = query.where(AnalysisResult.investment_id == investment_id)
+        query = query.where(db_models.AnalysisResult.investment_id == investment_id)
     if file_id:
-        query = query.where(AnalysisResult.file_id == file_id)
+        query = query.where(db_models.AnalysisResult.file_id == file_id)
     if analysis_type:
-        query = query.where(AnalysisResult.analysis_type == analysis_type)
+        query = query.where(db_models.AnalysisResult.analysis_type == analysis_type)
     
     query = query.offset(skip).limit(limit)
     
     result = await db.execute(query)
     analyses = result.scalars().all()
     
-    return [AnalysisResultResponse.model_validate(a) for a in analyses]
+    return [schemas.AnalysisResultResponse.model_validate(a) for a in analyses]
 
 
-@router.get("/results/{analysis_id}", response_model=AnalysisResultResponse)
+@router.get("/results/{analysis_id}", response_model=schemas.AnalysisResultResponse)
 async def get_analysis_result(
     analysis_id: UUID,
     db: AsyncSession = Depends(get_async_db)
 ):
     """Get a single analysis result."""
     result = await db.execute(
-        select(AnalysisResult).where(AnalysisResult.id == analysis_id)
+        select(db_models.AnalysisResult).where(db_models.AnalysisResult.id == analysis_id)
     )
     analysis = result.scalar_one_or_none()
     
@@ -69,26 +68,26 @@ async def get_analysis_result(
             detail="Analysis result not found"
         )
     
-    return AnalysisResultResponse.model_validate(analysis)
+    return schemas.AnalysisResultResponse.model_validate(analysis)
 
 
 @router.get("/jobs", response_model=List[dict])
 async def list_processing_jobs(
-    status: Optional[JobStatus] = None,
+    status: Optional[schemas.JobStatus] = None,
     investment_id: Optional[UUID] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_async_db)
 ):
     """List processing jobs."""
-    query = select(ProcessingJob, FileRegistry.original_filename).join(
-        FileRegistry, ProcessingJob.file_id == FileRegistry.id
-    ).order_by(desc(ProcessingJob.created_at))
+    query = select(db_models.ProcessingJob, db_models.FileRegistry.original_filename).join(
+        db_models.FileRegistry, db_models.ProcessingJob.file_id == db_models.FileRegistry.id
+    ).order_by(desc(db_models.ProcessingJob.created_at))
     
     if status:
-        query = query.where(ProcessingJob.status == status)
+        query = query.where(db_models.ProcessingJob.status == status)
     if investment_id:
-        query = query.where(ProcessingJob.investment_id == investment_id)
+        query = query.where(db_models.ProcessingJob.investment_id == investment_id)
     
     query = query.offset(skip).limit(limit)
     
@@ -120,7 +119,7 @@ async def get_processing_job(
 ):
     """Get a single processing job."""
     result = await db.execute(
-        select(ProcessingJob).where(ProcessingJob.id == job_id)
+        select(db_models.ProcessingJob).where(db_models.ProcessingJob.id == job_id)
     )
     job = result.scalar_one_or_none()
     
@@ -155,7 +154,7 @@ async def cancel_job(
 ):
     """Cancel a queued or running job."""
     result = await db.execute(
-        select(ProcessingJob).where(ProcessingJob.id == job_id)
+        select(db_models.ProcessingJob).where(db_models.ProcessingJob.id == job_id)
     )
     job = result.scalar_one_or_none()
     
@@ -165,13 +164,13 @@ async def cancel_job(
             detail="Job not found"
         )
     
-    if job.status not in [JobStatus.QUEUED, JobStatus.RUNNING]:
+    if job.status not in [db_models.JobStatus.QUEUED, db_models.JobStatus.RUNNING]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Cannot cancel job with status: {job.status.value}"
         )
     
-    job.status = JobStatus.CANCELLED
+    job.status = db_models.JobStatus.CANCELLED
     await db.commit()
     
     return {"message": "Job cancelled", "job_id": str(job_id)}
@@ -186,15 +185,15 @@ async def get_queue_stats(
     
     # Count by status
     result = await db.execute(
-        select(ProcessingJob.status, func.count(ProcessingJob.id))
-        .group_by(ProcessingJob.status)
+        select(db_models.ProcessingJob.status, func.count(db_models.ProcessingJob.id))
+        .group_by(db_models.ProcessingJob.status)
     )
     status_counts = {status.value: count for status, count in result.all()}
     
     # Count by job type
     result = await db.execute(
-        select(ProcessingJob.job_type, func.count(ProcessingJob.id))
-        .group_by(ProcessingJob.job_type)
+        select(db_models.ProcessingJob.job_type, func.count(db_models.ProcessingJob.id))
+        .group_by(db_models.ProcessingJob.job_type)
     )
     type_counts = {job_type.value: count for job_type, count in result.all()}
     

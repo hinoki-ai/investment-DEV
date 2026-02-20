@@ -12,15 +12,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 
-# Import API SQLAlchemy models first (local)
+# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-from models import FileRegistry, ProcessingJob, JobType, JobStatus
-
-# Then import shared Pydantic schemas
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-from models import FileRegistryResponse, FileStatus
-
 from database import get_async_db
+import models as db_models
+
+# Import shared Pydantic schemas - use alias to avoid conflict
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
+import models as schemas
+
 from storage import get_storage_service
 
 
@@ -28,43 +28,43 @@ router = APIRouter()
 storage = get_storage_service()
 
 
-@router.get("", response_model=List[FileRegistryResponse])
+@router.get("", response_model=List[schemas.FileRegistryResponse])
 async def list_files(
-    status: Optional[FileStatus] = None,
+    status: Optional[schemas.FileStatus] = None,
     investment_id: Optional[UUID] = None,
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_async_db)
 ):
     """List files in the registry."""
-    query = select(FileRegistry).order_by(desc(FileRegistry.created_at))
+    query = select(db_models.FileRegistry).order_by(desc(db_models.FileRegistry.created_at))
     
     if status:
-        query = query.where(FileRegistry.status == status)
+        query = query.where(db_models.FileRegistry.status == status)
     if investment_id:
-        query = query.where(FileRegistry.investment_id == investment_id)
+        query = query.where(db_models.FileRegistry.investment_id == investment_id)
     
     query = query.offset(skip).limit(limit)
     
     result = await db.execute(query)
     files = result.scalars().all()
     
-    return [FileRegistryResponse.model_validate(f) for f in files]
+    return [schemas.FileRegistryResponse.model_validate(f) for f in files]
 
 
-@router.get("/{file_id}", response_model=FileRegistryResponse)
+@router.get("/{file_id}", response_model=schemas.FileRegistryResponse)
 async def get_file(
     file_id: UUID,
     db: AsyncSession = Depends(get_async_db)
 ):
     """Get file details."""
     result = await db.execute(
-        select(FileRegistry)
+        select(db_models.FileRegistry)
         .options(
-            selectinload(FileRegistry.processing_jobs),
-            selectinload(FileRegistry.analysis_results)
+            selectinload(db_models.FileRegistry.processing_jobs),
+            selectinload(db_models.FileRegistry.analysis_results)
         )
-        .where(FileRegistry.id == file_id)
+        .where(db_models.FileRegistry.id == file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -74,7 +74,7 @@ async def get_file(
             detail="File not found"
         )
     
-    return FileRegistryResponse.model_validate(file_entry)
+    return schemas.FileRegistryResponse.model_validate(file_entry)
 
 
 @router.get("/{file_id}/download-url")
@@ -85,7 +85,7 @@ async def get_download_url(
 ):
     """Generate a temporary download URL for a file."""
     result = await db.execute(
-        select(FileRegistry).where(FileRegistry.id == file_id)
+        select(db_models.FileRegistry).where(db_models.FileRegistry.id == file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -115,7 +115,7 @@ async def delete_file(
 ):
     """Delete a file from registry and optionally from storage."""
     result = await db.execute(
-        select(FileRegistry).where(FileRegistry.id == file_id)
+        select(db_models.FileRegistry).where(db_models.FileRegistry.id == file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -144,7 +144,7 @@ async def reanalyze_file(
 ):
     """Queue a file for re-analysis."""
     result = await db.execute(
-        select(FileRegistry).where(FileRegistry.id == file_id)
+        select(db_models.FileRegistry).where(db_models.FileRegistry.id == file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -155,11 +155,11 @@ async def reanalyze_file(
         )
     
     # Create processing job
-    job = ProcessingJob(
-        job_type=JobType(job_type),
+    job = db_models.ProcessingJob(
+        job_type=db_models.JobType(job_type),
         file_id=file_id,
         investment_id=file_entry.investment_id,
-        status=JobStatus.QUEUED,
+        status=db_models.JobStatus.QUEUED,
         priority=4  # Slightly higher priority for reanalysis
     )
     

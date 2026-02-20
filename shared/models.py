@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # =============================================================================
@@ -175,6 +175,8 @@ class AnalysisResultBase(BaseModel):
 
 
 class AnalysisResultCreate(AnalysisResultBase):
+    model_config = ConfigDict(protected_namespaces=())
+    
     job_id: Optional[UUID] = None
     file_id: UUID
     investment_id: Optional[UUID] = None
@@ -182,15 +184,14 @@ class AnalysisResultCreate(AnalysisResultBase):
 
 
 class AnalysisResultResponse(AnalysisResultBase):
+    model_config = ConfigDict(protected_namespaces=(), from_attributes=True)
+    
     id: UUID
     job_id: Optional[UUID] = None
     file_id: UUID
     investment_id: Optional[UUID] = None
     model_version: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # =============================================================================

@@ -578,8 +578,18 @@ make test
 
 ## Deployment
 
-### Frontend (Vercel) - Use the VV Deployer (Only Supported Method)
+### Frontend (Vercel)
 
+**Quick Deploy (Fixed):**
+```bash
+# Deploy to production (manual - uses correct project)
+cd web && vercel --prod --yes
+
+# Or use the auto-deploy script
+./auto-deploy.sh
+```
+
+**VV Deployer (Original):**
 ```bash
 # Deploy to production
 ./vv/vv
@@ -588,6 +598,11 @@ make test
 VV_PROD=false ./vv/vv      # Deploy to preview
 VV_DRY_RUN=true ./vv/vv    # Dry run
 ```
+
+**Project Fix Applied:**
+The `.vercel/project.json` was updated to use the correct project ID:
+- Project: `investment-aramac` (ID: `prj_q4DMtvmSFrcIIs7HRRvswh4TVVJf`)
+- URL: https://investment-aramac.vercel.app
 
 Configuration in `.vvrc`:
 ```
