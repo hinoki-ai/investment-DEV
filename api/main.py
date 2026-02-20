@@ -5,13 +5,24 @@ FASTAPI APPLICATION - Coordination Layer API
 """
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from database import async_engine, Base, redis_client
 from routers import investments, files, analysis, dashboard, uploads
+
+
+# =============================================================================
+# STATIC FILES SETUP
+# =============================================================================
+
+STATIC_DIR = Path(__file__).parent / "static"
+if not STATIC_DIR.exists():
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
 
 
 # =============================================================================
@@ -51,8 +62,13 @@ app = FastAPI(
     title="NEXUS API",
     description="Three-layer architecture: Storage | Coordination | Intelligence",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/openapi",
+    redoc_url="/redoc"
 )
+
+# Mount static files
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # CORS
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
@@ -104,15 +120,32 @@ async def health_check():
     return health_status
 
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    """API root."""
-    return {
-        "name": "NEXUS API",
-        "version": "1.0.0",
-        "architecture": "Three-layer: Storage | Coordination | Intelligence",
-        "docs": "/docs"
-    }
+    """API documentation landing page."""
+    docs_path = STATIC_DIR / "prism_docs.html"
+    if docs_path.exists():
+        return docs_path.read_text()
+    return HTMLResponse(
+        content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>NEXUS API</title></head>
+        <body style="background:#0a0a0a;color:#f5f2ed;font-family:sans-serif;text-align:center;padding:50px;">
+            <h1>◈ NEXUS API</h1>
+            <p>Documentation loading...</p>
+            <a href="/openapi" style="color:#e8d5c4;">View OpenAPI Spec →</a>
+        </body>
+        </html>
+        """,
+        status_code=200
+    )
+
+
+@app.get("/docs", response_class=HTMLResponse)
+async def docs():
+    """Redirect /docs to root for beautiful documentation."""
+    return await root()
 
 
 # =============================================================================
