@@ -79,8 +79,8 @@ const navigation: NavElement[] = [
     ]
   },
   
-  { type: 'section', label: 'Inteligencia' },
-  { path: '/chat', label: 'NEXUS Chat', icon: Bot, badge: 'AI', badgeColor: 'cream' },
+  { type: 'section', label: 'Asistente' },
+  { path: '/chat', label: 'Prism Chat', icon: Bot },
   
   { type: 'section', label: 'Documentos' },
   {
@@ -350,8 +350,8 @@ export default function Layout({ children }: LayoutProps) {
       
       {/* Desktop Sidebar */}
       <aside 
-        className={`hidden lg:flex fixed left-0 top-0 h-full flex-col border-r border-border bg-void-deep/80 backdrop-blur-xl z-40 transition-all duration-300 ease-out ${
-          isExpanded ? 'w-72' : 'w-16'
+        className={`hidden lg:flex fixed left-0 top-0 h-full flex-col border-r border-border bg-void-deep/80 backdrop-blur-xl z-40 transition-all duration-300 ease-out text-[0.9em] ${
+          isExpanded ? 'w-64' : 'w-14'
         }`}
       >
         {/* Logo Section with Collapse Button */}
@@ -440,31 +440,12 @@ export default function Layout({ children }: LayoutProps) {
             </a>
           </div>
 
-          {/* Footer Info */}
-          <div className={`flex items-center justify-between pt-2 transition-all duration-300 ${isExpanded ? 'px-2' : 'flex-col gap-2'}`}>
-            <div className={`flex items-center gap-2 ${isExpanded ? '' : 'justify-center'}`}>
-              <div className="w-6 h-6 flex items-center justify-center opacity-50">
-                <img src="/favinv.png" alt="" className="w-4 h-4 object-contain" />
-              </div>
-              <span className={`text-xs text-text-muted overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Nido
-              </span>
-            </div>
-            <div className={`flex items-center gap-2 text-xs text-text-muted ${isExpanded ? '' : 'flex-col'}`}>
-              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse flex-shrink-0" />
-              <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                En línea
-              </span>
-            </div>
-          </div>
-          <div className={`text-[10px] text-text-muted overflow-hidden transition-all duration-300 ${isExpanded ? 'px-2 w-auto opacity-100' : 'w-0 h-0 opacity-0'}`}>
-            v1.0.0
-          </div>
+
         </div>
       </aside>
 
       {/* Desktop Header (when sidebar collapsed) */}
-      <header className="hidden lg:flex fixed top-0 left-16 right-0 h-16 items-center px-6 z-30 bg-void/50 backdrop-blur-sm">
+      <header className="hidden lg:flex fixed top-0 left-14 right-0 h-16 items-center px-6 z-30 bg-void/50 backdrop-blur-sm">
         <h1 className="text-lg font-semibold text-text-primary">
           {getCurrentPageLabel()}
         </h1>
@@ -512,7 +493,7 @@ export default function Layout({ children }: LayoutProps) {
         
         {/* Mobile Sidebar Panel */}
         <aside 
-          className={`absolute left-0 top-16 bottom-0 w-80 bg-void-deep border-r border-border flex flex-col transition-transform duration-300 ${
+          className={`absolute left-0 top-16 bottom-0 w-72 bg-void-deep border-r border-border flex flex-col transition-transform duration-300 text-[0.9em] ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -652,7 +633,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main Content */}
       <main className={`transition-all duration-300 min-h-screen ${
-        isExpanded ? 'lg:ml-72' : 'lg:ml-16'
+        isExpanded ? 'lg:ml-64' : 'lg:ml-14'
       }`}>
         <div className="pt-20 lg:pt-24 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">

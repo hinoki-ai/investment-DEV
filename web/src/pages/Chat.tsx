@@ -247,7 +247,7 @@ export default function Chat() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Bot className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">NEXUS AI</span>
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Prism Chat</span>
           </div>
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">Chat</h1>
           <p className="text-text-secondary mt-1">
@@ -425,7 +425,7 @@ export default function Chat() {
               ¿En qué puedo ayudarte?
             </h2>
             <p className="text-text-secondary max-w-md mb-8">
-              Soy NEXUS, tu asistente de IA para gestionar el portafolio de inversiones familiar. 
+              Soy Prism Chat, tu asistente para gestionar el portafolio de inversiones familiar. 
               Puedo responder preguntas sobre tus inversiones, analizar documentos y más.
             </p>
             
@@ -593,7 +593,7 @@ export default function Chat() {
         <div className="flex items-center justify-between mt-2 px-1">
           <div className="flex items-center gap-2 text-[10px] text-text-muted">
             <Cpu className="h-3 w-3" />
-            <span>NEXUS AI • Multi-Provider</span>
+            <span>Prism Chat</span>
           </div>
           <div className="text-[10px] text-text-muted">
             Enter para enviar • Shift+Enter para nueva línea

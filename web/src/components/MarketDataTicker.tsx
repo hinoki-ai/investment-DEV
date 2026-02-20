@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Clock, DollarSign, CircleDollarSign, TrendingUp } from 'lucide-react'
+import { Clock, DollarSign, CircleDollarSign, TrendingUp, Circle, Bitcoin } from 'lucide-react'
 
 interface MarketData {
   usd: number | null
   uf: number | null
   gold: number | null
+  silver: number | null
+  bitcoin: number | null
+  ethereum: number | null
   lastUpdate: Date | null
 }
 
@@ -14,6 +17,9 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
     usd: null,
     uf: null,
     gold: null,
+    silver: null,
+    bitcoin: null,
+    ethereum: null,
     lastUpdate: null,
   })
   const [loading, setLoading] = useState(true)
@@ -50,15 +56,80 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
       const latestUsd = usdData.serie?.[0]?.valor || null
       const latestUf = ufData.serie?.[0]?.valor || null
 
-      // Gold price in CLP per gram (approximate, using a common reference)
-      // In production, you might want to use a dedicated gold API
-      // For now, using a placeholder that can be replaced with real data
-      const goldPrice = null // Will show as "—" until implemented
+      // Fetch precious metals prices (gold and silver in USD per ounce)
+      // Using a free API that doesn't require authentication
+      let goldPriceUsdPerOz: number | null = null
+      let silverPriceUsdPerOz: number | null = null
+
+      try {
+        const metalsRes = await fetch('https://api.metals.live/v1/spot', {
+          signal: AbortSignal.timeout(5000)
+        })
+        if (metalsRes.ok) {
+          const metalsData = await metalsRes.json()
+          // API returns prices in USD per ounce
+          goldPriceUsdPerOz = metalsData.gold || null
+          silverPriceUsdPerOz = metalsData.silver || null
+        }
+      } catch {
+        // Fallback to alternative API if first fails
+        try {
+          const fallbackRes = await fetch('https://www.goldapi.io/api/XAU/USD', {
+            headers: { 'x-access-token': 'goldapi-demo' },
+            signal: AbortSignal.timeout(5000)
+          })
+          if (fallbackRes.ok) {
+            const data = await fallbackRes.json()
+            goldPriceUsdPerOz = data.price || null
+          }
+        } catch {
+          // If both fail, will use null
+        }
+      }
+
+      // Convert to CLP per gram
+      // 1 troy ounce = 31.1034768 grams
+      const gramsPerOunce = 31.1034768
+      const goldPriceClpPerGram = goldPriceUsdPerOz && latestUsd
+        ? (goldPriceUsdPerOz * latestUsd) / gramsPerOunce
+        : null
+      const silverPriceClpPerGram = silverPriceUsdPerOz && latestUsd
+        ? (silverPriceUsdPerOz * latestUsd) / gramsPerOunce
+        : null
+
+      // Fetch crypto prices (Bitcoin & Ethereum in USD)
+      let bitcoinPriceUsd: number | null = null
+      let ethereumPriceUsd: number | null = null
+
+      try {
+        const cryptoRes = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd',
+          { signal: AbortSignal.timeout(5000) }
+        )
+        if (cryptoRes.ok) {
+          const cryptoData = await cryptoRes.json()
+          bitcoinPriceUsd = cryptoData.bitcoin?.usd || null
+          ethereumPriceUsd = cryptoData.ethereum?.usd || null
+        }
+      } catch {
+        // Crypto prices not critical, continue without them
+      }
+
+      // Convert crypto to CLP
+      const bitcoinPriceClp = bitcoinPriceUsd && latestUsd
+        ? bitcoinPriceUsd * latestUsd
+        : null
+      const ethereumPriceClp = ethereumPriceUsd && latestUsd
+        ? ethereumPriceUsd * latestUsd
+        : null
 
       setMarketData({
         usd: latestUsd,
         uf: latestUf,
-        gold: goldPrice,
+        gold: goldPriceClpPerGram,
+        silver: silverPriceClpPerGram,
+        bitcoin: bitcoinPriceClp,
+        ethereum: ethereumPriceClp,
         lastUpdate: new Date(),
       })
     } catch (err) {
@@ -174,6 +245,48 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
           </div>
         </div>
+
+        {/* Silver Icon */}
+        <div className="group relative flex justify-center">
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface/50 text-text-muted hover:text-blue-400 hover:bg-surface transition-colors">
+            <Circle className="h-4 w-4" />
+          </div>
+          <div className="absolute left-full ml-2 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
+            <div className="text-xs text-text-muted mb-1">Plata (CLP/g)</div>
+            <div className="font-mono text-blue-400">
+              {marketData.silver ? `$${formatCurrency(marketData.silver)}` : '—'}
+            </div>
+            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
+          </div>
+        </div>
+
+        {/* Bitcoin Icon */}
+        <div className="group relative flex justify-center">
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface/50 text-text-muted hover:text-orange-500 hover:bg-surface transition-colors">
+            <Bitcoin className="h-4 w-4" />
+          </div>
+          <div className="absolute left-full ml-2 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
+            <div className="text-xs text-text-muted mb-1">Bitcoin (CLP)</div>
+            <div className="font-mono text-orange-500">
+              {marketData.bitcoin ? `$${formatCurrency(marketData.bitcoin)}` : '—'}
+            </div>
+            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
+          </div>
+        </div>
+
+        {/* Ethereum Icon */}
+        <div className="group relative flex justify-center">
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface/50 text-text-muted hover:text-indigo-400 hover:bg-surface transition-colors">
+            <span className="text-xs font-bold">Ξ</span>
+          </div>
+          <div className="absolute left-full ml-2 px-3 py-2 bg-surface-elevated border border-border rounded-lg text-sm text-text-primary whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl">
+            <div className="text-xs text-text-muted mb-1">Ethereum (CLP)</div>
+            <div className="font-mono text-indigo-400">
+              {marketData.ethereum ? `$${formatCurrency(marketData.ethereum)}` : '—'}
+            </div>
+            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-surface-elevated border-l border-b border-border rotate-45" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -225,17 +338,75 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
         </div>
 
         {/* Gold */}
-        <div className="col-span-2 p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-warning/30 transition-colors">
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-warning/30 transition-colors">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <TrendingUp className="h-3 w-3 text-warning" />
               <span className="text-[10px] font-medium text-text-muted uppercase">Oro</span>
             </div>
-            <span className="text-[9px] text-text-muted">CLP/g</span>
+            <span className="text-[9px] text-text-muted">/g</span>
           </div>
-          <div className="font-mono text-sm text-warning mt-1">
-            {marketData.gold ? `$${formatCurrency(marketData.gold)}` : (
-              <span className="text-text-muted text-xs">No disponible</span>
+          <div className="font-mono text-sm text-warning mt-1 truncate">
+            {loading ? (
+              <span className="text-text-muted">...</span>
+            ) : marketData.gold ? (
+              `$${formatCurrency(marketData.gold)}`
+            ) : (
+              <span className="text-text-muted text-xs">—</span>
+            )}
+          </div>
+        </div>
+
+        {/* Silver */}
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-blue-400/30 transition-colors">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Circle className="h-3 w-3 text-blue-400" />
+              <span className="text-[10px] font-medium text-text-muted uppercase">Plata</span>
+            </div>
+            <span className="text-[9px] text-text-muted">/g</span>
+          </div>
+          <div className="font-mono text-sm text-blue-400 mt-1 truncate">
+            {loading ? (
+              <span className="text-text-muted">...</span>
+            ) : marketData.silver ? (
+              `$${formatCurrency(marketData.silver)}`
+            ) : (
+              <span className="text-text-muted text-xs">—</span>
+            )}
+          </div>
+        </div>
+
+        {/* Bitcoin */}
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-orange-500/30 transition-colors">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Bitcoin className="h-3 w-3 text-orange-500" />
+            <span className="text-[10px] font-medium text-text-muted uppercase">BTC</span>
+          </div>
+          <div className="font-mono text-sm text-orange-500 truncate">
+            {loading ? (
+              <span className="text-text-muted">...</span>
+            ) : marketData.bitcoin ? (
+              `$${formatCurrency(marketData.bitcoin)}`
+            ) : (
+              <span className="text-text-muted text-xs">—</span>
+            )}
+          </div>
+        </div>
+
+        {/* Ethereum */}
+        <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-indigo-400/30 transition-colors">
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[10px] font-bold text-indigo-400">Ξ</span>
+            <span className="text-[10px] font-medium text-text-muted uppercase">ETH</span>
+          </div>
+          <div className="font-mono text-sm text-indigo-400 truncate">
+            {loading ? (
+              <span className="text-text-muted">...</span>
+            ) : marketData.ethereum ? (
+              `$${formatCurrency(marketData.ethereum)}`
+            ) : (
+              <span className="text-text-muted text-xs">—</span>
             )}
           </div>
         </div>

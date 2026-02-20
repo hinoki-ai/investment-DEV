@@ -61,7 +61,7 @@ export default function Analysis() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">NEXUS AI</span>
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Prism</span>
           </div>
           <h1 className="text-3xl font-bold text-text-primary tracking-tight">Análisis</h1>
           <p className="text-text-secondary mt-1">
@@ -71,9 +71,7 @@ export default function Analysis() {
         
         <div className="flex items-center gap-2 text-xs text-text-muted">
           <Cpu className="h-4 w-4 text-cream" />
-          <span className="text-cream">NEXUS AI</span>
-          <span className="text-border-strong">|</span>
-          <span>Multi-provider</span>
+          <span className="text-cream">Prism</span>
         </div>
       </div>
 

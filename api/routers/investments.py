@@ -19,7 +19,7 @@ from models import (
 )
 
 from database import get_async_db
-from models import Investment, Document, FileRegistry
+import models as db_models
 
 
 router = APIRouter()
@@ -31,7 +31,7 @@ async def create_investment(
     db: AsyncSession = Depends(get_async_db)
 ):
     """Create a new investment."""
-    investment = Investment(**data.model_dump(exclude_unset=True))
+    investment = db_models.Investment(**data.model_dump(exclude_unset=True))
     db.add(investment)
     await db.commit()
     await db.refresh(investment)
@@ -48,22 +48,22 @@ async def list_investments(
     db: AsyncSession = Depends(get_async_db)
 ):
     """List investments with optional filtering."""
-    query = select(Investment)
+    query = select(db_models.Investment)
     
     if category:
-        query = query.where(Investment.category == category)
+        query = query.where(db_models.Investment.category == category)
     if status:
-        query = query.where(Investment.status == status)
+        query = query.where(db_models.Investment.status == status)
     if search:
         search_filter = f"%{search}%"
         query = query.where(
-            Investment.name.ilike(search_filter) | 
-            Investment.description.ilike(search_filter) |
-            Investment.city.ilike(search_filter) |
-            Investment.state.ilike(search_filter)
+            db_models.Investment.name.ilike(search_filter) | 
+            db_models.Investment.description.ilike(search_filter) |
+            db_models.Investment.city.ilike(search_filter) |
+            db_models.Investment.state.ilike(search_filter)
         )
     
-    query = query.offset(skip).limit(limit).order_by(Investment.created_at.desc())
+    query = query.offset(skip).limit(limit).order_by(db_models.Investment.created_at.desc())
     
     result = await db.execute(query)
     investments = result.scalars().all()
@@ -79,12 +79,12 @@ async def get_investment(
 ):
     """Get a single investment with full details."""
     result = await db.execute(
-        select(Investment)
+        select(db_models.Investment)
         .options(
-            selectinload(Investment.documents).selectinload(Document.file),
-            selectinload(Investment.files),
+            selectinload(db_models.Investment.documents).selectinload(db_models.Document.file),
+            selectinload(db_models.Investment.files),
         )
-        .where(Investment.id == investment_id)
+        .where(db_models.Investment.id == investment_id)
     )
     investment = result.scalar_one_or_none()
     
@@ -105,7 +105,7 @@ async def update_investment(
 ):
     """Update an investment."""
     result = await db.execute(
-        select(Investment).where(Investment.id == investment_id)
+        select(db_models.Investment).where(db_models.Investment.id == investment_id)
     )
     investment = result.scalar_one_or_none()
     
@@ -153,10 +153,10 @@ async def get_investment_documents(
 ):
     """Get all documents for an investment."""
     result = await db.execute(
-        select(Document)
-        .options(selectinload(Document.file))
-        .where(Document.investment_id == investment_id)
-        .order_by(Document.created_at.desc())
+        select(db_models.Document)
+        .options(selectinload(db_models.Document.file))
+        .where(db_models.Document.investment_id == investment_id)
+        .order_by(db_models.Document.created_at.desc())
     )
     documents = result.scalars().all()
     return documents

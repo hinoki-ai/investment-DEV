@@ -1,15 +1,30 @@
 """
 ===============================================================================
-CHAT ROUTER - AI Conversational Interface
+CHAT ROUTER - Prism Chat Interface
 ===============================================================================
-Enables conversational AI about investments and files.
+Enables conversational chat about investments and files.
 Inspired by T3 Chat and Cursor IDE interfaces.
 
 Features:
 - Streaming responses for real-time chat feel
 - Context-aware with investment and file data
-- Multi-provider AI support (same as worker)
+- Multi-provider support (OpenAI, Anthropic, Google, etc.)
 - Conversation history
+
+API CONFIGURATION:
+------------------
+Set ONE of these environment variables:
+
+  OPENAI_API_KEY      - For OpenAI GPT-4o, GPT-4, GPT-3.5
+  ANTHROPIC_API_KEY   - For Claude 3.5 Sonnet, Claude 3 Opus  
+  GOOGLE_API_KEY      - For Gemini Pro
+  KIMI_API_KEY        - For Moonshot AI (Kimi K2.5)
+
+Optional:
+  CHAT_MODEL          - Override default model (e.g., "gpt-4o", "claude-3-5-sonnet")
+  CHAT_API_URL        - Custom API endpoint (for proxies or self-hosted)
+
+The router auto-detects which provider to use based on available API keys.
 ===============================================================================
 """
 import json
@@ -29,18 +44,43 @@ from models import InvestmentResponse, FileRegistryResponse
 
 from database import get_async_db
 from storage import get_storage_service
-from models import Investment, FileRegistry, AnalysisResult
-
-# Try to import AI client, fallback to OpenAI directly
-try:
-    sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/worker')
-    from ai_client import get_ai_client, create_ai_client
-    HAS_AI_CLIENT = True
-except ImportError:
-    HAS_AI_CLIENT = False
+import models as db_models
 
 router = APIRouter()
 storage = get_storage_service()
+
+
+# =============================================================================
+# PROVIDER CONFIGURATION
+# =============================================================================
+
+# Map of provider names to their default models and env var names
+PROVIDER_CONFIG = {
+    "openai": {
+        "api_key_var": "OPENAI_API_KEY",
+        "api_url_var": "OPENAI_API_URL",
+        "default_url": "https://api.openai.com/v1",
+        "default_model": "gpt-4o",
+    },
+    "anthropic": {
+        "api_key_var": "ANTHROPIC_API_KEY",
+        "api_url_var": "ANTHROPIC_API_URL",
+        "default_url": "https://api.anthropic.com",
+        "default_model": "claude-3-5-sonnet-20241022",
+    },
+    "google": {
+        "api_key_var": "GOOGLE_API_KEY",
+        "api_url_var": None,  # Uses library default
+        "default_url": None,
+        "default_model": "gemini-1.5-flash",
+    },
+    "kimi": {
+        "api_key_var": "KIMI_API_KEY",
+        "api_url_var": "KIMI_API_URL",
+        "default_url": "https://api.moonshot.cn/v1",
+        "default_model": "moonshot-v1-8k",
+    },
+}
 
 
 # =============================================================================
@@ -71,7 +111,7 @@ class ChatResponse(BaseModel):
 # SYSTEM PROMPT
 # =============================================================================
 
-NEXUS_SYSTEM_PROMPT = """You are NEXUS, the AI assistant for the family investment dashboard.
+PRISM_CHAT_PROMPT = """You are Prism Chat, the assistant for the family investment dashboard.
 
 Your role is to help the family manage and understand their investment portfolio.
 You have access to:
@@ -88,7 +128,7 @@ Guidelines:
 6. Be helpful with investment decisions but include appropriate disclaimers
 7. Respond in the same language as the user (English, Spanish, Portuguese)
 
-Current context: You are chatting within the PRISM web dashboard.
+Current context: You are chatting within the Prism web dashboard.
 """
 
 
@@ -99,7 +139,7 @@ Current context: You are chatting within the PRISM web dashboard.
 async def get_investment_context(db: AsyncSession, investment_id: str) -> dict:
     """Get investment data for context."""
     result = await db.execute(
-        select(Investment).where(Investment.id == investment_id)
+        select(db_models.Investment).where(db_models.Investment.id == investment_id)
     )
     inv = result.scalar_one_or_none()
     if not inv:
@@ -128,7 +168,7 @@ async def get_files_context(db: AsyncSession, file_ids: List[str]) -> List[dict]
         return []
     
     result = await db.execute(
-        select(FileRegistry).where(FileRegistry.id.in_(file_ids))
+        select(db_models.FileRegistry).where(db_models.FileRegistry.id.in_(file_ids))
     )
     files = result.scalars().all()
     
@@ -147,7 +187,7 @@ async def get_files_context(db: AsyncSession, file_ids: List[str]) -> List[dict]
 
 async def get_portfolio_summary(db: AsyncSession) -> dict:
     """Get portfolio summary for general context."""
-    result = await db.execute(select(Investment))
+    result = await db.execute(select(db_models.Investment))
     investments = result.scalars().all()
     
     total_value = sum(
@@ -217,33 +257,68 @@ Attached Files:
 # AI CLIENT HELPERS
 # =============================================================================
 
-def get_openai_client():
-    """Get OpenAI client for chat completions."""
+def detect_provider() -> tuple[str, dict]:
+    """
+    Detect which AI provider to use based on available API keys.
+    Returns (provider_name, config).
+    """
+    # Check in priority order
+    for provider, config in PROVIDER_CONFIG.items():
+        if os.getenv(config["api_key_var"]):
+            return provider, config
+    
+    # Fallback to generic AI_API_KEY (assumes OpenAI-compatible)
+    if os.getenv("AI_API_KEY"):
+        return "openai", PROVIDER_CONFIG["openai"]
+    
+    raise ValueError(
+        "No AI API key configured. Set one of: " + 
+        ", ".join(c["api_key_var"] for c in PROVIDER_CONFIG.values())
+    )
+
+
+def get_chat_client():
+    """
+    Get the appropriate AI client based on configured provider.
+    Currently supports OpenAI-compatible APIs (including Kimi, etc.)
+    """
+    provider, config = detect_provider()
+    
     try:
         from openai import AsyncOpenAI
         
-        # Determine which API to use based on env vars
-        api_key = os.getenv("AI_API_KEY") or os.getenv("OPENAI_API_KEY") or os.getenv("KIMI_API_KEY")
-        base_url = os.getenv("AI_API_URL") or os.getenv("OPENAI_API_URL")
+        api_key = os.getenv(config["api_key_var"]) or os.getenv("AI_API_KEY")
+        base_url = (
+            os.getenv("CHAT_API_URL") or  # User override
+            os.getenv(config["api_url_var"], "") or  # Provider-specific
+            config["default_url"]  # Default
+        )
         
-        # Default to Kimi URL if using Kimi key and no URL specified
-        if not base_url and os.getenv("KIMI_API_KEY"):
-            base_url = os.getenv("KIMI_API_URL", "https://api.moonshot.cn/v1")
+        client_kwargs = {"api_key": api_key}
+        if base_url:
+            client_kwargs["base_url"] = base_url
         
-        if not api_key:
-            raise ValueError("No AI API key configured")
+        return AsyncOpenAI(**client_kwargs)
         
-        return AsyncOpenAI(api_key=api_key, base_url=base_url)
     except ImportError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="OpenAI package not installed"
+            detail="OpenAI package not installed. Run: pip install openai"
         )
 
 
-def get_model_name() -> str:
-    """Get the model name to use."""
-    return os.getenv("AI_MODEL") or os.getenv("OPENAI_MODEL") or os.getenv("KIMI_MODEL", "gpt-4o")
+def get_chat_model() -> str:
+    """
+    Get the model name to use for chat.
+    Priority: CHAT_MODEL > provider default
+    """
+    # User override
+    if model := os.getenv("CHAT_MODEL"):
+        return model
+    
+    # Provider default
+    provider, config = detect_provider()
+    return config["default_model"]
 
 
 # =============================================================================
@@ -256,7 +331,7 @@ async def generate_chat_stream(
 ) -> AsyncGenerator[str, None]:
     """Generate streaming chat response."""
     try:
-        client = get_openai_client()
+        client = get_chat_client()
         
         stream = await client.chat.completions.create(
             model=model,
@@ -313,7 +388,7 @@ async def chat(
         
         # Build messages
         messages = [
-            {"role": "system", "content": NEXUS_SYSTEM_PROMPT + "\n\n" + context}
+            {"role": "system", "content": PRISM_CHAT_PROMPT + "\n\n" + context}
         ]
         
         for msg in request.messages:
@@ -323,8 +398,8 @@ async def chat(
             })
         
         # Get AI response
-        client = get_openai_client()
-        model = request.model or get_model_name()
+        client = get_chat_client()
+        model = request.model or get_chat_model()
         
         response = await client.chat.completions.create(
             model=model,
@@ -379,7 +454,7 @@ async def chat_stream(
         
         # Build messages
         messages = [
-            {"role": "system", "content": NEXUS_SYSTEM_PROMPT + "\n\n" + context}
+            {"role": "system", "content": PRISM_CHAT_PROMPT + "\n\n" + context}
         ]
         
         for msg in request.messages:
@@ -388,7 +463,7 @@ async def chat_stream(
                 "content": msg.content
             })
         
-        model = request.model or get_model_name()
+        model = request.model or get_chat_model()
         
         return StreamingResponse(
             generate_chat_stream(messages, model),
@@ -413,7 +488,7 @@ async def get_investments_for_context(
 ):
     """Get investments list for chat context selection."""
     result = await db.execute(
-        select(Investment).order_by(Investment.name)
+        select(db_models.Investment).order_by(db_models.Investment.name)
     )
     investments = result.scalars().all()
     
@@ -435,10 +510,10 @@ async def get_files_for_context(
     db: AsyncSession = Depends(get_async_db)
 ):
     """Get files list for chat attachment selection."""
-    query = select(FileRegistry).order_by(desc(FileRegistry.created_at))
+    query = select(db_models.FileRegistry).order_by(desc(db_models.FileRegistry.created_at))
     
     if investment_id:
-        query = query.where(FileRegistry.investment_id == investment_id)
+        query = query.where(db_models.FileRegistry.investment_id == investment_id)
     
     result = await db.execute(query.limit(50))
     files = result.scalars().all()

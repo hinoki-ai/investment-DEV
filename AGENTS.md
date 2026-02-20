@@ -436,7 +436,7 @@ GET  /api/v1/analysis/results          # List analysis results
 GET  /api/v1/analysis/jobs             # List processing jobs
 GET  /api/v1/analysis/queue/stats      # Queue statistics
 
-# Chat (NEXUS AI)
+# Chat (Prism)
 POST /api/v1/chat                      # Send message (non-streaming)
 POST /api/v1/chat/stream               # Send message (streaming SSE)
 GET  /api/v1/chat/context/investments  # Get investments for context
@@ -680,19 +680,45 @@ Examples:
 
 ---
 
-## NEXUS AI Chat
+## Prism Chat
 
-A conversational AI interface inspired by **T3 Chat** and **Cursor IDE** for natural language interaction with your investment portfolio.
+A conversational interface inspired by **T3 Chat** and **Cursor IDE** for natural language interaction with your investment portfolio.
 
 ### Features
 
 | Feature | Description |
 |---------|-------------|
-| **Streaming Responses** | Real-time AI responses with SSE (Server-Sent Events) |
+| **Streaming Responses** | Real-time responses with SSE (Server-Sent Events) |
 | **Context Attachments** | Attach investments and files to provide context |
-| **Multi-provider** | Works with Kimi, GPT-4o, Claude, Gemini (same as worker) |
-| **Portfolio Awareness** | AI knows your investments, values, and documents |
+| **Multi-provider** | Works with OpenAI, Anthropic, Google, Kimi |
+| **Portfolio Awareness** | Knows your investments, values, and documents |
 | **File References** | Can reference Cloudflare R2 files by name |
+
+### Configuration
+
+Set ONE of these environment variables in your `.env`:
+
+```bash
+# Option 1: OpenAI (GPT-4o, GPT-4, GPT-3.5)
+OPENAI_API_KEY=sk-...
+
+# Option 2: Anthropic (Claude 3.5 Sonnet, Claude 3 Opus)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Option 3: Google (Gemini Pro)
+GOOGLE_API_KEY=...
+
+# Option 4: Kimi/Moonshot (K2.5)
+KIMI_API_KEY=...
+
+# Optional: Override default model
+CHAT_MODEL=gpt-4o  # or claude-3-5-sonnet, gemini-1.5-flash, etc.
+
+# Optional: Custom API endpoint (for proxies)
+CHAT_API_URL=https://your-proxy.com/v1
+```
+
+The system auto-detects which provider to use based on available API keys.
 
 ### UI Components
 
@@ -709,33 +735,6 @@ POST /api/v1/chat/stream       # Streaming chat (SSE)
 GET  /api/v1/chat/context/investments  # List investments for context
 GET  /api/v1/chat/context/files        # List files for context
 ```
-
-### Usage Example
-
-```typescript
-// Send a message with context
-const response = await chatApi.sendMessageStream({
-  messages: [{ role: 'user', content: 'Resume mis inversiones de tierra' }],
-  investment_id: 'optional-investment-id',
-  file_ids: ['file-id-1', 'file-id-2']
-})
-
-// Read streaming response
-const reader = response.getReader()
-while (true) {
-  const { done, value } = await reader.read()
-  if (done) break
-  // value contains new content chunk
-}
-```
-
-### System Prompt
-
-NEXUS AI is configured with a custom system prompt that:
-- Identifies as the family's investment assistant
-- Has access to portfolio data and Cloudflare files
-- Responds in the user's language (English/Spanish/Portuguese)
-- Provides helpful investment insights with appropriate disclaimers
 
 ---
 
