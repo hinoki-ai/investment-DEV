@@ -13,6 +13,9 @@ This document describes the industry-standard repository structure for the Famil
 │
 ├── 📁 api/                     # FastAPI backend service
 │   ├── routers/                # API endpoint modules
+│   ├── static/                 # Static assets (beautiful docs)
+│   │   ├── prism_docs.html     # PRISM-styled API documentation
+│   │   └── favicon.svg         # API favicon
 │   ├── tests/                  # API test suite
 │   ├── .dockerignore           # Docker build exclusions
 │   ├── conftest.py             # pytest configuration
