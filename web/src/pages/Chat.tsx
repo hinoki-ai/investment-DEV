@@ -465,7 +465,7 @@ export default function Chat() {
         )}
 
         <div className="relative flex items-end gap-2 bg-surface border border-border rounded-2xl p-3 focus-within:border-cream/30 focus-within:ring-1 focus-within:ring-cream/20 transition-all">
-          {/* File Upload Button */}
+          {/* Hidden file input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -473,29 +473,34 @@ export default function Chat() {
             onChange={handleFileSelect}
             className="hidden"
           />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading || uploadingFiles.size > 0}
-            className="flex-shrink-0 p-2.5 rounded-xl text-text-muted hover:text-cream hover:bg-surface-elevated transition-colors disabled:opacity-50"
-            title="Adjuntar archivo"
-          >
-            {uploadingFiles.size > 0 ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
-          </button>
 
-          <textarea
-            ref={textareaRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Escribe tu mensaje..."
-            rows={1}
-            className="flex-1 bg-transparent text-text-primary placeholder:text-text-muted resize-none outline-none text-sm min-h-[24px] max-h-[200px] py-1"
-            disabled={isLoading}
-          />
+          {/* Textarea container with upload button inside */}
+          <div className="flex-1 relative flex items-start">
+            {/* Upload button inside textarea area */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || uploadingFiles.size > 0}
+              className="absolute left-0 bottom-1 p-2 rounded-lg text-text-muted hover:text-cream hover:bg-surface-elevated transition-colors disabled:opacity-50 z-10"
+              title="Adjuntar archivo"
+            >
+              {uploadingFiles.size > 0 ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+            </button>
+
+            <textarea
+              ref={textareaRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Escribe tu mensaje..."
+              rows={1}
+              className="w-full bg-transparent text-text-primary placeholder:text-text-muted resize-none outline-none text-sm min-h-[24px] max-h-[200px] py-2 pl-10 pr-2"
+              disabled={isLoading}
+            />
+          </div>
           
           <button
             onClick={sendMessage}
