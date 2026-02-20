@@ -56,6 +56,16 @@ export interface AnalysisResult {
   created_at: string
 }
 
+export interface AnalysisJob {
+  id: string
+  filename?: string
+  status: 'queued' | 'running' | 'completed' | 'failed'
+  job_type: string
+  retry_count: number
+  created_at: string
+  error_message?: string
+}
+
 export interface DashboardStats {
   total_investments: number
   total_value: number
@@ -100,8 +110,8 @@ export const uploadsApi = {
 
 export const analysisApi = {
   listResults: () => api.get<AnalysisResult[]>('/analysis/results').then(r => r.data),
-  listJobs: () => api.get('/analysis/jobs').then(r => r.data),
-  getQueueStats: () => api.get('/analysis/queue/stats').then(r => r.data),
+  listJobs: () => api.get<AnalysisJob[]>('/analysis/jobs').then(r => r.data),
+  getQueueStats: () => api.get<{ total: number; by_status: Record<string, number> }>('/analysis/queue/stats').then(r => r.data),
 }
 
 // Chat Types
@@ -112,7 +122,7 @@ export interface ChatMessage {
     id: string
     type: 'investment' | 'file'
     name: string
-    data: any
+    data: unknown
   }>
 }
 
@@ -246,40 +256,40 @@ export interface ScenarioResult {
 
 // Analytics API
 export const analyticsApi = {
-  getInvestmentMetrics: (id: string) => 
+  getInvestmentMetrics: (id: string) =>
     api.get<{ success: boolean; data: InvestmentMetrics }>(`/analytics/investments/${id}/metrics`).then(r => r.data),
-  
+
   getBatchMetrics: (ids: string[]) =>
     api.post<{ success: boolean; count: number; data: InvestmentMetrics[] }>('/analytics/investments/batch-metrics', ids).then(r => r.data),
-  
+
   getPortfolioSummary: (params?: { category?: string; status?: string }) =>
     api.get<{ success: boolean; data: PortfolioSummary }>('/analytics/portfolio/summary', { params }).then(r => r.data),
-  
+
   getPortfolioOptimization: () =>
-    api.get<{ success: boolean; data: any; error?: string }>('/analytics/portfolio/optimization').then(r => r.data),
-  
+    api.get<{ success: boolean; data: unknown; error?: string }>('/analytics/portfolio/optimization').then(r => r.data),
+
   compareInvestments: (ids: string[], riskProfile: string = 'balanced', includeScenarios: boolean = true) =>
-    api.post<{ success: boolean; data: ComparisonResult }>('/analytics/compare', ids, { 
-      params: { risk_profile: riskProfile, include_scenarios: includeScenarios } 
+    api.post<{ success: boolean; data: ComparisonResult }>('/analytics/compare', ids, {
+      params: { risk_profile: riskProfile, include_scenarios: includeScenarios }
     }).then(r => r.data),
-  
+
   compareAll: (params?: { category?: string; limit?: number }) =>
     api.get<{ success: boolean; data: ComparisonResult }>('/analytics/compare/all', { params }).then(r => r.data),
-  
+
   runScenarioAnalysis: (ids: string[], scenarioType: string = 'market_crash', customImpact?: number) =>
     api.post<{ success: boolean; data: ScenarioResult }>('/analytics/scenario-analysis', ids, {
       params: { scenario_type: scenarioType, custom_impact: customImpact }
     }).then(r => r.data),
-  
+
   getBenchmarks: () =>
     api.get<{ success: boolean; data: { rates: Record<string, string>; values: Record<string, number>; description: Record<string, string> } }>('/analytics/benchmarks').then(r => r.data),
 }
 
 // Chat API
 export const chatApi = {
-  sendMessage: (data: ChatRequest) => 
+  sendMessage: (data: ChatRequest) =>
     api.post<ChatResponse>('/chat', data).then(r => r.data),
-  
+
   sendMessageStream: async (data: Omit<ChatRequest, 'stream'>): Promise<ReadableStreamDefaultReader<string>> => {
     const response = await fetch(`${API_URL}/api/v1/chat/stream`, {
       method: 'POST',
@@ -288,19 +298,19 @@ export const chatApi = {
       },
       body: JSON.stringify({ ...data, stream: true }),
     })
-    
+
     if (!response.ok) {
       throw new Error('Failed to send message')
     }
-    
+
     // Create a reader that yields strings
     const reader = response.body?.getReader()
     const decoder = new TextDecoder()
-    
+
     if (!reader) {
       throw new Error('No response body')
     }
-    
+
     // Return a custom async iterator
     return {
       async read(): Promise<{ done: boolean; value: string }> {
@@ -311,12 +321,12 @@ export const chatApi = {
         return { done: false, value: decoder.decode(result.value, { stream: true }) }
       },
       releaseLock: () => reader.releaseLock(),
-      cancel: (reason?: any) => reader.cancel(reason),
+      cancel: (reason?: unknown) => reader.cancel(reason),
       closed: reader.closed,
     } as ReadableStreamDefaultReader<string>
   },
-  
-  getInvestmentsForContext: () => 
+
+  getInvestmentsForContext: () =>
     api.get<Array<{
       id: string
       name: string
@@ -324,8 +334,8 @@ export const chatApi = {
       city?: string
       status?: string
     }>>('/chat/context/investments').then(r => r.data),
-  
-  getFilesForContext: (investment_id?: string) => 
+
+  getFilesForContext: (investment_id?: string) =>
     api.get<Array<{
       id: string
       filename: string

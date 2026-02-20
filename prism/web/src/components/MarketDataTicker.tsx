@@ -38,7 +38,6 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
   })
 
   const totalReturn = portfolioStats?.total_return || 0
-  const totalReturnPct = portfolioStats?.total_return_pct || 0
   const [marketData, setMarketData] = useState<MarketData>({
     usd: null,
     uf: null,

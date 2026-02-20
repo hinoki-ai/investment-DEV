@@ -7,11 +7,11 @@ optimization using Modern Portfolio Theory.
 */
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  BarChart3, 
-  PieChart, 
+import {
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  PieChart,
   Activity,
   AlertTriangle,
   Target,
@@ -50,7 +50,7 @@ interface SectionProps {
 
 function MetricCard({ title, value, subtitle, trend, icon, highlight }: MetricCardProps) {
   const trendColor = trend === 'up' ? 'text-success' : trend === 'down' ? 'text-error' : 'text-text-secondary'
-  
+
   return (
     <div className={`p-4 rounded-lg border ${highlight ? 'border-cream/30 bg-cream/5' : 'border-border bg-surface'} transition-all hover:border-cream/20`}>
       <div className="flex items-start justify-between">
@@ -235,7 +235,7 @@ function ComparativeMetrics({ metrics }: { metrics: InvestmentMetrics['comparati
         </p>
         <p className="text-xs text-text-secondary mt-1">Real return after inflation</p>
       </div>
-      
+
       <div className={`p-4 rounded-lg border ${metrics.vs_cdi !== null && metrics.vs_cdi > 0 ? 'border-success/30 bg-success/5' : 'border-border bg-surface'}`}>
         <p className="text-xs text-text-muted uppercase tracking-wider">vs CDI</p>
         <p className={`text-xl font-display font-semibold mt-1 ${metrics.vs_cdi !== null && metrics.vs_cdi > 0 ? 'text-success' : 'text-text-primary'}`}>
@@ -243,7 +243,7 @@ function ComparativeMetrics({ metrics }: { metrics: InvestmentMetrics['comparati
         </p>
         <p className="text-xs text-text-secondary mt-1">vs Brazil risk-free rate</p>
       </div>
-      
+
       <div className={`p-4 rounded-lg border ${metrics.vs_sp500 !== null && metrics.vs_sp500 > 0 ? 'border-success/30 bg-success/5' : 'border-border bg-surface'}`}>
         <p className="text-xs text-text-muted uppercase tracking-wider">vs S&P 500</p>
         <p className={`text-xl font-display font-semibold mt-1 ${metrics.vs_sp500 !== null && metrics.vs_sp500 > 0 ? 'text-success' : 'text-text-primary'}`}>
@@ -273,7 +273,7 @@ function Recommendations({ comparison }: { comparison: ComparisonResult }) {
           <p className="text-sm text-text-secondary">Composite Score: {comparison.winner.score.toFixed(1)}</p>
         </div>
       )}
-      
+
       {/* Recommendations */}
       {comparison.recommendations.length > 0 && (
         <div className="space-y-2">
@@ -286,7 +286,7 @@ function Recommendations({ comparison }: { comparison: ComparisonResult }) {
           ))}
         </div>
       )}
-      
+
       {/* Warnings */}
       {comparison.warnings.length > 0 && (
         <div className="space-y-2">
@@ -299,7 +299,7 @@ function Recommendations({ comparison }: { comparison: ComparisonResult }) {
           ))}
         </div>
       )}
-      
+
       {/* Opportunities */}
       {comparison.opportunities.length > 0 && (
         <div className="space-y-2">
@@ -323,42 +323,42 @@ function Recommendations({ comparison }: { comparison: ComparisonResult }) {
 export default function Analytics() {
   const [selectedInvestment, setSelectedInvestment] = useState<string | null>(null)
   const [riskProfile, setRiskProfile] = useState<'conservative' | 'balanced' | 'aggressive'>('balanced')
-  
+
   // Fetch portfolio summary
   const { data: portfolioData, isLoading: portfolioLoading, error: portfolioError } = useQuery({
     queryKey: ['portfolio-summary'],
     queryFn: () => analyticsApi.getPortfolioSummary(),
   })
-  
+
   // Fetch comparison data
   const { data: comparisonData, isLoading: comparisonLoading } = useQuery({
     queryKey: ['comparison-all', riskProfile],
     queryFn: () => analyticsApi.compareAll({ limit: 20 }),
   })
-  
+
   // Fetch individual metrics if selected
   const { data: metricsData } = useQuery({
     queryKey: ['investment-metrics', selectedInvestment],
     queryFn: () => selectedInvestment ? analyticsApi.getInvestmentMetrics(selectedInvestment) : null,
     enabled: !!selectedInvestment,
   })
-  
+
   // Fetch benchmarks
   const { data: benchmarksData } = useQuery({
     queryKey: ['benchmarks'],
     queryFn: () => analyticsApi.getBenchmarks(),
   })
-  
+
   const isLoading = portfolioLoading || comparisonLoading
-  
+
   if (isLoading) return <LoadingState />
   if (portfolioError) return <ErrorState message="Failed to load analytics data" />
-  
+
   const portfolio = portfolioData?.data
   const comparison = comparisonData?.data
   const metrics = metricsData?.data
   const benchmarks = benchmarksData?.data
-  
+
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
       {/* Header */}
@@ -371,7 +371,7 @@ export default function Analytics() {
           Comprehensive financial analysis and portfolio optimization
         </p>
       </div>
-      
+
       {/* Portfolio Summary */}
       {portfolio && (
         <Section title="Portfolio Summary" icon={<PieChart className="w-5 h-5" />}>
@@ -400,7 +400,7 @@ export default function Analytics() {
               icon={<TrendingUp className="w-4 h-4" />}
             />
           </div>
-          
+
           {/* Category Allocation */}
           <div className="p-4 rounded-lg border border-border bg-surface">
             <h3 className="text-sm font-medium text-text-secondary mb-3">Category Allocation</h3>
@@ -415,7 +415,7 @@ export default function Analytics() {
           </div>
         </Section>
       )}
-      
+
       {/* Investment Comparison */}
       {comparison && (
         <Section title="Investment Rankings" icon={<Award className="w-5 h-5" />}>
@@ -423,7 +423,7 @@ export default function Analytics() {
             <label className="text-sm text-text-secondary mr-3">Risk Profile:</label>
             <select
               value={riskProfile}
-              onChange={(e) => setRiskProfile(e.target.value as any)}
+              onChange={(e) => setRiskProfile(e.target.value as 'conservative' | 'balanced' | 'aggressive')}
               className="px-3 py-1.5 rounded-md bg-void-deep border border-border text-text-primary text-sm focus:border-cream focus:outline-none"
             >
               <option value="conservative">Conservative</option>
@@ -431,7 +431,7 @@ export default function Analytics() {
               <option value="aggressive">Aggressive</option>
             </select>
           </div>
-          
+
           {/* Rankings Table */}
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
@@ -447,18 +447,17 @@ export default function Analytics() {
               </thead>
               <tbody className="divide-y divide-border">
                 {comparison.rankings.map((inv) => (
-                  <tr 
+                  <tr
                     key={inv.investment_id}
                     className="hover:bg-surface/50 cursor-pointer transition-colors"
                     onClick={() => setSelectedInvestment(inv.investment_id)}
                   >
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${
-                        inv.rankings.composite === 1 ? 'bg-success/20 text-success' :
-                        inv.rankings.composite === 2 ? 'bg-cream/20 text-cream' :
-                        inv.rankings.composite === 3 ? 'bg-warning/20 text-warning' :
-                        'bg-void-deep text-text-secondary'
-                      }`}>
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium ${inv.rankings.composite === 1 ? 'bg-success/20 text-success' :
+                          inv.rankings.composite === 2 ? 'bg-cream/20 text-cream' :
+                            inv.rankings.composite === 3 ? 'bg-warning/20 text-warning' :
+                              'bg-void-deep text-text-secondary'
+                        }`}>
                         {inv.rankings.composite}
                       </span>
                     </td>
@@ -482,14 +481,14 @@ export default function Analytics() {
               </tbody>
             </table>
           </div>
-          
+
           {/* Recommendations */}
           <div className="mt-6">
             <Recommendations comparison={comparison} />
           </div>
         </Section>
       )}
-      
+
       {/* Individual Investment Detail */}
       {selectedInvestment && metrics && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -506,24 +505,24 @@ export default function Analytics() {
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6 space-y-8">
               <Section title="Basic Metrics" icon={<DollarSign className="w-5 h-5" />}>
                 <BasicMetrics metrics={metrics.basic} />
               </Section>
-              
+
               <Section title="Time-Weighted Returns" icon={<Calendar className="w-5 h-5" />}>
                 <TimeWeightedMetrics metrics={metrics.time_weighted} />
               </Section>
-              
+
               <Section title="Advanced Metrics" icon={<BrainCircuit className="w-5 h-5" />}>
                 <AdvancedMetrics metrics={metrics.advanced} />
               </Section>
-              
+
               <Section title="Risk Analysis" icon={<Shield className="w-5 h-5" />}>
                 <RiskMetrics metrics={metrics.risk} />
               </Section>
-              
+
               <Section title="Benchmark Comparison" icon={<BarChart3 className="w-5 h-5" />}>
                 <ComparativeMetrics metrics={metrics.comparative} />
               </Section>
@@ -531,7 +530,7 @@ export default function Analytics() {
           </div>
         </div>
       )}
-      
+
       {/* Benchmark Rates */}
       {benchmarks && (
         <Section title="Benchmark Rates" icon={<Target className="w-5 h-5" />}>

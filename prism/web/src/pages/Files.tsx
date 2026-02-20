@@ -1,36 +1,34 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { 
-  FileText, 
-  Search, 
+import {
+  FileText,
+  Search,
   Download,
   Filter,
   Image,
   FileVideo,
   FileAudio,
-  File,
-  FolderOpen,
-  HardDrive
+  File
 } from 'lucide-react'
 import { filesApi } from '../lib/api'
 import { formatDate, formatFileSize } from '../lib/utils'
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  pending: { 
-    label: 'Pendiente', 
-    className: 'bg-warning-dim text-warning border-warning/20' 
+  pending: {
+    label: 'Pendiente',
+    className: 'bg-warning-dim text-warning border-warning/20'
   },
-  processing: { 
-    label: 'Procesando', 
-    className: 'bg-info-dim text-info border-info/20' 
+  processing: {
+    label: 'Procesando',
+    className: 'bg-info-dim text-info border-info/20'
   },
-  completed: { 
-    label: 'Completado', 
-    className: 'bg-success-dim text-success border-success/20' 
+  completed: {
+    label: 'Completado',
+    className: 'bg-success-dim text-success border-success/20'
   },
-  failed: { 
-    label: 'Fallido', 
-    className: 'bg-error-dim text-error border-error/20' 
+  failed: {
+    label: 'Fallido',
+    className: 'bg-error-dim text-error border-error/20'
   },
 }
 
@@ -64,7 +62,7 @@ export default function Files() {
   const handleDownload = async (fileId: string, filename: string) => {
     try {
       const { download_url } = await filesApi.getDownloadUrl(fileId)
-      
+
       // Create a hidden anchor element to trigger download
       const link = document.createElement('a')
       link.href = download_url
@@ -85,7 +83,6 @@ export default function Files() {
     return matchesSearch && matchesStatus
   })
 
-  const totalSize = filesArray.reduce((acc: number, f: any) => acc + (f.file_size_bytes || 0), 0)
 
   return (
     <div className="space-y-6 fade-in">
@@ -125,7 +122,7 @@ export default function Files() {
           {filteredFiles?.length || 0} archivo{filteredFiles?.length !== 1 ? 's' : ''}
         </span>
         {(search || status) && (
-          <button 
+          <button
             onClick={() => { setSearch(''); setStatus('') }}
             className="text-cream-muted hover:text-cream transition-colors"
           >
@@ -198,9 +195,8 @@ export default function Files() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full border ${
-                            statusConfig[file.status]?.className || statusConfig.pending.className
-                          }`}>
+                          <span className={`inline-flex px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full border ${statusConfig[file.status]?.className || statusConfig.pending.className
+                            }`}>
                             {statusConfig[file.status]?.label || file.status}
                           </span>
                         </td>
@@ -227,8 +223,8 @@ export default function Files() {
               const Icon = getFileIcon(file.mime_type)
               const iconColorClass = getFileIconColor(file.mime_type)
               return (
-                <div 
-                  key={file.id} 
+                <div
+                  key={file.id}
                   className="glass-card p-4 flex items-center gap-3"
                 >
                   <div className={`flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-xl ${iconColorClass}`}>
@@ -243,9 +239,8 @@ export default function Files() {
                         {file.file_size_bytes ? formatFileSize(file.file_size_bytes) : '—'}
                       </span>
                       <span className="text-border-strong">•</span>
-                      <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border ${
-                        statusConfig[file.status]?.className || statusConfig.pending.className
-                      }`}>
+                      <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border ${statusConfig[file.status]?.className || statusConfig.pending.className
+                        }`}>
                         {statusConfig[file.status]?.label || file.status}
                       </span>
                     </div>
@@ -271,7 +266,7 @@ export default function Files() {
             {search || status ? 'No se encontraron coincidencias' : 'Aún no hay archivos'}
           </h3>
           <p className="text-sm text-text-muted">
-            {search || status 
+            {search || status
               ? 'Intenta ajustar tu búsqueda o filtros'
               : 'Sube archivos desde la página de inversiones'
             }

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { 
-  Brain, 
-  Clock, 
+import {
+  Brain,
+  Clock,
   CheckCircle,
   XCircle,
   Loader2,
@@ -10,26 +10,26 @@ import {
   Sparkles,
   Activity
 } from 'lucide-react'
-import { analysisApi } from '../lib/api'
+import { analysisApi, type AnalysisJob, type AnalysisResult } from '../lib/api'
 import { formatDate } from '../lib/utils'
 import StatCard from '../components/StatCard'
 
 const jobStatusConfig: Record<string, { icon: React.ReactNode; className: string }> = {
-  queued: { 
-    icon: <Clock className="h-4 w-4" />, 
-    className: 'bg-warning-dim text-warning border-warning/20' 
+  queued: {
+    icon: <Clock className="h-4 w-4" />,
+    className: 'bg-warning-dim text-warning border-warning/20'
   },
-  running: { 
-    icon: <Loader2 className="h-4 w-4 animate-spin" />, 
-    className: 'bg-info-dim text-info border-info/20' 
+  running: {
+    icon: <Loader2 className="h-4 w-4 animate-spin" />,
+    className: 'bg-info-dim text-info border-info/20'
   },
-  completed: { 
-    icon: <CheckCircle className="h-4 w-4" />, 
-    className: 'bg-success-dim text-success border-success/20' 
+  completed: {
+    icon: <CheckCircle className="h-4 w-4" />,
+    className: 'bg-success-dim text-success border-success/20'
   },
-  failed: { 
-    icon: <XCircle className="h-4 w-4" />, 
-    className: 'bg-error-dim text-error border-error/20' 
+  failed: {
+    icon: <XCircle className="h-4 w-4" />,
+    className: 'bg-error-dim text-error border-error/20'
   },
 }
 
@@ -68,7 +68,7 @@ export default function Analysis() {
             Análisis automático de documentos del portafolio
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2 text-xs text-text-muted">
           <Cpu className="h-4 w-4 text-cream" />
           <span className="text-cream">Prism</span>
@@ -130,7 +130,7 @@ export default function Analysis() {
               </span>
             )}
           </div>
-          
+
           <div className="p-2">
             {jobsLoading ? (
               <div className="space-y-2">
@@ -138,12 +138,12 @@ export default function Analysis() {
                   <div key={i} className="h-16 bg-surface rounded-xl animate-pulse" />
                 ))}
               </div>
-            ) : (jobs as any[])?.length ? (
+            ) : jobs?.length ? (
               <div className="space-y-2">
-                {(jobs as any[]).slice(0, 8).map((job: any, index: number) => {
+                {jobs.slice(0, 8).map((job: AnalysisJob, index: number) => {
                   const config = jobStatusConfig[job.status] || jobStatusConfig.queued
                   return (
-                    <div 
+                    <div
                       key={job.id}
                       className="flex items-center gap-3 p-3 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors"
                       style={{ animationDelay: `${index * 50}ms` }}
@@ -192,7 +192,7 @@ export default function Analysis() {
               <span className="text-sm font-semibold text-text-primary">Resultados Recientes</span>
             </div>
           </div>
-          
+
           <div className="p-2">
             {resultsLoading ? (
               <div className="space-y-2">
@@ -200,11 +200,11 @@ export default function Analysis() {
                   <div key={i} className="h-24 bg-surface rounded-xl animate-pulse" />
                 ))}
               </div>
-            ) : results && (results as any[]).length ? (
+            ) : results && results.length ? (
               <div className="space-y-3">
-                {(results as any[]).map((result: any, index: number) => (
-                  <div 
-                    key={result.id} 
+                {results.map((result: AnalysisResult, index: number) => (
+                  <div
+                    key={result.id}
                     className="p-4 rounded-xl bg-surface border border-border-subtle hover:border-border transition-colors"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
@@ -232,11 +232,10 @@ export default function Analysis() {
                       </div>
                       {result.confidence_score !== undefined && (
                         <div className="flex-shrink-0 text-right">
-                          <div className={`text-sm font-mono font-semibold ${
-                            result.confidence_score >= 0.8 ? 'text-success' :
-                            result.confidence_score >= 0.5 ? 'text-warning' :
-                            'text-error'
-                          }`}>
+                          <div className={`text-sm font-mono font-semibold ${result.confidence_score >= 0.8 ? 'text-success' :
+                              result.confidence_score >= 0.5 ? 'text-warning' :
+                                'text-error'
+                            }`}>
                             {Math.round(result.confidence_score * 100)}%
                           </div>
                           <div className="text-[10px] text-text-muted uppercase tracking-wider">confianza</div>

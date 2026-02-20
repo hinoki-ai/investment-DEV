@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { 
+import {
   Send,
   Bot,
   User,
@@ -31,7 +31,7 @@ interface Attachment {
   id: string
   type: 'investment' | 'file'
   name: string
-  data: any
+  data: unknown
 }
 
 interface InvestmentOption {
@@ -57,7 +57,7 @@ export default function Chat() {
   const [selectedFiles, setSelectedFiles] = useState<FileOption[]>([])
 
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -81,7 +81,7 @@ export default function Chat() {
   }, [modelName])
 
   // Fetch data for context selection
-  const { data: _investments } = useQuery({
+  useQuery({
     queryKey: ['chat-investments'],
     queryFn: chatApi.getInvestmentsForContext,
   })
@@ -226,10 +226,13 @@ export default function Chat() {
 
       const reader = stream
       let fullContent = ''
-
-      while (true) {
+      let isReading = true
+      while (isReading) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          isReading = false
+          break
+        }
 
         // Parse SSE data
         const lines = value.split('\n\n')
@@ -239,14 +242,14 @@ export default function Chat() {
               const data = JSON.parse(line.slice(6))
               if (data.type === 'content') {
                 fullContent += data.content
-                setMessages(prev => prev.map(m => 
-                  m.id === assistantMessageId 
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMessageId
                     ? { ...m, content: fullContent }
                     : m
                 ))
               } else if (data.type === 'done') {
-                setMessages(prev => prev.map(m => 
-                  m.id === assistantMessageId 
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMessageId
                     ? { ...m, isStreaming: false }
                     : m
                 ))
@@ -260,21 +263,21 @@ export default function Chat() {
         }
       }
 
-      setMessages(prev => prev.map(m => 
-        m.id === assistantMessageId 
+      setMessages(prev => prev.map(m =>
+        m.id === assistantMessageId
           ? { ...m, isStreaming: false }
           : m
       ))
 
     } catch (error) {
       console.error('Chat error:', error)
-      setMessages(prev => prev.map(m => 
-        m.id === assistantMessageId 
-          ? { 
-              ...m, 
-              content: 'Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo.',
-              isStreaming: false 
-            }
+      setMessages(prev => prev.map(m =>
+        m.id === assistantMessageId
+          ? {
+            ...m,
+            content: 'Lo siento, hubo un error al procesar tu mensaje. Por favor intenta de nuevo.',
+            isStreaming: false
+          }
           : m
       ))
     } finally {
@@ -330,7 +333,7 @@ export default function Chat() {
       </div>
 
       {/* Messages Area */}
-      <div 
+      <div
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto custom-scrollbar mb-4 space-y-4"
       >
@@ -347,10 +350,10 @@ export default function Chat() {
               ¿En qué puedo ayudarte?
             </h2>
             <p className="text-text-secondary max-w-md mb-8">
-              Soy Prism Chat, tu asistente para gestionar el portafolio de inversiones familiar. 
+              Soy Prism Chat, tu asistente para gestionar el portafolio de inversiones familiar.
               Puedo responder preguntas sobre tus inversiones, analizar documentos y más.
             </p>
-            
+
             {/* Suggested Prompts */}
             <div className="flex flex-wrap justify-center gap-2 max-w-lg">
               {suggestedPrompts.map((prompt, idx) => (
@@ -372,11 +375,10 @@ export default function Chat() {
               className={`flex gap-4 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
             >
               {/* Avatar */}
-              <div className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${
-                message.role === 'user'
-                  ? 'bg-cream text-void'
-                  : 'bg-surface border border-border'
-              }`}>
+              <div className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${message.role === 'user'
+                ? 'bg-cream text-void'
+                : 'bg-surface border border-border'
+                }`}>
                 {message.role === 'user' ? (
                   <User className="h-4 w-4" />
                 ) : (
@@ -403,11 +405,10 @@ export default function Chat() {
 
                 {/* Message Bubble */}
                 <div
-                  className={`inline-block text-left px-4 py-3 rounded-2xl ${
-                    message.role === 'user'
-                      ? 'bg-cream text-void'
-                      : 'bg-surface border border-border text-text-primary'
-                  }`}
+                  className={`inline-block text-left px-4 py-3 rounded-2xl ${message.role === 'user'
+                    ? 'bg-cream text-void'
+                    : 'bg-surface border border-border text-text-primary'
+                    }`}
                 >
                   <div className="whitespace-pre-wrap text-sm leading-relaxed">
                     {message.content || (message.isStreaming ? (
@@ -417,7 +418,7 @@ export default function Chat() {
                       </span>
                     ) : '')}
                   </div>
-                  
+
                   {/* Streaming indicator */}
                   {message.isStreaming && message.content && (
                     <span className="inline-block w-2 h-4 ml-1 bg-cream animate-pulse" />
@@ -459,7 +460,7 @@ export default function Chat() {
               <span className="inline-flex items-center gap-1.5 px-2 py-1 text-xs bg-cream/10 text-cream rounded-lg border border-cream/20">
                 <Trees className="h-3 w-3" />
                 {selectedInvestment.name}
-                <button 
+                <button
                   onClick={() => setSelectedInvestment(null)}
                   className="ml-1 hover:text-white"
                 >
@@ -471,7 +472,7 @@ export default function Chat() {
               <span key={file.id} className="inline-flex items-center gap-1.5 px-2 py-1 text-xs bg-surface text-text-secondary rounded-lg border border-border">
                 <FileText className="h-3 w-3" />
                 {file.filename}
-                <button 
+                <button
                   onClick={() => setSelectedFiles(prev => prev.filter(f => f.id !== file.id))}
                   className="ml-1 hover:text-error"
                 >
@@ -514,11 +515,10 @@ export default function Chat() {
               <button
                 onClick={() => setShowModelSettings(!showModelSettings)}
                 disabled={isLoading}
-                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
-                  showModelSettings || apiKey 
-                    ? 'text-cream bg-cream/10' 
-                    : 'text-text-muted hover:text-cream hover:bg-surface-elevated'
-                }`}
+                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${showModelSettings || apiKey
+                  ? 'text-cream bg-cream/10'
+                  : 'text-text-muted hover:text-cream hover:bg-surface-elevated'
+                  }`}
                 title="Configurar modelo"
               >
                 <Cpu className="h-4 w-4" />
@@ -529,14 +529,14 @@ export default function Chat() {
                 <div className="absolute left-0 bottom-full mb-2 w-72 bg-surface-elevated border border-border rounded-xl shadow-2xl p-4 space-y-4 z-40">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-text-primary">Modelo</span>
-                    <button 
+                    <button
                       onClick={() => setShowModelSettings(false)}
                       className="text-text-muted hover:text-text-primary"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  
+
                   {/* Model Name Input */}
                   <div className="space-y-2">
                     <label className="text-xs text-text-muted uppercase tracking-wider">Nombre del Modelo</label>
@@ -592,15 +592,14 @@ export default function Chat() {
               disabled={isLoading}
             />
           </div>
-          
+
           <button
             onClick={sendMessage}
             disabled={!inputValue.trim() || isLoading}
-            className={`flex-shrink-0 p-2.5 rounded-xl transition-all ${
-              inputValue.trim() && !isLoading
-                ? 'bg-cream text-void hover:bg-cream-light'
-                : 'bg-surface-elevated text-text-muted cursor-not-allowed'
-            }`}
+            className={`flex-shrink-0 p-2.5 rounded-xl transition-all ${inputValue.trim() && !isLoading
+              ? 'bg-cream text-void hover:bg-cream-light'
+              : 'bg-surface-elevated text-text-muted cursor-not-allowed'
+              }`}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -613,8 +612,8 @@ export default function Chat() {
 
       {/* Click outside to close model settings */}
       {showModelSettings && (
-        <div 
-          className="fixed inset-0 z-30" 
+        <div
+          className="fixed inset-0 z-30"
           onClick={() => setShowModelSettings(false)}
         />
       )}

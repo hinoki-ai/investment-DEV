@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { 
-  Trees, 
-  DollarSign, 
-  FileText, 
-  Brain,
+import {
+  Trees,
+  DollarSign,
+  FileText,
   TrendingUp,
   Clock,
   ChevronRight,
@@ -44,7 +43,7 @@ function DashboardSkeleton() {
     <div className="space-y-8 animate-pulse">
       {/* Featured stat skeleton */}
       <div className="h-48 bg-surface-elevated rounded-3xl" />
-      
+
       {/* Stats grid skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
@@ -76,8 +75,6 @@ export default function Dashboard() {
   const totalReturnPct = stats?.total_return_pct || 0
   const totalInvestments = stats?.total_investments || 0
   const totalFiles = stats?.total_files || 0
-  const completedAnalyses = stats?.completed_analyses || 0
-  const pendingAnalyses = stats?.pending_analyses || 0
 
   return (
     <div className="space-y-8 fade-in">
@@ -131,24 +128,24 @@ export default function Dashboard() {
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Categorías</span>
           </div>
-          <Link 
-            to="/investments" 
+          <Link
+            to="/investments"
             className="text-xs text-cream-muted hover:text-cream transition-colors flex items-center gap-1"
           >
             Ver Todo <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
-        
+
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {Object.entries(stats?.investments_by_category || {}).map(([category, count], index) => (
-            <div 
+            <div
               key={category}
               className="group relative overflow-hidden rounded-xl border border-border bg-surface p-4 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5"
               style={{ animationDelay: `${index * 50}ms` }}
             >
               {/* Hover glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-cream/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
+
               <div className="relative">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-2xl">{categoryIcons[category] || '📦'}</span>
@@ -172,19 +169,19 @@ export default function Dashboard() {
               </div>
               <span className="text-sm font-semibold text-text-primary">Subidas Recientes</span>
             </div>
-            <Link 
+            <Link
               to="/files"
               className="glyph-btn glyph-btn-ghost py-1.5 px-3 text-xs"
             >
               Ver Todo
             </Link>
           </div>
-          
+
           <div className="p-2">
             {stats?.recent_uploads?.length ? (
               <div className="space-y-1">
                 {stats.recent_uploads.slice(0, 5).map((file, index) => (
-                  <div 
+                  <div
                     key={file.id}
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-surface transition-colors group"
                     style={{ animationDelay: `${index * 50}ms` }}
@@ -197,13 +194,12 @@ export default function Dashboard() {
                         {file.original_filename}
                       </span>
                     </div>
-                    <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full ${
-                      file.status === 'completed' 
-                        ? 'bg-success-dim text-success' 
+                    <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full ${file.status === 'completed'
+                        ? 'bg-success-dim text-success'
                         : file.status === 'processing'
-                        ? 'bg-info-dim text-info'
-                        : 'bg-warning-dim text-warning'
-                    }`}>
+                          ? 'bg-info-dim text-info'
+                          : 'bg-warning-dim text-warning'
+                      }`}>
                       {file.status}
                     </span>
                   </div>
@@ -229,14 +225,14 @@ export default function Dashboard() {
               </div>
               <span className="text-sm font-semibold text-text-primary">Inversiones Recientes</span>
             </div>
-            <Link 
+            <Link
               to="/investments"
               className="glyph-btn glyph-btn-ghost py-1.5 px-3 text-xs"
             >
               Ver Todo
             </Link>
           </div>
-          
+
           <div className="p-2">
             {Array.isArray(investments) && investments.length > 0 ? (
               <div className="space-y-1">

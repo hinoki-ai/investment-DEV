@@ -10,23 +10,22 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
-  Plus, Search, MapPin, DollarSign, Filter,
+  Plus, Search, MapPin, DollarSign,
   ChevronRight, ArrowUpRight, ArrowDownRight,
   Grid3X3, List, TrendingUp, TrendingDown,
   PieChart, BarChart3, Trophy, AlertTriangle,
-  X, Briefcase, Award, Target, Activity,
-  Shield, Zap, Flame, Snowflake, Crown,
-  Eye, Percent, Calendar, Layers
+  X, Award, Target, Activity,
+  Flame, Snowflake, Crown,
+  Percent, Layers
 } from 'lucide-react'
 import {
   PieChart as RechartsPie, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip as RechartsTooltip, ResponsiveContainer,
-  Treemap, AreaChart, Area, Legend,
-  ScatterChart, Scatter, ZAxis
+  Treemap, AreaChart, Area, Legend
 } from 'recharts'
 import { investmentsApi, dashboardApi, analyticsApi } from '../lib/api'
-import { formatCurrency, formatNumber } from '../lib/utils'
+import { formatCurrency } from '../lib/utils'
 import { InvestmentForm, type InvestmentFormData } from '../components/InvestmentForm'
 
 // =============================================================================

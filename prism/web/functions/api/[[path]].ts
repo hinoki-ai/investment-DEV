@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Cloudflare Pages Function - API Routes
 
 export interface Env {
   // Environment variables if needed
 }
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-  const { request, params } = context;
+export const onRequest = async (context: any) => {
+  const { request } = context;
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
