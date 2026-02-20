@@ -35,7 +35,7 @@ import {
   AmortizationChart,
   PaymentBreakdownChart
 } from '../components/CreditAnalysis'
-
+import { HelpTooltip, INVESTMENT_TOOLTIPS } from '../components/HelpTooltip'
 
 const categoryIcons: Record<string, string> = {
   land: '🏞️',
@@ -284,7 +284,10 @@ export default function InvestmentDetail() {
             <div className="p-4 sm:p-5">
               <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Precio de Compra</p>
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1 flex items-center gap-1">
+                    Precio de Compra
+                    <HelpTooltip title="Purchase Price" content={INVESTMENT_TOOLTIPS.purchasePrice.content} example={INVESTMENT_TOOLTIPS.purchasePrice.example} size="sm" />
+                  </p>
                   <p className="font-mono text-lg sm:text-xl font-semibold text-text-primary break-all">
                     {investment.purchase_price 
                       ? formatCurrency(investment.purchase_price)
@@ -293,7 +296,10 @@ export default function InvestmentDetail() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Valor Actual</p>
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1 flex items-center gap-1">
+                    Valor Actual
+                    <HelpTooltip title="Current Value" content={INVESTMENT_TOOLTIPS.currentValue.content} example={INVESTMENT_TOOLTIPS.currentValue.example} size="sm" />
+                  </p>
                   <p className="font-mono text-lg sm:text-xl font-semibold text-cream break-all">
                     {investment.current_value 
                       ? formatCurrency(investment.current_value)
@@ -302,7 +308,10 @@ export default function InvestmentDetail() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Retorno</p>
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1 flex items-center gap-1">
+                    Retorno
+                    <HelpTooltip title="Return %" content={INVESTMENT_TOOLTIPS.returnPercentage.content} example={INVESTMENT_TOOLTIPS.returnPercentage.example} size="sm" />
+                  </p>
                   <p className={`font-mono text-lg sm:text-xl font-semibold flex items-center gap-1 ${
                     returnPositive ? 'text-success' : 'text-error'
                   }`}>
