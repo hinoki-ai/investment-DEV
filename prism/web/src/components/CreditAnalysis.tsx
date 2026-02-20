@@ -802,7 +802,7 @@ export function LandCreditComboCard({ combo, isBest = false, className = '' }: L
         </div>
       )}
       
-      <div className="flex items-start justify-between">
+      <div className={`flex items-start justify-between ${isBest ? 'pr-16' : ''}`}>
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-lg text-text-primary truncate">{land.name}</h3>
           <p className="text-sm text-text-muted">

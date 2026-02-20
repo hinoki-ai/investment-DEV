@@ -3,8 +3,6 @@
 INVESTMENTS ROUTER - CRUD for Investments (Land, Stocks, Gold, etc.)
 ===============================================================================
 """
-import importlib.util
-import sys
 from typing import List, Optional
 from uuid import UUID
 
@@ -13,24 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
-# Load database module
-db_spec = importlib.util.spec_from_file_location('database', '/home/hinoki/HinokiDEV/Investments/api/database.py')
-database = importlib.util.module_from_spec(db_spec)
-sys.modules['database'] = database
-db_spec.loader.exec_module(database)
-get_async_db = database.get_async_db
-
-# Load API SQLAlchemy models
-db_models_spec = importlib.util.spec_from_file_location('db_models', '/home/hinoki/HinokiDEV/Investments/api/models.py')
-db_models = importlib.util.module_from_spec(db_models_spec)
-sys.modules['db_models'] = db_models
-db_models_spec.loader.exec_module(db_models)
-
-# Load shared Pydantic schemas
-schemas_spec = importlib.util.spec_from_file_location('schemas', '/home/hinoki/HinokiDEV/Investments/shared/models.py')
-schemas = importlib.util.module_from_spec(schemas_spec)
-sys.modules['schemas'] = schemas
-schemas_spec.loader.exec_module(schemas)
+from routers._imports import db_models, schemas, get_async_db
 
 
 router = APIRouter()

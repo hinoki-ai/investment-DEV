@@ -3,25 +3,100 @@
 DASHBOARD ROUTER - Statistics and overview endpoints
 ===============================================================================
 """
-import sys
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, Optional
+import asyncio
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, desc
+import httpx
 
-# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-import models as db_models
-from database import get_async_db
-
-# Import shared Pydantic schemas - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-import models as schemas
+from routers._imports import db_models, schemas, get_async_db
 
 
 router = APIRouter()
+
+
+# =============================================================================
+# MARKET DATA HELPERS
+# =============================================================================
+
+async def fetch_yahoo_price(symbol: str) -> Optional[float]:
+    """Fetch price from Yahoo Finance API."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range=1d",
+                headers={"User-Agent": "Mozilla/5.0"}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                price = data.get("chart", {}).get("result", [{}])[0].get("meta", {}).get("regularMarketPrice")
+                return float(price) if price else None
+    except Exception:
+        pass
+    return None
+
+
+async def fetch_usd_clp_rate() -> Optional[float]:
+    """Fetch USD/CLP rate from Mindicador."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get("https://mindicador.cl/api/dolar")
+            if response.status_code == 200:
+                data = response.json()
+                serie = data.get("serie", [])
+                if serie:
+                    return float(serie[0].get("valor", 0))
+    except Exception:
+        pass
+    return None
+
+
+@router.get("/market-data")
+async def get_market_data():
+    """
+    Get current market data for gold and silver prices.
+    
+    Fetches from Yahoo Finance via server-side proxy (avoids CORS issues).
+    Returns prices in CLP per gram.
+    """
+    # Fetch USD rate and metal prices in parallel
+    usd_rate, gold_usd_oz, silver_usd_oz = await asyncio.gather(
+        fetch_usd_clp_rate(),
+        fetch_yahoo_price("GC=F"),  # Gold
+        fetch_yahoo_price("SI=F"),  # Silver
+        return_exceptions=True
+    )
+    
+    # Handle exceptions
+    if isinstance(usd_rate, Exception):
+        usd_rate = None
+    if isinstance(gold_usd_oz, Exception):
+        gold_usd_oz = None
+    if isinstance(silver_usd_oz, Exception):
+        silver_usd_oz = None
+    
+    # Convert to CLP per gram (1 troy ounce = 31.1034768 grams)
+    grams_per_ounce = 31.1034768
+    
+    gold_clp_per_gram = None
+    silver_clp_per_gram = None
+    
+    if usd_rate and gold_usd_oz:
+        gold_clp_per_gram = (gold_usd_oz * usd_rate) / grams_per_ounce
+    
+    if usd_rate and silver_usd_oz:
+        silver_clp_per_gram = (silver_usd_oz * usd_rate) / grams_per_ounce
+    
+    return {
+        "gold_clp_per_gram": round(gold_clp_per_gram, 2) if gold_clp_per_gram else None,
+        "silver_clp_per_gram": round(silver_clp_per_gram, 2) if silver_clp_per_gram else None,
+        "usd_clp_rate": usd_rate,
+        "gold_usd_per_oz": gold_usd_oz,
+        "silver_usd_per_oz": silver_usd_per_oz,
+    }
 
 
 @router.get("/stats", response_model=dict)

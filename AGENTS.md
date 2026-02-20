@@ -49,30 +49,30 @@ This document provides essential context for AI coding agents working on this pr
 
 | Aspect | Policy | Why |
 |--------|--------|-----|
-| **Tests** | ❌ Skip 'em | Not shipping to customers, just need it to work for us |
-| **Multi-user security** | ❌ Not a priority | Only 2 trusted users, no strangers |
-| **Auth/permissions** | ❌ Keep it simple | If you have the URL, you're one of us |
-| **Edge cases** | ⚠️ Handle only OUR real cases | Don't build for hypothetical users |
-| **Documentation** | ✅ Our needs only | Write what WE need to remember |
+| **Tests** | Skip 'em | Not shipping to customers, just need it to work for us |
+| **Multi-user security** | Not a priority | Only 2 trusted users, no strangers |
+| **Auth/permissions** | Keep it simple | If you have the URL, you're one of us |
+| **Edge cases** | Handle only OUR real cases | Don't build for hypothetical users |
+| **Documentation** | Our needs only | Write what WE need to remember |
 
 ### Build for Reality, Not Perfection:
-- We know what investments we have → don't need fancy onboarding
-- We trust each other → don't need audit logs or access control
-- We know the codebase → don't need defensive coding for "future maintainers"
-- **We change our minds** → keep it flexible, easy to hack on
+- We know what investments we have -> don't need fancy onboarding
+- We trust each other -> don't need audit logs or access control
+- We know the codebase -> don't need defensive coding for "future maintainers"
+- **We change our minds** -> keep it flexible, easy to hack on
 
 ### When in Doubt:
 **Ask: "Does this solve OUR actual problem right now?"**
-- Yes → Do it, ship it, move on
-- No → Skip it, document the idea, come back if it hurts
+- Yes -> Do it, ship it, move on
+- No -> Skip it, document the idea, come back if it hurts
 
 ---
 
 ## Project Overview
 
-**NEXUS** is the intelligence and coordination engine. **PRISM** is the web dashboard. Together they form a production-ready investment tracking system designed for family asset management. Supports multiple investment types (land, stocks, gold, crypto, real estate, bonds) with AI-powered document analysis.
+**NEXUS** is the intelligence and coordination engine (backend API + AI worker). **PRISM** is the web dashboard (React frontend). Together they form a personal investment tracking system designed for family asset management.
 
-**Key Features:**
+### Key Features
 - Direct phone uploads to storage (no file passes through API)
 - Multi-provider AI document analysis (Kimi K2.5, OpenAI GPT-4o, Anthropic Claude, Google Gemini, Ollama)
 - PRISM web dashboard for portfolio management
@@ -82,14 +82,13 @@ This document provides essential context for AI coding agents working on this pr
 
 ---
 
-## Architecture
-
-The system follows a **three-layer architecture**:
+## Three-Layer Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      LAYER 1: STORAGE                            │
 │                     Raw binary files only                        │
+│              (Cloudflare R2 / AWS S3 / MinIO)                    │
 └─────────────────────────────────────────────────────────────────┘
                                │
 ┌─────────────────────────────────────────────────────────────────┐
@@ -107,22 +106,46 @@ The system follows a **three-layer architecture**:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+### Service Communication Flow
+
+```
+Phone → POST /api/v1/uploads/request-url
+              ↓
+         Get pre-signed URL (valid 5 min)
+              ↓
+Phone → PUT {pre-signed-url} (uploads directly to R2/S3)
+              ↓
+Phone → POST /api/v1/uploads/confirm
+              ↓
+         File registered + Analysis queued
+              ↓
+Worker → Polls jobs + Downloads file + AI Analysis
+              ↓
+         Results saved to database
+```
+
+**Key point:** Files NEVER pass through the API server. They go directly from device → storage.
+
 ---
 
 ## Technology Stack
 
-| Component | Technology |
-|-----------|------------|
-| **Backend API** | Python 3.12, FastAPI, SQLAlchemy 2.0, Pydantic v2 |
-| **Database** | PostgreSQL 16, Redis 7 |
-| **AI Worker** | Python, Multi-provider (Kimi, OpenAI, Claude, Gemini, Ollama) |
-| **Storage** | Object Storage (S3-compatible) |
-| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
-| **Mobile** | Native Android (Kotlin, Jetpack Compose) |
-| **State Management** | TanStack Query (React Query), Zustand |
-| **Charts** | Recharts |
-| **Icons** | Lucide React |
-| **Deployment** | Docker, Docker Compose, Vercel (via VV deployer), Railway, Render |
+| Component | Technology | Version |
+|-----------|------------|---------|
+| **Backend API** | Python, FastAPI | 3.12+, 0.115.0 |
+| **Database ORM** | SQLAlchemy | 2.0.36 |
+| **Database** | PostgreSQL | 16 |
+| **Cache** | Redis | 7 |
+| **AI Worker** | Python | 3.12+ |
+| **AI Providers** | OpenAI, Anthropic, Google, Kimi | Latest |
+| **Storage** | Cloudflare R2 / AWS S3 / MinIO | S3-compatible |
+| **Frontend** | React, TypeScript, Vite | 18, 5.0 |
+| **Styling** | Tailwind CSS | 3.3.6 |
+| **State Management** | TanStack Query, Zustand | 5.8, 4.4 |
+| **Charts** | Recharts | 2.10 |
+| **Icons** | Lucide React | 0.294 |
+| **Mobile** | Kotlin, Jetpack Compose | 1.9.20 |
+| **Container** | Docker, Docker Compose | 3.8 |
 
 ---
 
@@ -136,31 +159,41 @@ The system follows a **three-layer architecture**:
 │   │   ├── files.py              # File management
 │   │   ├── uploads.py            # Direct-to-storage upload flow
 │   │   ├── analysis.py           # Analysis results and jobs
-│   │   └── dashboard.py          # Statistics and metrics
+│   │   ├── dashboard.py          # Statistics and metrics
+│   │   └── chat.py               # AI chat endpoints
+│   ├── static/                   # Static assets
+│   │   ├── prism_docs.html       # Beautiful PRISM-styled API docs
+│   │   └── favicon.svg
+│   ├── tests/                    # API tests
 │   ├── main.py                   # FastAPI application entry
 │   ├── models.py                 # SQLAlchemy ORM models
 │   ├── database.py               # Database connection & session
-│   ├── storage.py                # Object storage abstraction
+│   ├── storage.py                # Object storage abstraction (S3/R2)
 │   ├── requirements.txt          # Python dependencies
 │   ├── Dockerfile                # API container image
-│   └── tests/                    # API tests
+│   └── wrangler.toml             # Cloudflare Workers config
+│
 ├── worker/                       # Layer 3: Intelligence Worker
 │   ├── main.py                   # Worker orchestrator (job polling loop)
 │   ├── ai_client.py              # Multi-provider AI client
 │   ├── kimi_client.py            # Kimi K2.5 specific client
 │   ├── storage.py                # Worker storage client
+│   ├── temp/                     # Temporary file downloads
+│   ├── tests/                    # Worker tests
 │   ├── requirements.txt          # Python dependencies
-│   ├── Dockerfile                # Worker container image
-│   └── temp/                     # Temporary file downloads
-├── web/                          # Web Dashboard (React + Vite)
+│   └── Dockerfile                # Worker container image
+│
+├── web/                          # PRISM - Web Dashboard (React + Vite)
 │   ├── src/
-│   │   ├── pages/                # Dashboard, Investments, Files, Analysis, LandAnalyzer
+│   │   ├── pages/                # Dashboard, Investments, Files, Analysis, LandAnalyzer, Chat
 │   │   ├── components/           # Reusable UI components (Layout, StatCard, MoneyCard, CreditAnalysis)
 │   │   ├── lib/                  # API client (api.ts), utilities, landCredit.ts
 │   │   ├── hooks/                # Custom React hooks
 │   │   ├── App.tsx               # Main app with routes
 │   │   ├── main.tsx              # React entry point
 │   │   └── index.css             # Global styles with custom design system
+│   ├── functions/api/            # Cloudflare Pages Functions (API endpoints)
+│   ├── dist/                     # Build output
 │   ├── package.json              # Node.js dependencies
 │   ├── tsconfig.json             # TypeScript configuration
 │   ├── vite.config.ts            # Vite configuration
@@ -168,29 +201,45 @@ The system follows a **three-layer architecture**:
 │   ├── Dockerfile                # Web container image
 │   ├── nginx.conf                # Nginx configuration
 │   └── wrangler.toml             # Cloudflare Pages config
+│
 ├── mobile/                       # Mobile applications
 │   └── android/                  # Native Android app (Kotlin, Jetpack Compose)
 │       ├── app/src/main/...      # Kotlin source files
 │       ├── build.gradle.kts      # Gradle build config
 │       └── README.md             # Mobile app documentation
+│
 ├── database/                     # Database schema and migrations
 │   ├── init.sql                  # PostgreSQL schema + sample data
-│   └── migrations/               # Database migrations
+│   ├── migrations/               # Database migrations
+│   └── seeds/                    # Sample data seeds
+│
 ├── shared/                       # Shared code between API and Worker
-│   └── models.py                 # Pydantic schemas shared across services
-├── vv/                           # VV deployer (Vercel deployment script)
-│   ├── vv                        # Main deployment script
-│   ├── ui.sh                     # UI helper functions
-│   └── vv-simple.sh              # Simplified deployer
+│   └── models.py                 # Pydantic schemas (if exists)
+│
 ├── scripts/                      # Utility scripts
 │   ├── deploy-railway.sh         # Railway deployment
 │   ├── railway-setup.sh          # Railway setup
 │   ├── setup/init-dev.sh         # Development setup
 │   ├── health-check/health.sh    # Health checks
 │   └── migration/                # Backup/restore scripts
+│
+├── vv/                           # VV deployer (Vercel deployment script)
+│   ├── vv                        # Main deployment script
+│   ├── ui.sh                     # UI helper functions
+│   └── vv-simple.sh              # Simplified deployer
+│
+├── docs/                         # Documentation
+│   ├── architecture/             # System architecture docs
+│   ├── deployment/               # Deployment guides
+│   └── development/              # Development guides
+│
+├── .github/                      # GitHub configuration
+│   └── workflows/                # CI/CD workflows
+│
 ├── docker-compose.yml            # Complete local stack
 ├── docker-compose.prod.yml       # Production Docker Compose
 ├── docker-compose.test.yml       # Testing Docker Compose
+├── docker-compose.override.yml   # Development overrides
 ├── Makefile                      # Development commands
 ├── vercel.json                   # Vercel deployment config
 ├── railway.json                  # Railway deployment config
@@ -255,12 +304,18 @@ make dev-worker        # Run Worker locally (cd worker && python main.py)
 make test              # Run all tests
 make test-api          # Run API tests (pytest)
 make test-api-cov      # Run API tests with coverage
+make test-worker       # Run Worker tests
+make test-web          # Run Web tests
 
 # Linting & Formatting
 make lint              # Run all linters
 make lint-api          # Lint API code (ruff + mypy)
+make lint-worker       # Lint Worker code
 make lint-web          # Lint Web code
 make format            # Format all code
+make format-api        # Format API code
+make format-worker     # Format Worker code
+make format-web        # Format Web code
 
 # Database
 make migrate           # Run database migrations
@@ -272,10 +327,23 @@ make db-restore        # Restore database from backup
 make prod-up           # Start production stack locally
 make prod-down         # Stop production stack
 make prod-backup       # Backup production database
+make prod-logs         # View production logs
 
 # Mobile
 make mobile-build      # Build Android app
 make mobile-install    # Install Android app to connected device
+make mobile-clean      # Clean Android build
+
+# Railway deployment
+make railway-login     # Login to Railway (one-time)
+make railway-setup     # Setup Railway project and PostgreSQL
+make railway-deploy    # Deploy to Railway
+
+# Utilities
+make health            # Run health checks
+make status            # Show service status
+make secrets           # Generate random secrets for .env
+make pre-commit        # Run pre-commit hooks on all files
 ```
 
 ### NPM Scripts (Root)
@@ -295,6 +363,9 @@ npm run format         # Format all code
 npm run format:api     # Format API (ruff)
 npm run format:worker  # Format Worker
 npm run format:web     # Format Web (prettier)
+npm run setup          # Run initial development setup
+npm run health         # Run health checks
+npm run clean          # Stop and clean Docker containers
 ```
 
 ### Local Development (Without Docker)
@@ -330,12 +401,19 @@ npm run dev
 Copy `.env.example` to `.env` and configure:
 
 ```bash
+# =============================================================================
 # Required
+# =============================================================================
+
+# Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/investments
+
+# Storage (Cloudflare R2, AWS S3, or MinIO)
 STORAGE_ENDPOINT=https://<account>.r2.cloudflarestorage.com
 STORAGE_ACCESS_KEY=your-access-key
 STORAGE_SECRET_KEY=your-secret-key
 STORAGE_BUCKET=family-investments
+STORAGE_REGION=auto
 
 # AI Provider (at least one required)
 AI_API_KEY=your-api-key                    # Generic fallback
@@ -344,21 +422,37 @@ OPENAI_API_KEY=your-openai-key             # OpenAI
 ANTHROPIC_API_KEY=your-anthropic-key       # Claude
 GOOGLE_API_KEY=your-google-key             # Gemini
 
+# =============================================================================
 # Optional (have defaults)
+# =============================================================================
+
 ENVIRONMENT=development
 API_PORT=8000
 WEB_PORT=5173
 JWT_SECRET=your-secret-key
 CORS_ORIGINS=http://localhost:5173
+
+# Worker settings
 WORKER_POLL_INTERVAL=10
 MAX_CONCURRENT_JOBS=3
+WORKER_TIMEOUT=300
+
+# Frontend
 VITE_API_URL=http://localhost:8000
+
+# Feature flags
+VITE_ENABLE_ANALYTICS=false
+VITE_ENABLE_SENTRY=false
+
+# AI Provider selection
+AI_PROVIDER=kimi  # kimi, openai, anthropic, google, ollama
 ```
 
 ### Storage Configuration
 
 - Files are organized as: `{prefix}/{investment_id?}/{uuid}-{filename}`
-- Supports any S3-compatible object storage
+- Supports any S3-compatible object storage (Cloudflare R2, AWS S3, MinIO)
+- Pre-signed URLs for upload/download (5 min default expiration)
 
 ---
 
@@ -378,12 +472,12 @@ VITE_API_URL=http://localhost:8000
 
 ### Key Enums
 
-- **InvestmentCategory:** land, stocks, gold, crypto, real_estate, bonds, other
-- **FileStatus:** pending, processing, completed, failed, archived
-- **JobType:** document_analysis, valuation, ocr, summarization, custom
-- **JobStatus:** queued, running, completed, failed, cancelled
-- **DocumentType:** deed, contract, receipt, photo, video, audio, survey, appraisal, tax_document, permit, correspondence, financial_statement, legal, other
-- **InvestmentStatus:** active, sold, pending, under_contract
+- **InvestmentCategory:** `land`, `stocks`, `gold`, `crypto`, `real_estate`, `bonds`, `other`
+- **FileStatus:** `pending`, `processing`, `completed`, `failed`, `archived`
+- **JobType:** `document_analysis`, `valuation`, `ocr`, `summarization`, `custom`
+- **JobStatus:** `queued`, `running`, `completed`, `failed`, `cancelled`
+- **DocumentType:** `deed`, `contract`, `receipt`, `photo`, `video`, `audio`, `survey`, `appraisal`, `tax_document`, `permit`, `correspondence`, `financial_statement`, `legal`, `other`
+- **InvestmentStatus:** `active`, `sold`, `pending`, `under_contract`
 
 ### Views
 
@@ -454,7 +548,10 @@ GET  /api/v1/chat/context/files        # Get files for context
 - Follow **Pydantic v2** patterns for validation
 - SQLAlchemy 2.0 style (mapped_column, select())
 - Import order: stdlib → third-party → local
-- Use `sys.path.insert(0, '/path/to/shared')` to import shared models
+- Maximum line length: 88 characters
+- Use double quotes for strings
+- Use spaces for indentation (4 spaces)
+- Use LF line endings
 
 Example:
 ```python
@@ -463,10 +560,6 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, HTTPException
-
-import sys
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-from models import InvestmentCreate, InvestmentResponse
 ```
 
 ### TypeScript/React (Web)
@@ -478,6 +571,52 @@ from models import InvestmentCreate, InvestmentResponse
 - Components in `src/components/`
 - Pages in `src/pages/`
 - Custom Tailwind theme in `tailwind.config.js` with warm dark palette
+- Maximum line length: 100 characters
+
+Example:
+```typescript
+import { useQuery } from '@tanstack/react-query'
+import { investmentsApi } from '@/lib/api'
+
+export function InvestmentList() {
+  const { data: investments, isLoading } = useQuery({
+    queryKey: ['investments'],
+    queryFn: investmentsApi.list
+  })
+  
+  if (isLoading) return <div>Loading...</div>
+  
+  return (
+    <div className="grid gap-4">
+      {investments?.map(inv => (
+        <InvestmentCard key={inv.id} investment={inv} />
+      ))}
+    </div>
+  )
+}
+```
+
+### Custom Tailwind Theme (Warm Dark Palette)
+
+```javascript
+colors: {
+  void: { DEFAULT: '#0a0a0a', deep: '#070707' },
+  surface: { DEFAULT: '#111111', elevated: '#161616', higher: '#1c1c1c' },
+  cream: { DEFAULT: '#e8d5c4', light: '#f5e6d3', dark: '#c9b296', muted: '#a89482' },
+  'text-primary': '#f5f2ed',
+  'text-secondary': '#8a8279',
+  'text-muted': '#5c554d',
+  success: { DEFAULT: '#7fb069', dim: 'rgba(127, 176, 105, 0.12)' },
+  warning: { DEFAULT: '#d4a373', dim: 'rgba(212, 163, 115, 0.12)' },
+  error: { DEFAULT: '#c76b6b', dim: 'rgba(199, 107, 107, 0.12)' },
+  info: { DEFAULT: '#6b8cae', dim: 'rgba(107, 140, 174, 0.12)' },
+  border: {
+    subtle: 'rgba(232, 213, 196, 0.06)',
+    DEFAULT: 'rgba(232, 213, 196, 0.1)',
+    strong: 'rgba(232, 213, 196, 0.15)'
+  }
+}
+```
 
 ---
 
@@ -490,19 +629,21 @@ from models import InvestmentCreate, InvestmentResponse
   - Target version: Python 3.12
   - Quote style: double
   - Indent: space
-  - Line ending: lf
+  - Line ending: LF
+  - Enabled: E, W, F, I, N, D, UP, B, C4, SIM, ASYNC
+  - Ignored: D100 (missing docstring in public module), D104 (missing docstring in public package)
 - **mypy** - Static type checking (strict mode)
 
 ```bash
 # API
-ruff check .
-ruff format .
-ruff check --fix .
-mypy . --ignore-missing-imports
+cd api && ruff check .
+cd api && ruff format .
+cd api && ruff check --fix .
+cd api && mypy . --ignore-missing-imports
 
 # Worker
-ruff check .
-ruff format .
+cd worker && ruff check .
+cd worker && ruff format .
 ```
 
 ### TypeScript/JavaScript
@@ -556,6 +697,7 @@ cd api
 pytest -v
 
 # With coverage
+cd api
 pytest --cov=. --cov-report=html -v
 
 # Web tests
@@ -576,17 +718,34 @@ make test
 
 ---
 
+## Security Considerations
+
+- **Pre-signed URLs** for file uploads/downloads (time-limited, 5 min default)
+- **File hashing** (SHA-256) for deduplication
+- **No file content** ever stored in database (only metadata)
+- **Stateless API** - horizontally scalable
+- Files are organized by investment ID for access control
+- JWT secret for authentication (when implemented)
+
+### For Private/Family Use:
+- Keep `.env` secure
+- Use strong passwords for PostgreSQL
+- Rotate R2/S3 keys periodically
+- Enable 2FA on Cloudflare account
+
+---
+
 ## Deployment
 
-### Frontend (Vercel)
+### Frontend (Vercel / Cloudflare Pages)
 
-**Quick Deploy (Fixed):**
+**Quick Deploy:**
 ```bash
-# Deploy to production (manual - uses correct project)
-cd web && vercel --prod --yes
+# Deploy to Cloudflare Pages
+cd web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac
 
-# Or use the auto-deploy script
-./auto-deploy.sh
+# Or use Vercel CLI
+cd web && vercel --prod
 ```
 
 **VV Deployer (Original):**
@@ -597,17 +756,6 @@ cd web && vercel --prod --yes
 # Or with options
 VV_PROD=false ./vv/vv      # Deploy to preview
 VV_DRY_RUN=true ./vv/vv    # Dry run
-```
-
-**Project Fix Applied:**
-The `.vercel/project.json` was updated to use the correct project ID:
-- Project: `investment-aramac` (ID: `prj_q4DMtvmSFrcIIs7HRRvswh4TVVJf`)
-- URL: https://investment-aramac.vercel.app
-
-Configuration in `.vvrc`:
-```
-PROJECT_NAME=investment-dashboard
-DOMAIN=inv.aramac.dev
 ```
 
 ### Backend (Railway/Render)
@@ -623,74 +771,17 @@ make railway-login      # One-time setup
 make railway-deploy     # Deploy to Railway
 ```
 
-### Infrastructure Setup
+### Production Docker
 
-1. **Cloudflare R2 (Storage):**
-   - Create R2 bucket in Cloudflare dashboard
-   - Create API token with R2 permissions
-   - Update `.env` with R2 credentials
+```bash
+# Start production stack locally
+make prod-up
 
-2. **Supabase (PostgreSQL):**
-   - Create project at https://supabase.com
-   - Run `database/init.sql` in SQL Editor
-   - Update `DATABASE_URL` in `.env`
+# View production logs
+make prod-logs
 
-3. **AI Provider API Key:**
-   - **Kimi:** Get key from https://platform.moonshot.cn/
-   - **OpenAI:** Get key from https://platform.openai.com/
-   - **Anthropic:** Get key from https://console.anthropic.com/
-   - **Google:** Get key from https://ai.google.dev/
-   - Set `AI_API_KEY` (generic) or provider-specific key (e.g., `KIMI_API_KEY`)
-
----
-
-## Security Considerations
-
-- **Pre-signed URLs** for file uploads/downloads (time-limited, 5 min default)
-- **File hashing** (SHA-256) for deduplication
-- **No file content** ever stored in database (only metadata)
-- **Stateless API** - horizontally scalable
-- Files are organized by investment ID for access control
-- JWT secret for authentication (when implemented)
-
----
-
-## Common Patterns
-
-### Direct Upload Flow
-
-```
-Phone → POST /api/v1/uploads/request-url
-              ↓
-         Get pre-signed URL (valid 5 min)
-              ↓
-Phone → PUT {pre-signed-url} (uploads directly to R2/S3)
-              ↓
-Phone → POST /api/v1/uploads/confirm
-              ↓
-         File registered + Analysis queued
-```
-
-**Key point:** Files NEVER pass through the API server. They go directly from device → storage.
-
-### Worker Job Processing
-
-1. Worker polls `processing_jobs` table for `queued` jobs
-2. Uses `SELECT FOR UPDATE SKIP LOCKED` for concurrent workers
-3. Downloads file from storage to local temp
-4. Calls AI provider API for analysis
-5. Saves results to `analysis_results` table
-6. Updates job status to `completed` or `failed`
-7. Cleans up temp file
-
-### Storage Key Structure
-
-```
-{prefix}/{investment_id?}/{uuid}-{safe_filename}
-
-Examples:
-- uploads/abc-123/document.pdf
-- uploads/abc-123/def-456/photo.jpg
+# Backup production database
+make prod-backup
 ```
 
 ---
@@ -734,13 +825,6 @@ CHAT_API_URL=https://your-proxy.com/v1
 ```
 
 The system auto-detects which provider to use based on available API keys.
-
-### UI Components
-
-- **Chat Interface** (`/chat`) — Main chat page with message history
-- **Context Selector** — Dropdown to attach investments/files
-- **Streaming Indicator** — Real-time typing animation
-- **Suggested Prompts** — Quick-start questions for common tasks
 
 ### API Endpoints
 
@@ -797,7 +881,7 @@ The app communicates with the API at:
 
 4. **Frontend can't connect to API:**
    - Check `VITE_API_URL` in environment
-   - Verify CORS_ORIGINS includes frontend URL
+   - Verify `CORS_ORIGINS` includes frontend URL
 
 ---
 

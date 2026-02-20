@@ -3,7 +3,6 @@
 ANALYSIS ROUTER - Analysis results and job management
 ===============================================================================
 """
-import sys
 from typing import List, Optional
 from uuid import UUID
 
@@ -11,14 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 
-# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-import models as db_models
-from database import get_async_db
-
-# Import shared Pydantic schemas - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-import models as schemas
+from routers._imports import db_models, schemas, get_async_db
 
 
 router = APIRouter()

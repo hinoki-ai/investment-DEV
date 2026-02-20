@@ -3,7 +3,6 @@ import {
   LayoutDashboard, 
   Trees, 
   FileText, 
-  Brain,
   Upload,
   Menu,
   X,
@@ -14,6 +13,11 @@ import {
   Download,
   FolderOpen,
   Bot,
+  BarChart3,
+  Target,
+  Building2,
+  TrendingUp,
+  MessageSquare,
   type LucideIcon
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
@@ -63,35 +67,20 @@ const isNavItem = (el: NavElement): el is NavItem => {
   return !('type' in el) && 'path' in el
 }
 
-// Navigation structure with nested categories
+// Navigation structure - flat list of pages
 const navigation: NavElement[] = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  
-  { type: 'section', label: 'Portafolio' },
-  {
-    type: 'group',
-    label: 'Inversiones',
-    icon: Trees,
-    defaultExpanded: true,
-    items: [
-      { path: '/investments', label: 'Todas', icon: FolderOpen },
-      { path: '/land-analyzer', label: 'Land Analyzer', icon: Calculator, badge: 'AI', badgeColor: 'cream' },
-    ]
-  },
-  
-  { type: 'section', label: 'Asistente' },
-  { path: '/chat', label: 'Prism Chat', icon: Bot },
-  
-  { type: 'section', label: 'Documentos' },
-  {
-    type: 'group',
-    label: 'Archivos y Análisis',
-    icon: FileText,
-    items: [
-      { path: '/files', label: 'Todos los Archivos', icon: FolderOpen },
-      { path: '/analysis', label: 'Análisis', icon: Brain },
-    ]
-  },
+  { path: '/', label: 'Portafolio', icon: LayoutDashboard },
+  { path: '/investments', label: 'Todas', icon: FolderOpen },
+  { path: '/land-analyzer', label: 'Análisis de Terrenos', icon: BarChart3 },
+  { path: '/land-analyzer/analysis', label: 'Resumen', icon: Target },
+  { path: '/land-analyzer/compare', label: 'Análisis Detallado', icon: TrendingUp },
+  { path: '/land-analyzer/lands', label: 'Comparar', icon: Trees },
+  { path: '/land-analyzer/credits', label: 'Terrenos', icon: Building2 },
+  { path: '/land-analyzer/calculator', label: 'Créditos', icon: Calculator },
+  { path: '/chat', label: 'Calculadora', icon: Bot },
+  { path: '/chat', label: 'Asistente', icon: Bot },
+  { path: '/chat', label: 'Prism Chat', icon: MessageSquare },
+  { path: '/files', label: 'Documentos', icon: FileText },
 ]
 
 // Check if a group contains the active path

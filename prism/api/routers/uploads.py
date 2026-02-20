@@ -5,7 +5,6 @@ UPLOAD ROUTER - Direct-to-Storage Upload Flow
 Phone → Gets pre-signed URL → Uploads directly to R2/S3 → Confirms upload → Creates job
 ===============================================================================
 """
-import sys
 from typing import Optional
 from uuid import UUID
 
@@ -13,20 +12,19 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-import models as db_models
-from database import get_async_db, redis_client
-
-# Import shared Pydantic schemas - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-import models as schemas
-
-from storage import get_storage_service
+from routers._imports import db_models, schemas, get_async_db, redis_client, get_storage_service
 
 
 router = APIRouter()
-storage = get_storage_service()
+storage = None
+
+
+def get_storage():
+    """Get storage service (lazy initialization)."""
+    global storage
+    if storage is None:
+        storage = get_storage_service()
+    return storage
 
 
 @router.post("/request-url", response_model=schemas.UploadUrlResponse)
@@ -43,7 +41,7 @@ async def request_upload_url(
     4. Phone calls /confirm-upload to complete
     """
     # Generate storage key
-    storage_key = storage.generate_storage_key(
+    storage_key = get_storage().generate_storage_key(
         original_filename=request.filename,
         investment_id=str(request.investment_id) if request.investment_id else None,
         prefix="uploads"
@@ -53,7 +51,7 @@ async def request_upload_url(
     file_entry = db_models.FileRegistry(
         original_filename=request.filename,
         storage_key=storage_key,
-        storage_bucket=storage.bucket,
+        storage_bucket=get_storage().bucket,
         mime_type=request.content_type,
         source_device=request.source_device,
         investment_id=request.investment_id,
@@ -66,7 +64,7 @@ async def request_upload_url(
     await db.refresh(file_entry)
     
     # Generate pre-signed URL
-    upload_url = storage.generate_upload_url(
+    upload_url = get_storage().generate_upload_url(
         storage_key=storage_key,
         content_type=request.content_type,
         expires_in=300  # 5 minutes
@@ -105,7 +103,7 @@ async def confirm_upload(
     
     # Verify file exists in storage and get metadata
     try:
-        file_metadata = storage.get_file_metadata(file_entry.storage_key)
+        file_metadata = get_storage().get_file_metadata(file_entry.storage_key)
         file_entry.file_size_bytes = file_metadata.get('size')
     except Exception as e:
         # File doesn't exist in storage yet
@@ -211,7 +209,7 @@ async def request_upload_urls_batch(
     
     for request in requests:
         # Generate storage key
-        storage_key = storage.generate_storage_key(
+        storage_key = get_storage().generate_storage_key(
             original_filename=request.filename,
             investment_id=str(request.investment_id) if request.investment_id else None,
             prefix="uploads"
@@ -221,7 +219,7 @@ async def request_upload_urls_batch(
         file_entry = db_models.FileRegistry(
             original_filename=request.filename,
             storage_key=storage_key,
-            storage_bucket=storage.bucket,
+            storage_bucket=get_storage().bucket,
             mime_type=request.content_type,
             source_device=request.source_device,
             investment_id=request.investment_id,
@@ -234,7 +232,7 @@ async def request_upload_urls_batch(
         await db.refresh(file_entry)
         
         # Generate pre-signed URL
-        upload_url = storage.generate_upload_url(
+        upload_url = get_storage().generate_upload_url(
             storage_key=storage_key,
             content_type=request.content_type,
             expires_in=300  # 5 minutes
@@ -280,7 +278,7 @@ async def confirm_uploads_batch(
             
             # Verify file exists in storage and get metadata
             try:
-                file_metadata = storage.get_file_metadata(file_entry.storage_key)
+                file_metadata = get_storage().get_file_metadata(file_entry.storage_key)
                 file_entry.file_size_bytes = file_metadata.get('size')
             except Exception as e:
                 responses.append({

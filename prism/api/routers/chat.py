@@ -29,7 +29,6 @@ The router auto-detects which provider to use based on available API keys.
 """
 import json
 import os
-import sys
 from typing import AsyncGenerator, List, Optional
 from uuid import UUID
 
@@ -39,19 +38,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from pydantic import BaseModel
 
-# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-import models as db_models
-from database import get_async_db
-
-# Import shared Pydantic schemas - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-import models as schemas
-
-from storage import get_storage_service
+from routers._imports import db_models, get_async_db, get_storage_service
 
 router = APIRouter()
-storage = get_storage_service()
+storage = None
+
+
+def get_storage():
+    """Get storage service (lazy initialization)."""
+    global storage
+    if storage is None:
+        storage = get_storage_service()
+    return storage
 
 
 # =============================================================================

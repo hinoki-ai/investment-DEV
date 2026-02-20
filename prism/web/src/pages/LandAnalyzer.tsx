@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
+import { Outlet } from 'react-router-dom'
 import {
   Calculator,
   TrendingUp,
-  BarChart3,
   Plus,
   Download,
   Building2,
@@ -10,7 +10,6 @@ import {
   ChevronDown,
   Filter,
   CheckCircle,
-  Target,
   ArrowUpRight,
   ArrowDownRight,
   AlertTriangle
@@ -36,8 +35,6 @@ import {
   MarketDataPanel
 } from '../components/CreditAnalysis'
 import { HelpTooltip, LabelWithTooltip, INVESTMENT_TOOLTIPS } from '../components/HelpTooltip'
-
-type Tab = 'overview' | 'compare' | 'lands' | 'credits' | 'calculator' | 'analysis'
 
 // Money Card Component - New Design
 function MoneyCard({
@@ -83,35 +80,40 @@ function MoneyCard({
   )
 }
 
-export default function LandAnalyzer() {
-  const [activeTab, setActiveTab] = useState<Tab>('overview')
-  const [selectedLand, setSelectedLand] = useState<LandOpportunity | null>(null)
-  const [selectedCredit, setSelectedCredit] = useState<CreditScenario | null>(null)
-  
-  const [customLand, setCustomLand] = useState<Partial<LandOpportunity>>({
-    askingPrice: 25000000,
-    landAreaSquareMeters: 1000,
-    appraisalValue: 30000000,
-    expectedAppreciationAnnual: 7,
-    zoning: 'residential',
-    hasBasicServices: true,
-    hasRoadAccess: true,
-  })
-  
-  const [customCredit, setCustomCredit] = useState<Partial<CreditScenario>>({
-    advertisedCreditAmount: 30000000,
-    requiredDownPayment: 6000000,
-    annualInterestRate: 4.19,
-    termYears: 20,
-    notaryFees: 100000,
-    registrationFees: 180000,
-    appraisalFee: 100000,
-    insuranceFees: 180000,
-    stampTax: 48000,
-    otherFees: 50000,
-    isDFL2: true,
-  })
+// ============================================================================
+// SHARED STATE HOOK
+// ============================================================================
 
+let sharedSelectedLand: LandOpportunity | null = null
+let sharedSelectedCredit: CreditScenario | null = null
+
+export function useLandAnalyzerState() {
+  const [selectedLand, setSelectedLand] = useState<LandOpportunity | null>(sharedSelectedLand)
+  const [selectedCredit, setSelectedCredit] = useState<CreditScenario | null>(sharedSelectedCredit)
+  
+  const updateSelectedLand = (land: LandOpportunity | null) => {
+    sharedSelectedLand = land
+    setSelectedLand(land)
+  }
+  
+  const updateSelectedCredit = (credit: CreditScenario | null) => {
+    sharedSelectedCredit = credit
+    setSelectedCredit(credit)
+  }
+  
+  return {
+    selectedLand,
+    selectedCredit,
+    setSelectedLand: updateSelectedLand,
+    setSelectedCredit: updateSelectedCredit
+  }
+}
+
+// ============================================================================
+// DATA HOOK
+// ============================================================================
+
+export function useLandAnalyzerData() {
   const allLands = useMemo(() => [...SAMPLE_LANDS], [])
   const allCredits = useMemo(() => [...SAMPLE_CREDITS], [])
 
@@ -131,163 +133,15 @@ export default function LandAnalyzer() {
 
   const comparison = useMemo(() => compareScenarios(allCombos), [allCombos])
 
-  const currentCombo = useMemo(() => {
-    if (!selectedLand || !selectedCredit) return null
-    return {
-      land: selectedLand,
-      credit: selectedCredit,
-      analysis: analyzeLandCreditCombo(selectedLand, selectedCredit)
-    }
-  }, [selectedLand, selectedCredit])
-  
-  const _selectedComboInfo = currentCombo ? `${currentCombo.land.name} + ${currentCombo.credit.name}` : 'No selection'
-  void _selectedComboInfo
-
-  const customAnalysis = useMemo(() => {
-    if (!customLand.askingPrice || !customCredit.advertisedCreditAmount) return null
-    
-    const land: LandOpportunity = {
-      id: 'custom',
-      name: 'Terreno Personalizado',
-      location: { region: 'Custom', city: 'Custom', commune: 'Custom' },
-      askingPrice: customLand.askingPrice,
-      landAreaSquareMeters: customLand.landAreaSquareMeters || 1000,
-      pricePerSquareMeter: (customLand.askingPrice || 0) / (customLand.landAreaSquareMeters || 1000),
-      appraisalValue: customLand.appraisalValue || customLand.askingPrice,
-      belowAppraisalBy: customLand.appraisalValue 
-        ? ((customLand.appraisalValue - customLand.askingPrice) / customLand.appraisalValue) * 100
-        : 0,
-      zoning: customLand.zoning || 'residential',
-      hasBasicServices: customLand.hasBasicServices || false,
-      hasRoadAccess: customLand.hasRoadAccess || false,
-      topography: 'flat',
-      expectedAppreciationAnnual: customLand.expectedAppreciationAnnual || 7,
-      status: 'analyzing',
-      listingDate: new Date().toISOString(),
-      notes: ''
-    }
-    
-    const credit: CreditScenario = {
-      id: 'custom',
-      name: 'Crédito Personalizado',
-      bank: 'Personalizado',
-      advertisedCreditAmount: customCredit.advertisedCreditAmount,
-      requiredDownPayment: customCredit.requiredDownPayment || 0,
-      effectiveCreditAmount: calculateEffectiveCredit(
-        customCredit.advertisedCreditAmount,
-        customCredit.requiredDownPayment || 0
-      ),
-      annualInterestRate: customCredit.annualInterestRate || 4.19,
-      termYears: customCredit.termYears || 20,
-      notaryFees: customCredit.notaryFees || 100000,
-      registrationFees: customCredit.registrationFees || 180000,
-      appraisalFee: customCredit.appraisalFee || 100000,
-      insuranceFees: customCredit.insuranceFees || 180000,
-      stampTax: customCredit.stampTax || 48000,
-      otherFees: customCredit.otherFees || 50000,
-      ufValueAtPurchase: 39740,
-      currency: 'CLP',
-      isDFL2: customCredit.isDFL2 ?? true,
-      requiredMonthlyIncome: 1800000,
-      maxPaymentToIncomeRatio: 0.25
-    }
-    
-    return { land, credit, analysis: analyzeLandCreditCombo(land, credit) }
-  }, [customLand, customCredit])
-
-  const tabs = [
-    { id: 'overview' as Tab, label: 'Resumen', icon: BarChart3 },
-    { id: 'analysis' as Tab, label: 'Análisis Detallado', icon: Target },
-    { id: 'compare' as Tab, label: 'Comparar', icon: TrendingUp },
-    { id: 'lands' as Tab, label: 'Terrenos', icon: Trees },
-    { id: 'credits' as Tab, label: 'Créditos', icon: Building2 },
-    { id: 'calculator' as Tab, label: 'Calculadora', icon: Calculator },
-  ]
-
-  return (
-    <div className="space-y-6 fade-in">
-      {/* Tabs */}
-      <div className="border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
-        <nav className="flex space-x-1 overflow-x-auto scrollbar-hide pb-1">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  flex items-center gap-2 py-3 sm:py-4 px-3 sm:px-4 font-medium text-sm whitespace-nowrap transition-all duration-200 border-b-2 flex-shrink-0
-                  ${activeTab === tab.id
-                    ? 'border-cream text-cream'
-                    : 'border-transparent text-text-muted hover:text-text-primary'
-                  }
-                `}
-              >
-                <Icon className="h-4 w-4 flex-shrink-0" />
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-              </button>
-            )
-          })}
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      <div className="pb-8">
-        {activeTab === 'overview' && (
-          <OverviewTab comparison={comparison} allCombos={allCombos} />
-        )}
-
-        {activeTab === 'compare' && <CompareTab comparison={comparison} />}
-        {activeTab === 'lands' && (
-          <LandsTab 
-            lands={allLands}
-            selectedLand={selectedLand}
-            onSelectLand={setSelectedLand}
-          />
-        )}
-        {activeTab === 'credits' && (
-          <CreditsTab 
-            credits={allCredits}
-            selectedCredit={selectedCredit}
-            onSelectCredit={setSelectedCredit}
-          />
-        )}
-        {activeTab === 'analysis' && (
-          <AnalysisTab 
-            selectedLand={selectedLand}
-            selectedCredit={selectedCredit}
-            allLands={allLands}
-            allCredits={allCredits}
-            onSelectLand={setSelectedLand}
-            onSelectCredit={setSelectedCredit}
-          />
-        )}
-        {activeTab === 'calculator' && (
-          <CalculatorTab 
-            customLand={customLand}
-            setCustomLand={setCustomLand}
-            customCredit={customCredit}
-            setCustomCredit={setCustomCredit}
-            customAnalysis={customAnalysis}
-          />
-        )}
-      </div>
-    </div>
-  )
+  return { allLands, allCredits, allCombos, comparison }
 }
 
 // ============================================================================
-// OVERVIEW TAB
+// OVERVIEW VIEW
 // ============================================================================
 
-function OverviewTab({ 
-  comparison, 
-  allCombos
-}: { 
-  comparison: ReturnType<typeof compareScenarios>
-  allCombos: LandCreditCombo[]
-}) {
+export function OverviewView() {
+  const { allCombos, comparison } = useLandAnalyzerData()
   const topScored = allCombos.slice().sort((a, b) => b.analysis.score - a.analysis.score).slice(0, 5)
   
   return (
@@ -353,10 +207,12 @@ function OverviewTab({
 }
 
 // ============================================================================
-// COMPARE TAB
+// COMPARE VIEW
 // ============================================================================
 
-function CompareTab({ comparison }: { comparison: ReturnType<typeof compareScenarios> }) {
+export function CompareView() {
+  const { comparison } = useLandAnalyzerData()
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -402,24 +258,19 @@ function CompareTab({ comparison }: { comparison: ReturnType<typeof compareScena
 }
 
 // ============================================================================
-// LANDS TAB
+// LANDS VIEW
 // ============================================================================
 
-function LandsTab({ 
-  lands, 
-  selectedLand, 
-  onSelectLand 
-}: { 
-  lands: LandOpportunity[]
-  selectedLand: LandOpportunity | null
-  onSelectLand: (land: LandOpportunity) => void
-}) {
+export function LandsView() {
+  const { allLands } = useLandAnalyzerData()
+  const { selectedLand, setSelectedLand } = useLandAnalyzerState()
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-text-primary">Terrenos Disponibles</h2>
-          <p className="text-sm text-text-muted mt-1">{lands.length} oportunidades analizadas</p>
+          <p className="text-sm text-text-muted mt-1">{allLands.length} oportunidades analizadas</p>
         </div>
         <button className="glyph-btn glyph-btn-primary">
           <Plus className="h-4 w-4" />
@@ -428,12 +279,12 @@ function LandsTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {lands.map((land) => (
+        {allLands.map((land) => (
           <LandCard
             key={land.id}
             land={land}
             isSelected={selectedLand?.id === land.id}
-            onClick={() => onSelectLand(land)}
+            onClick={() => setSelectedLand(land)}
           />
         ))}
       </div>
@@ -473,24 +324,19 @@ function LandsTab({
 }
 
 // ============================================================================
-// CREDITS TAB
+// CREDITS VIEW
 // ============================================================================
 
-function CreditsTab({ 
-  credits, 
-  selectedCredit, 
-  onSelectCredit 
-}: { 
-  credits: CreditScenario[]
-  selectedCredit: CreditScenario | null
-  onSelectCredit: (credit: CreditScenario) => void
-}) {
+export function CreditsView() {
+  const { allCredits } = useLandAnalyzerData()
+  const { selectedCredit, setSelectedCredit } = useLandAnalyzerState()
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-text-primary">Créditos Hipotecarios</h2>
-          <p className="text-sm text-text-muted mt-1">{credits.length} créditos analizados</p>
+          <p className="text-sm text-text-muted mt-1">{allCredits.length} créditos analizados</p>
         </div>
         <button className="glyph-btn glyph-btn-primary">
           <Plus className="h-4 w-4" />
@@ -499,12 +345,12 @@ function CreditsTab({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {credits.map((credit) => (
+        {allCredits.map((credit) => (
           <CreditCard
             key={credit.id}
             credit={credit}
             isSelected={selectedCredit?.id === credit.id}
-            onClick={() => onSelectCredit(credit)}
+            onClick={() => setSelectedCredit(credit)}
           />
         ))}
       </div>
@@ -519,24 +365,13 @@ function CreditsTab({
 }
 
 // ============================================================================
-// ANALYSIS TAB
+// ANALYSIS VIEW
 // ============================================================================
 
-function AnalysisTab({ 
-  selectedLand, 
-  selectedCredit,
-  allLands,
-  allCredits,
-  onSelectLand,
-  onSelectCredit
-}: { 
-  selectedLand: LandOpportunity | null
-  selectedCredit: CreditScenario | null
-  allLands: LandOpportunity[]
-  allCredits: CreditScenario[]
-  onSelectLand: (land: LandOpportunity) => void
-  onSelectCredit: (credit: CreditScenario) => void
-}) {
+export function AnalysisView() {
+  const { allLands, allCredits } = useLandAnalyzerData()
+  const { selectedLand, selectedCredit, setSelectedLand, setSelectedCredit } = useLandAnalyzerState()
+
   const currentCombo = useMemo(() => {
     if (!selectedLand || !selectedCredit) return null
     return {
@@ -569,7 +404,7 @@ function AnalysisTab({
               {allLands.map((l) => (
                 <button
                   key={l.id}
-                  onClick={() => onSelectLand(l)}
+                  onClick={() => setSelectedLand(l)}
                   className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
                     land.id === l.id
                       ? 'bg-cream/10 border border-cream/20'
@@ -593,7 +428,7 @@ function AnalysisTab({
               {allCredits.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => onSelectCredit(c)}
+                  onClick={() => setSelectedCredit(c)}
                   className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
                     credit.id === c.id
                       ? 'bg-cream/10 border border-cream/20'
@@ -621,22 +456,86 @@ function AnalysisTab({
 }
 
 // ============================================================================
-// CALCULATOR TAB
+// CALCULATOR VIEW
 // ============================================================================
 
-function CalculatorTab({
-  customLand,
-  setCustomLand,
-  customCredit,
-  setCustomCredit,
-  customAnalysis
-}: {
-  customLand: Partial<LandOpportunity>
-  setCustomLand: (land: Partial<LandOpportunity>) => void
-  customCredit: Partial<CreditScenario>
-  setCustomCredit: (credit: Partial<CreditScenario>) => void
-  customAnalysis: LandCreditCombo | null
-}) {
+export function CalculatorView() {
+  const [customLand, setCustomLand] = useState<Partial<LandOpportunity>>({
+    askingPrice: 25000000,
+    landAreaSquareMeters: 1000,
+    appraisalValue: 30000000,
+    expectedAppreciationAnnual: 7,
+    zoning: 'residential',
+    hasBasicServices: true,
+    hasRoadAccess: true,
+  })
+  
+  const [customCredit, setCustomCredit] = useState<Partial<CreditScenario>>({
+    advertisedCreditAmount: 30000000,
+    requiredDownPayment: 6000000,
+    annualInterestRate: 4.19,
+    termYears: 20,
+    notaryFees: 100000,
+    registrationFees: 180000,
+    appraisalFee: 100000,
+    insuranceFees: 180000,
+    stampTax: 48000,
+    otherFees: 50000,
+    isDFL2: true,
+  })
+
+  const customAnalysis = useMemo(() => {
+    if (!customLand.askingPrice || !customCredit.advertisedCreditAmount) return null
+    
+    const land: LandOpportunity = {
+      id: 'custom',
+      name: 'Terreno Personalizado',
+      location: { region: 'Custom', city: 'Custom', commune: 'Custom' },
+      askingPrice: customLand.askingPrice,
+      landAreaSquareMeters: customLand.landAreaSquareMeters || 1000,
+      pricePerSquareMeter: (customLand.askingPrice || 0) / (customLand.landAreaSquareMeters || 1000),
+      appraisalValue: customLand.appraisalValue || customLand.askingPrice,
+      belowAppraisalBy: customLand.appraisalValue 
+        ? ((customLand.appraisalValue - customLand.askingPrice) / customLand.appraisalValue) * 100
+        : 0,
+      zoning: customLand.zoning || 'residential',
+      hasBasicServices: customLand.hasBasicServices || false,
+      hasRoadAccess: customLand.hasRoadAccess || false,
+      topography: 'flat',
+      expectedAppreciationAnnual: customLand.expectedAppreciationAnnual || 7,
+      status: 'analyzing',
+      listingDate: new Date().toISOString(),
+      notes: ''
+    }
+    
+    const credit: CreditScenario = {
+      id: 'custom',
+      name: 'Crédito Personalizado',
+      bank: 'Personalizado',
+      advertisedCreditAmount: customCredit.advertisedCreditAmount,
+      requiredDownPayment: customCredit.requiredDownPayment || 0,
+      effectiveCreditAmount: calculateEffectiveCredit(
+        customCredit.advertisedCreditAmount,
+        customCredit.requiredDownPayment || 0
+      ),
+      annualInterestRate: customCredit.annualInterestRate || 4.19,
+      termYears: customCredit.termYears || 20,
+      notaryFees: customCredit.notaryFees || 100000,
+      registrationFees: customCredit.registrationFees || 180000,
+      appraisalFee: customCredit.appraisalFee || 100000,
+      insuranceFees: customCredit.insuranceFees || 180000,
+      stampTax: customCredit.stampTax || 48000,
+      otherFees: customCredit.otherFees || 50000,
+      ufValueAtPurchase: 39740,
+      currency: 'CLP',
+      isDFL2: customCredit.isDFL2 ?? true,
+      requiredMonthlyIncome: 1800000,
+      maxPaymentToIncomeRatio: 0.25
+    }
+    
+    return { land, credit, analysis: analyzeLandCreditCombo(land, credit) }
+  }, [customLand, customCredit])
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-info/20 bg-info-dim p-5">
@@ -902,6 +801,18 @@ function CalculatorTab({
           )}
         </div>
       )}
+    </div>
+  )
+}
+
+// ============================================================================
+// MAIN LAND ANALYZER COMPONENT (Layout Wrapper)
+// ============================================================================
+
+export default function LandAnalyzer() {
+  return (
+    <div className="fade-in">
+      <Outlet />
     </div>
   )
 }

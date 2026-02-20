@@ -56,46 +56,28 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
       const latestUsd = usdData.serie?.[0]?.valor || null
       const latestUf = ufData.serie?.[0]?.valor || null
 
-      // Fetch precious metals prices (gold and silver in USD per ounce)
-      // Using a free API that doesn't require authentication
-      let goldPriceUsdPerOz: number | null = null
-      let silverPriceUsdPerOz: number | null = null
+      // Fetch precious metals prices from backend (avoids CORS issues)
+      let goldPriceClpPerGram: number | null = null
+      let silverPriceClpPerGram: number | null = null
 
       try {
-        const metalsRes = await fetch('https://api.metals.live/v1/spot', {
-          signal: AbortSignal.timeout(5000)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+        const marketRes = await fetch(`${apiUrl}/api/v1/dashboard/market-data`, {
+          signal: AbortSignal.timeout(10000)
         })
-        if (metalsRes.ok) {
-          const metalsData = await metalsRes.json()
-          // API returns prices in USD per ounce
-          goldPriceUsdPerOz = metalsData.gold || null
-          silverPriceUsdPerOz = metalsData.silver || null
-        }
-      } catch {
-        // Fallback to alternative API if first fails
-        try {
-          const fallbackRes = await fetch('https://www.goldapi.io/api/XAU/USD', {
-            headers: { 'x-access-token': 'goldapi-demo' },
-            signal: AbortSignal.timeout(5000)
-          })
-          if (fallbackRes.ok) {
-            const data = await fallbackRes.json()
-            goldPriceUsdPerOz = data.price || null
-          }
-        } catch {
-          // If both fail, will use null
-        }
-      }
 
-      // Convert to CLP per gram
-      // 1 troy ounce = 31.1034768 grams
-      const gramsPerOunce = 31.1034768
-      const goldPriceClpPerGram = goldPriceUsdPerOz && latestUsd
-        ? (goldPriceUsdPerOz * latestUsd) / gramsPerOunce
-        : null
-      const silverPriceClpPerGram = silverPriceUsdPerOz && latestUsd
-        ? (silverPriceUsdPerOz * latestUsd) / gramsPerOunce
-        : null
+        if (marketRes.ok) {
+          const marketData = await marketRes.json()
+          goldPriceClpPerGram = marketData.gold_clp_per_gram
+          silverPriceClpPerGram = marketData.silver_clp_per_gram
+          console.log('[MarketData] Gold CLP/g:', goldPriceClpPerGram)
+          console.log('[MarketData] Silver CLP/g:', silverPriceClpPerGram)
+        } else {
+          console.warn('[MarketData] Market data API failed:', marketRes.status)
+        }
+      } catch (err) {
+        console.error('[MarketData] Metals fetch error:', err)
+      }
 
       // Fetch crypto prices (Bitcoin & Ethereum in USD)
       let bitcoinPriceUsd: number | null = null
@@ -188,30 +170,19 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
     })
   }
 
-  // Compact format for large numbers (e.g., 58.032.080 -> 58M)
+  // Compact format for large numbers (e.g., 58.032.080 -> 58,03M)
   const formatCompact = (value: number | null): string => {
     if (value === null || value === undefined) return '—'
     if (value >= 1_000_000_000) {
-      return (value / 1_000_000_000).toFixed(1).replace('.', ',') + 'M'
+      return (value / 1_000_000_000).toFixed(2).replace('.', ',') + 'M'
     }
     if (value >= 1_000_000) {
-      return (value / 1_000_000).toFixed(1).replace('.', ',') + 'M'
+      return (value / 1_000_000).toFixed(2).replace('.', ',') + 'M'
     }
     if (value >= 1_000) {
-      return (value / 1_000).toFixed(1).replace('.', ',') + 'k'
+      return (value / 1_000).toFixed(2).replace('.', ',') + 'k'
     }
     return value.toLocaleString('es-CL')
-  }
-
-  // Get adaptive font size based on value length
-  const getValueFontSize = (value: number | null): string => {
-    if (value === null || value === undefined) return 'text-sm'
-    const formatted = formatCurrency(value)
-    const length = formatted.length
-    if (length > 12) return 'text-[10px]'
-    if (length > 9) return 'text-[11px]'
-    if (length > 6) return 'text-xs'
-    return 'text-sm'
   }
 
   // Collapsed view - just icons with tooltips
@@ -339,7 +310,10 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             <DollarSign className="h-3 w-3 text-success" />
             <span className="text-[10px] font-medium text-text-muted uppercase">USD</span>
           </div>
-          <div className="font-mono text-sm text-success truncate">
+          <div 
+            className="font-mono text-success truncate text-sm"
+            title={marketData.usd ? `$${formatCurrency(marketData.usd)}` : '—'}
+          >
             {loading ? (
               <span className="text-text-muted">...</span>
             ) : (
@@ -354,7 +328,10 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             <CircleDollarSign className="h-3 w-3 text-warning" />
             <span className="text-[10px] font-medium text-text-muted uppercase">UF</span>
           </div>
-          <div className="font-mono text-sm text-warning truncate">
+          <div 
+            className="font-mono text-warning truncate text-sm"
+            title={marketData.uf ? `$${formatCurrency(marketData.uf, 2)}` : '—'}
+          >
             {loading ? (
               <span className="text-text-muted">...</span>
             ) : (
@@ -372,7 +349,10 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             </div>
             <span className="text-[9px] text-text-muted">/g</span>
           </div>
-          <div className="font-mono text-sm text-warning mt-1 truncate">
+          <div 
+            className="font-mono text-warning mt-1 truncate text-sm"
+            title={marketData.gold ? `$${formatCurrency(marketData.gold)}` : '—'}
+          >
             {loading ? (
               <span className="text-text-muted">...</span>
             ) : marketData.gold ? (
@@ -392,7 +372,10 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             </div>
             <span className="text-[9px] text-text-muted">/g</span>
           </div>
-          <div className="font-mono text-sm text-blue-400 mt-1 truncate">
+          <div 
+            className="font-mono text-blue-400 mt-1 truncate text-sm"
+            title={marketData.silver ? `$${formatCurrency(marketData.silver)}` : '—'}
+          >
             {loading ? (
               <span className="text-text-muted">...</span>
             ) : marketData.silver ? (
@@ -410,7 +393,7 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             <span className="text-[10px] font-medium text-text-muted uppercase">BTC</span>
           </div>
           <div 
-            className={`font-mono text-orange-500 truncate ${getValueFontSize(marketData.bitcoin)}`}
+            className="font-mono text-orange-500 truncate text-sm"
             title={marketData.bitcoin ? `$${formatCurrency(marketData.bitcoin)}` : '—'}
           >
             {loading ? (
@@ -441,7 +424,7 @@ export default function MarketDataTicker({ collapsed }: { collapsed: boolean }) 
             <span className="text-[10px] font-medium text-text-muted uppercase">ETH</span>
           </div>
           <div 
-            className={`font-mono text-indigo-400 truncate ${getValueFontSize(marketData.ethereum)}`}
+            className="font-mono text-indigo-400 truncate text-sm"
             title={marketData.ethereum ? `$${formatCurrency(marketData.ethereum)}` : '—'}
           >
             {loading ? (

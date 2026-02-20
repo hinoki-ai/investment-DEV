@@ -3,7 +3,6 @@
 FILES ROUTER - File registry management
 ===============================================================================
 """
-import sys
 from typing import List, Optional
 from uuid import UUID
 
@@ -12,20 +11,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from sqlalchemy.orm import selectinload
 
-# Import API SQLAlchemy models (local models.py) - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
-from database import get_async_db
-import models as db_models
-
-# Import shared Pydantic schemas - use alias to avoid conflict
-sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
-import models as schemas
-
-from storage import get_storage_service
+from routers._imports import db_models, schemas, get_async_db, get_storage_service
 
 
 router = APIRouter()
-storage = get_storage_service()
+storage = None
+
+
+def get_storage():
+    """Get storage service (lazy initialization)."""
+    global storage
+    if storage is None:
+        storage = get_storage_service()
+    return storage
 
 
 @router.get("", response_model=List[schemas.FileRegistryResponse])
@@ -95,7 +93,7 @@ async def get_download_url(
             detail="File not found"
         )
     
-    url = storage.generate_download_url(
+    url = get_storage().generate_download_url(
         storage_key=file_entry.storage_key,
         expires_in=expires_in,
         filename=file_entry.original_filename
@@ -127,7 +125,7 @@ async def delete_file(
     
     # Delete from storage
     if delete_from_storage:
-        storage.delete_file(file_entry.storage_key)
+        get_storage().delete_file(file_entry.storage_key)
     
     # Delete from database
     await db.delete(file_entry)

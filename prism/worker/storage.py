@@ -23,14 +23,14 @@ class WorkerStorage:
         secret_key: Optional[str] = None,
         region: str = "us-east-1",
         bucket: Optional[str] = None,
-        temp_dir: str = "/app/temp"
+        temp_dir: Optional[str] = None
     ):
         self.endpoint_url = endpoint_url or os.getenv("STORAGE_ENDPOINT", "http://localhost:9000")
         self.access_key = access_key or os.getenv("STORAGE_ACCESS_KEY", "minioadmin")
         self.secret_key = secret_key or os.getenv("STORAGE_SECRET_KEY", "minioadmin")
         self.region = region or os.getenv("STORAGE_REGION", "us-east-1")
         self.bucket = bucket or os.getenv("STORAGE_BUCKET", "investments")
-        self.temp_dir = temp_dir
+        self.temp_dir = temp_dir or os.getenv("WORKER_TEMP_DIR", tempfile.gettempdir())
         
         # Ensure temp directory exists
         os.makedirs(self.temp_dir, exist_ok=True)
