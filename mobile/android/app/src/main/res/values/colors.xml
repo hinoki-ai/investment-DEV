@@ -2,8 +2,8 @@
 <resources>
     <!-- PRISM Warm Dark Palette -->
     <!-- Core Backgrounds -->
-    <color name="void">#0A0A0A</color>
-    <color name="void_deep">#070707</color>
+    <color name="void_color">#0A0A0A</color>
+    <color name="void_deep_color">#070707</color>
     <color name="surface">#111111</color>
     <color name="surface_elevated">#161616</color>
     <color name="surface_higher">#1C1C1C</color>
@@ -26,9 +26,9 @@
     <color name="info">#6B8CAE</color>
     
     <!-- System Bars -->
-    <color name="status_bar_color">@color/void</color>
-    <color name="navigation_bar_color">@color/void</color>
+    <color name="status_bar_color">@color/void_color</color>
+    <color name="navigation_bar_color">@color/void_color</color>
     
     <!-- Launcher Icon -->
-    <color name="ic_launcher_background">@color/void</color>
+    <color name="ic_launcher_background">@color/void_color</color>
 </resources>

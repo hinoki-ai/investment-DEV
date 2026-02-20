@@ -6,8 +6,8 @@
     -->
     <style name="Theme.InvestmentPortal" parent="android:Theme.Material.NoActionBar">
         <!-- System bars -->
-        <item name="android:statusBarColor">@color/void</item>
-        <item name="android:navigationBarColor">@color/void</item>
+        <item name="android:statusBarColor">@color/void_color</item>
+        <item name="android:navigationBarColor">@color/void_color</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         
@@ -23,6 +23,6 @@
         Shows immediately while app loads
     -->
     <style name="Theme.InvestmentPortal.Splash" parent="Theme.InvestmentPortal">
-        <item name="android:windowBackground">@color/void</item>
+        <item name="android:windowBackground">@color/void_color</item>
     </style>
 </resources>

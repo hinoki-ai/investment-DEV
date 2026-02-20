@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Same warm dark palette for night mode -->
-    <color name="status_bar_color">@color/void</color>
-    <color name="navigation_bar_color">@color/void</color>
+    <color name="status_bar_color">@color/void_color</color>
+    <color name="navigation_bar_color">@color/void_color</color>
 </resources>
