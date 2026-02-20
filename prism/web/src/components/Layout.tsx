@@ -6,22 +6,56 @@ import {
   Upload,
   Menu,
   X,
-  Calculator,
   ChevronRight,
   PanelLeft,
   ChevronDown,
   Download,
   FolderOpen,
-  Bot,
-  BarChart3,
-  Target,
-  Building2,
-  TrendingUp,
   MessageSquare,
+  Clock,
+  BarChart3,
+  Smartphone,
   type LucideIcon
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import MarketDataTicker from './MarketDataTicker'
+
+// Compact time display component for the header
+function CompactTimeDisplay() {
+  const [currentTime, setCurrentTime] = useState<Date>(new Date())
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+  
+  const formatChileanDateTime = (date: Date): string => {
+    return date.toLocaleString('es-CL', {
+      timeZone: 'America/Santiago',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  }
+  
+  return (
+    <div className="flex items-center gap-2">
+      <Clock className="h-3 w-3 text-text-muted flex-shrink-0" />
+      <div className="min-w-0">
+        <div className="text-[9px] font-medium text-text-muted uppercase tracking-wider">Chile</div>
+        <div className="font-mono text-[11px] text-text-primary truncate">
+          {formatChileanDateTime(currentTime)}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 interface LayoutProps {
   children: React.ReactNode
@@ -31,8 +65,6 @@ interface LayoutProps {
 interface NavItemBase {
   label: string
   icon: LucideIcon
-  badge?: string
-  badgeColor?: 'neutral' | 'cream' | 'success' | 'warning'
 }
 
 interface NavItem extends NavItemBase {
@@ -70,17 +102,12 @@ const isNavItem = (el: NavElement): el is NavItem => {
 // Navigation structure - flat list of pages
 const navigation: NavElement[] = [
   { path: '/', label: 'Portafolio', icon: LayoutDashboard },
-  { path: '/investments', label: 'Todas', icon: FolderOpen },
-  { path: '/land-analyzer', label: 'Análisis de Terrenos', icon: BarChart3 },
-  { path: '/land-analyzer/analysis', label: 'Resumen', icon: Target },
-  { path: '/land-analyzer/compare', label: 'Análisis Detallado', icon: TrendingUp },
-  { path: '/land-analyzer/lands', label: 'Comparar', icon: Trees },
-  { path: '/land-analyzer/credits', label: 'Terrenos', icon: Building2 },
-  { path: '/land-analyzer/calculator', label: 'Créditos', icon: Calculator },
-  { path: '/chat', label: 'Calculadora', icon: Bot },
-  { path: '/chat', label: 'Asistente', icon: Bot },
-  { path: '/chat', label: 'Prism Chat', icon: MessageSquare },
+  { path: '/investments', label: 'Inversiones', icon: FolderOpen },
+  { path: '/analytics', label: 'Análisis', icon: BarChart3 },
+  { path: '/land-analyzer', label: 'Terrenos', icon: Trees },
+  { path: '/chat', label: 'Asistente', icon: MessageSquare },
   { path: '/files', label: 'Documentos', icon: FileText },
+  { path: '/download', label: 'App Móvil', icon: Smartphone },
 ]
 
 // Check if a group contains the active path
@@ -157,22 +184,6 @@ export default function Layout({ children }: LayoutProps) {
   }, [])
 
   const isExpanded = !sidebarCollapsed
-
-  // Badge component
-  const Badge = ({ text, color }: { text: string, color?: string }) => {
-    const colorClasses = {
-      neutral: 'bg-surface text-text-secondary border-border',
-      cream: 'bg-cream/10 text-cream border-cream/20',
-      success: 'bg-success/10 text-success border-success/20',
-      warning: 'bg-warning/10 text-warning border-warning/20',
-    }[color || 'neutral']
-    
-    return (
-      <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full border ${colorClasses}`}>
-        {text}
-      </span>
-    )
-  }
 
   // Render navigation element
   const renderNavElement = (el: NavElement, index: number) => {
@@ -259,7 +270,7 @@ export default function Layout({ children }: LayoutProps) {
                   >
                     <ItemIcon className={`h-4 w-4 flex-shrink-0 ${itemActive ? 'text-cream' : 'text-text-muted group-hover/item:text-text-primary'}`} />
                     <span className="text-sm font-medium whitespace-nowrap flex-1">{item.label}</span>
-                    {item.badge && <Badge text={item.badge} color={item.badgeColor} />}
+
                     {itemActive && (
                       <ChevronRight className="h-3 w-3 text-cream/60 flex-shrink-0" />
                     )}
@@ -317,23 +328,6 @@ export default function Layout({ children }: LayoutProps) {
     return null
   }
 
-  // Get current page label for header
-  const getCurrentPageLabel = (): string => {
-    for (const el of navigation) {
-      if (isNavItem(el) && isItemActive(el, location.pathname)) {
-        return el.label
-      }
-      if (isNavGroup(el)) {
-        for (const item of el.items) {
-          if (isItemActive(item, location.pathname)) {
-            return item.label
-          }
-        }
-      }
-    }
-    return 'Dashboard'
-  }
-
   return (
     <div className="min-h-screen bg-void text-text-primary font-sans">
       
@@ -343,50 +337,41 @@ export default function Layout({ children }: LayoutProps) {
           isExpanded ? 'w-72' : 'w-14'
         }`}
       >
-        {/* Logo Section with Collapse Button */}
-        <div className={`p-4 flex items-center gap-2 ${isExpanded ? '' : 'px-3 justify-center'}`}>
-          <Link to="/" className="flex items-center gap-3 group flex-1 min-w-0">
-            <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
-              <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20 group-hover:border-cream/40" />
-              <img 
-                src="/favinv.png" 
-                alt="FavInv" 
-                className="relative w-5 h-5 object-contain opacity-90 group-hover:opacity-100"
-              />
-            </div>
+        {/* Compact Header: Favicon + Toggle + Time/Date */}
+        <div className="p-3">
+          <div className={`flex items-center gap-2 p-2 rounded-xl bg-surface/40 border border-border/50 ${isExpanded ? '' : 'justify-center'}`}>
+            {/* Favicon */}
+            <Link to="/" className="flex-shrink-0">
+              <div className="relative w-8 h-8 flex items-center justify-center">
+                <div className="absolute inset-0 bg-cream/10 rounded-lg border border-cream/20" />
+                <img 
+                  src="/favinv.png" 
+                  alt="FavInv" 
+                  className="relative w-4 h-4 object-contain opacity-90"
+                />
+              </div>
+            </Link>
+            
+            {/* Sidebar Toggle Button */}
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-lg flex-shrink-0"
+              title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <PanelLeft className={`h-4 w-4 transition-transform duration-300 ${!isExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {/* Time/Date (only when expanded) */}
             {isExpanded && (
-              <div className="overflow-hidden">
-                <span className="text-sm font-semibold tracking-wide text-text-primary whitespace-nowrap">PRISM</span>
-                <span className="block text-[10px] tracking-widest text-text-muted uppercase whitespace-nowrap">Investments</span>
+              <div className="flex-1 min-w-0 pl-2 border-l border-border/50">
+                <CompactTimeDisplay />
               </div>
             )}
-          </Link>
-          {isExpanded && (
-            <button
-              onClick={toggleSidebar}
-              className="p-2 text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-lg flex-shrink-0"
-              title="Collapse sidebar"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </button>
-          )}
+          </div>
         </div>
 
-        {/* Expand Button (when collapsed) */}
-        {!isExpanded && (
-          <div className="px-3 mb-2">
-            <button
-              onClick={toggleSidebar}
-              className="w-full flex justify-center p-2 text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-lg"
-              title="Expand sidebar"
-            >
-              <PanelLeft className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Market Data Ticker */}
-        <MarketDataTicker collapsed={!isExpanded} />
+        {/* Market Data Ticker (prices only when expanded) */}
+        <MarketDataTicker collapsed={!isExpanded} showTime={false} />
 
         {/* Separator */}
         <div className={`h-px bg-border mx-4 mb-2 transition-all duration-300 ${isExpanded ? '' : 'mx-2'}`} />
@@ -403,15 +388,15 @@ export default function Layout({ children }: LayoutProps) {
           {/* Upload & Download Buttons */}
           <div className="space-y-2">
             <Link
-              to="/investments"
+              to="/files"
               className={`glyph-btn glyph-btn-primary transition-all duration-300 ${
                 isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
               }`}
-              title={!isExpanded ? "Subir Documento" : undefined}
+              title={!isExpanded ? "Documentos" : undefined}
             >
               <Upload className="h-4 w-4 flex-shrink-0" />
               <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Upload Document
+                Documentos
               </span>
             </Link>
             <a
@@ -424,7 +409,7 @@ export default function Layout({ children }: LayoutProps) {
             >
               <Download className="h-4 w-4 flex-shrink-0" />
               <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Download Android App
+                Descargar App
               </span>
             </a>
           </div>
@@ -432,13 +417,6 @@ export default function Layout({ children }: LayoutProps) {
 
         </div>
       </aside>
-
-      {/* Desktop Header (when sidebar collapsed) */}
-      <header className="hidden lg:flex fixed top-0 left-14 right-0 h-16 items-center px-6 z-30 bg-void/50 backdrop-blur-sm">
-        <h1 className="text-lg font-semibold text-text-primary">
-          {getCurrentPageLabel()}
-        </h1>
-      </header>
 
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-void/95 border-b border-border backdrop-blur-xl">
@@ -546,15 +524,7 @@ export default function Layout({ children }: LayoutProps) {
                               >
                                 <ItemIcon className={`h-4 w-4 flex-shrink-0 ${itemActive ? 'text-cream' : 'text-text-muted'}`} />
                                 <span className="text-sm font-medium flex-1">{item.label}</span>
-                                {item.badge && (
-                                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                                    item.badgeColor === 'cream' ? 'bg-cream/10 text-cream border-cream/20' :
-                                    item.badgeColor === 'success' ? 'bg-success/10 text-success border-success/20' :
-                                    'bg-surface text-text-secondary border-border'
-                                  }`}>
-                                    {item.badge}
-                                  </span>
-                                )}
+
                                 {itemActive && <ChevronRight className="h-3 w-3 text-cream/60" />}
                               </Link>
                             )
@@ -595,11 +565,11 @@ export default function Layout({ children }: LayoutProps) {
           {/* Mobile Bottom Actions */}
           <div className="p-4 border-t border-border space-y-3">
             <Link
-              to="/investments"
+              to="/files"
               className="glyph-btn glyph-btn-primary w-full justify-center"
             >
               <Upload className="h-4 w-4" />
-              <span>Upload Document</span>
+              <span>Documentos</span>
             </Link>
             <a
               href="/releases/nexus-v1.0.apk"
@@ -607,15 +577,8 @@ export default function Layout({ children }: LayoutProps) {
               className="glyph-btn glyph-btn-secondary w-full justify-center"
             >
               <Download className="h-4 w-4" />
-              <span>Download Android App</span>
+              <span>Descargar App</span>
             </a>
-            <div className="flex items-center justify-between text-xs text-text-muted px-2">
-              <span>v1.0.0</span>
-              <span className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                System Online
-              </span>
-            </div>
           </div>
         </aside>
       </div>
@@ -624,7 +587,7 @@ export default function Layout({ children }: LayoutProps) {
       <main className={`transition-all duration-300 min-h-screen ${
         isExpanded ? 'lg:ml-64' : 'lg:ml-14'
       }`}>
-        <div className="pt-20 lg:pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="pt-20 lg:pt-8 pb-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
