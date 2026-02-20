@@ -63,9 +63,9 @@ export default function Analysis() {
             <Sparkles className="h-4 w-4 text-cream-muted" />
             <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">AI Powered</span>
           </div>
-          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Analysis</h1>
+          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Análisis</h1>
           <p className="text-text-secondary mt-1">
-            Kimi K2.5-powered document analysis and insights
+            Análisis de documentos con Kimi K2.5 y otras IA
           </p>
         </div>
         
@@ -83,31 +83,31 @@ export default function Analysis() {
           <StatCard
             title="Total Jobs"
             value={totalJobs}
-            description="All time analyses"
+            description="Análisis históricos"
             icon={Brain}
             variant="default"
             delay={0}
           />
           <StatCard
-            title="Queued"
+            title="En Cola"
             value={queuedJobs}
-            description="Waiting to process"
+            description="Esperando procesamiento"
             icon={Clock}
             variant={queuedJobs > 0 ? 'accent' : 'default'}
             delay={50}
           />
           <StatCard
-            title="Running"
+            title="Procesando"
             value={runningJobs}
-            description="Currently processing"
+            description="En proceso actualmente"
             icon={Activity}
             variant={runningJobs > 0 ? 'accent' : 'default'}
             delay={100}
           />
           <StatCard
-            title="Completed"
+            title="Completados"
             value={completedJobs}
-            description="Successfully analyzed"
+            description="Analizados exitosamente"
             icon={CheckCircle}
             variant="default"
             delay={150}
@@ -123,12 +123,12 @@ export default function Analysis() {
               <div className="p-2 rounded-lg bg-surface-elevated">
                 <Activity className="h-4 w-4 text-cream-muted" />
               </div>
-              <span className="text-sm font-semibold text-text-primary">Processing Queue</span>
+              <span className="text-sm font-semibold text-text-primary">Cola de Procesamiento</span>
             </div>
             {runningJobs > 0 && (
               <span className="flex items-center gap-1.5 text-xs text-info">
                 <span className="w-1.5 h-1.5 rounded-full bg-info animate-pulse" />
-                Processing
+                Procesando
               </span>
             )}
           </div>
@@ -158,7 +158,7 @@ export default function Analysis() {
                           {job.filename || 'Unknown file'}
                         </p>
                         <p className="text-xs text-text-muted">
-                          {job.job_type} • Retry {job.retry_count} • {formatDate(job.created_at)}
+                          {job.job_type} • Reintento {job.retry_count} • {formatDate(job.created_at)}
                         </p>
                       </div>
                       {job.error_message && (
@@ -178,7 +178,7 @@ export default function Analysis() {
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface flex items-center justify-center">
                   <CheckCircle className="h-5 w-5 text-success" />
                 </div>
-                <p className="text-sm text-text-muted">No jobs in queue</p>
+                <p className="text-sm text-text-muted">No hay jobs en cola</p>
               </div>
             )}
           </div>
@@ -191,7 +191,7 @@ export default function Analysis() {
               <div className="p-2 rounded-lg bg-surface-elevated">
                 <Sparkles className="h-4 w-4 text-cream-muted" />
               </div>
-              <span className="text-sm font-semibold text-text-primary">Recent Results</span>
+              <span className="text-sm font-semibold text-text-primary">Resultados Recientes</span>
             </div>
           </div>
           
@@ -241,7 +241,7 @@ export default function Analysis() {
                           }`}>
                             {Math.round(result.confidence_score * 100)}%
                           </div>
-                          <div className="text-[10px] text-text-muted uppercase tracking-wider">confidence</div>
+                          <div className="text-[10px] text-text-muted uppercase tracking-wider">confianza</div>
                         </div>
                       )}
                     </div>
@@ -254,10 +254,10 @@ export default function Analysis() {
                   <Brain className="h-5 w-5 text-text-muted" />
                 </div>
                 <p className="text-sm text-text-muted">
-                  No analysis results yet
+                  Aún no hay resultados de análisis
                 </p>
                 <p className="text-xs text-text-muted mt-1">
-                  Upload documents and they will be analyzed automatically
+                  Sube documentos y se analizarán automáticamente
                 </p>
               </div>
             )}

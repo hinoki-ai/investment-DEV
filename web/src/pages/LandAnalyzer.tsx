@@ -3,9 +3,7 @@ import {
   Calculator,
   TrendingUp,
   BarChart3,
-  AlertTriangle,
   Plus,
-  Save,
   Download,
   Building2,
   Trees,
@@ -14,7 +12,8 @@ import {
   CheckCircle,
   Target,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  AlertTriangle
 } from 'lucide-react'
 import {
   SAMPLE_CREDITS,
@@ -29,8 +28,6 @@ import {
 import { formatCurrency } from '../lib/utils'
 import {
   CreditTruthRevealer,
-  AmortizationChart,
-  PaymentBreakdownChart,
   LandCreditComboCard,
   ComparisonTable,
   LandCard,
@@ -38,8 +35,9 @@ import {
   AdvancedMetricsDashboard,
   MarketDataPanel
 } from '../components/CreditAnalysis'
+import { HelpTooltip, LabelWithTooltip, INVESTMENT_TOOLTIPS } from '../components/HelpTooltip'
 
-type Tab = 'overview' | 'truth' | 'compare' | 'lands' | 'credits' | 'calculator' | 'analysis'
+type Tab = 'overview' | 'compare' | 'lands' | 'credits' | 'calculator' | 'analysis'
 
 // Money Card Component - New Design
 function MoneyCard({
@@ -199,7 +197,6 @@ export default function LandAnalyzer() {
 
   const tabs = [
     { id: 'overview' as Tab, label: 'Resumen', icon: BarChart3 },
-    { id: 'truth' as Tab, label: 'La Verdad', icon: AlertTriangle },
     { id: 'analysis' as Tab, label: 'Análisis Detallado', icon: Target },
     { id: 'compare' as Tab, label: 'Comparar', icon: TrendingUp },
     { id: 'lands' as Tab, label: 'Terrenos', icon: Trees },
@@ -209,41 +206,9 @@ export default function LandAnalyzer() {
 
   return (
     <div className="space-y-6 fade-in">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl border border-cream/10 bg-gradient-to-br from-surface to-surface-elevated p-6 sm:p-8">
-
-        <div className="relative">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="h-4 w-4 text-cream-muted" />
-                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Analyzer</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-text-primary tracking-tight flex items-center gap-3">
-                <Calculator className="h-8 w-8 text-cream" />
-                Land & Credit Analyzer
-              </h1>
-              <p className="mt-2 text-text-secondary max-w-2xl">
-                Análisis financiero REAL con datos del mercado chileno 2025-2026. Tasas actuales, fórmulas internacionales, métricas avanzadas.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className="glyph-btn glyph-btn-ghost">
-                <Download className="h-4 w-4" />
-                Export
-              </button>
-              <button className="glyph-btn glyph-btn-primary">
-                <Save className="h-4 w-4" />
-                Save Analysis
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Tabs */}
-      <div className="border-b border-border">
-        <nav className="flex space-x-1 overflow-x-auto">
+      <div className="border-b border-border -mx-4 px-4 sm:mx-0 sm:px-0">
+        <nav className="flex space-x-1 overflow-x-auto scrollbar-hide pb-1">
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
@@ -251,15 +216,16 @@ export default function LandAnalyzer() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  flex items-center gap-2 py-4 px-4 font-medium text-sm whitespace-nowrap transition-all duration-200 border-b-2
+                  flex items-center gap-2 py-3 sm:py-4 px-3 sm:px-4 font-medium text-sm whitespace-nowrap transition-all duration-200 border-b-2 flex-shrink-0
                   ${activeTab === tab.id
                     ? 'border-cream text-cream'
                     : 'border-transparent text-text-muted hover:text-text-primary'
                   }
                 `}
               >
-                <Icon className="h-4 w-4" />
-                {tab.label}
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
               </button>
             )
           })}
@@ -271,13 +237,7 @@ export default function LandAnalyzer() {
         {activeTab === 'overview' && (
           <OverviewTab comparison={comparison} allCombos={allCombos} />
         )}
-        {activeTab === 'truth' && (
-          <TruthTab 
-            selectedCredit={selectedCredit}
-            allCredits={allCredits}
-            onSelectCredit={setSelectedCredit}
-          />
-        )}
+
         {activeTab === 'compare' && <CompareTab comparison={comparison} />}
         {activeTab === 'lands' && (
           <LandsTab 
@@ -335,24 +295,24 @@ function OverviewTab({
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MoneyCard
-          title="Best 5-Year ROI"
+          title="Mejor ROI 5 Años"
           amount={comparison.bestByROI?.analysis.roi5Year || 0}
           trend="up"
           trendValue={comparison.bestByROI ? comparison.bestByROI.land.name : 'N/A'}
           currency="%"
         />
         <MoneyCard
-          title="Lowest Monthly Payment"
+          title="Menor Pago Mensual"
           amount={comparison.bestByMonthlyPayment?.analysis.monthlyPayment || 0}
-          subtitle="Best cash flow"
+          subtitle="Mejor flujo de caja"
         />
         <MoneyCard
-          title="Lowest Cash Required"
+          title="Menos Efectivo Requerido"
           amount={comparison.bestByCashRequired?.analysis.cashRequired || 0}
-          subtitle="Lower entry barrier"
+          subtitle="Menor barrera de entrada"
         />
         <MoneyCard
-          title="Best Overall Score"
+          title="Mejor Puntaje"
           amount={comparison.bestOverall?.analysis.score || 0}
           highlight
           trend="up"
@@ -366,7 +326,7 @@ function OverviewTab({
         <div className="relative overflow-hidden rounded-2xl border border-success/20 bg-success-dim p-6">
           <div className="flex items-center gap-2 mb-4">
             <CheckCircle className="h-6 w-6 text-success" />
-            <h2 className="text-xl font-bold text-success">Best Opportunity Detected</h2>
+            <h2 className="text-xl font-bold text-success">Mejor Oportunidad Detectada</h2>
           </div>
           <LandCreditComboCard combo={comparison.bestOverall} isBest />
         </div>
@@ -376,7 +336,7 @@ function OverviewTab({
       <div>
         <h3 className="text-sm font-semibold tracking-widest text-cream-muted uppercase mb-4 flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
-          Top 5 Opportunities
+          Top 5 Oportunidades
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {topScored.map((combo, index) => (
@@ -393,68 +353,6 @@ function OverviewTab({
 }
 
 // ============================================================================
-// TRUTH TAB
-// ============================================================================
-
-function TruthTab({ 
-  selectedCredit, 
-  allCredits,
-  onSelectCredit 
-}: { 
-  selectedCredit: CreditScenario | null
-  allCredits: CreditScenario[]
-  onSelectCredit: (credit: CreditScenario) => void
-}) {
-  const credit = selectedCredit || allCredits[0]
-  
-  return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-warning/20 bg-warning-dim p-5">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-6 w-6 text-warning flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-semibold text-warning">Uncovering Credit Truth</h3>
-            <p className="text-sm text-text-secondary mt-1">
-              Banks advertise amounts you don't actually receive. This analysis reveals the 
-              <strong> real effective credit</strong>, <strong>hidden operational costs</strong>, 
-              and the <strong>true total cost</strong> of your debt.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Credit Selector */}
-      <div className="flex flex-wrap gap-2">
-        {allCredits.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => onSelectCredit(c)}
-            className={`
-              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-              ${credit.id === c.id
-                ? 'bg-cream text-void'
-                : 'bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong'
-              }
-            `}
-          >
-            {c.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Credit Truth Analysis */}
-      <CreditTruthRevealer credit={credit} />
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AmortizationChart credit={credit} />
-        <PaymentBreakdownChart credit={credit} />
-      </div>
-    </div>
-  )
-}
-
-// ============================================================================
 // COMPARE TAB
 // ============================================================================
 
@@ -462,15 +360,15 @@ function CompareTab({ comparison }: { comparison: ReturnType<typeof compareScena
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-text-primary">Comparison of All Combinations</h2>
+        <h2 className="text-lg font-bold text-text-primary">Comparación de Todas las Combinaciones</h2>
         <div className="flex gap-2">
           <button className="glyph-btn glyph-btn-ghost">
             <Filter className="h-4 w-4" />
-            Filter
+            Filtrar
           </button>
           <button className="glyph-btn glyph-btn-ghost">
             <Download className="h-4 w-4" />
-            Export CSV
+            Exportar CSV
           </button>
         </div>
       </div>
@@ -479,19 +377,19 @@ function CompareTab({ comparison }: { comparison: ReturnType<typeof compareScena
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {comparison.bestByROI && (
           <div className="rounded-2xl border border-success/20 bg-success-dim p-4">
-            <p className="text-xs font-semibold tracking-widest text-success uppercase mb-2">Best ROI</p>
+            <p className="text-xs font-semibold tracking-widest text-success uppercase mb-2">Mejor ROI</p>
             <LandCreditComboCard combo={comparison.bestByROI} />
           </div>
         )}
         {comparison.bestByMonthlyPayment && (
           <div className="rounded-2xl border border-info/20 bg-info-dim p-4">
-            <p className="text-xs font-semibold tracking-widest text-info uppercase mb-2">Lowest Payment</p>
+            <p className="text-xs font-semibold tracking-widest text-info uppercase mb-2">Menor Pago</p>
             <LandCreditComboCard combo={comparison.bestByMonthlyPayment} />
           </div>
         )}
         {comparison.bestByCashRequired && (
           <div className="rounded-2xl border border-cream/20 bg-cream/5 p-4">
-            <p className="text-xs font-semibold tracking-widest text-cream uppercase mb-2">Lowest Cash Needed</p>
+            <p className="text-xs font-semibold tracking-widest text-cream uppercase mb-2">Menos Efectivo</p>
             <LandCreditComboCard combo={comparison.bestByCashRequired} />
           </div>
         )}
@@ -520,12 +418,12 @@ function LandsTab({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-text-primary">Available Lands</h2>
-          <p className="text-sm text-text-muted mt-1">{lands.length} opportunities analyzed</p>
+          <h2 className="text-lg font-bold text-text-primary">Terrenos Disponibles</h2>
+          <p className="text-sm text-text-muted mt-1">{lands.length} oportunidades analizadas</p>
         </div>
         <button className="glyph-btn glyph-btn-primary">
           <Plus className="h-4 w-4" />
-          Add Land
+          Agregar Terreno
         </button>
       </div>
 
@@ -542,29 +440,29 @@ function LandsTab({
 
       {selectedLand && (
         <div className="glass-card-elevated p-6 mt-6">
-          <h3 className="text-lg font-bold text-text-primary mb-4">Land Details</h3>
+          <h3 className="text-lg font-bold text-text-primary mb-4">Detalles del Terreno</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 rounded-xl bg-surface">
-              <p className="text-xs text-text-muted uppercase mb-1">Price</p>
+              <p className="text-xs text-text-muted uppercase mb-1">Precio</p>
               <p className="font-mono text-lg font-semibold text-text-primary">{formatCurrency(selectedLand.askingPrice)}</p>
             </div>
             <div className="p-4 rounded-xl bg-surface">
-              <p className="text-xs text-text-muted uppercase mb-1">Appraisal Value</p>
+              <p className="text-xs text-text-muted uppercase mb-1">Valor Tasación</p>
               <p className="font-mono text-lg font-semibold text-cream">{formatCurrency(selectedLand.appraisalValue)}</p>
-              <p className="text-xs text-text-muted mt-1">{selectedLand.belowAppraisalBy}% difference</p>
+              <p className="text-xs text-text-muted mt-1">{selectedLand.belowAppraisalBy}% diferencia</p>
             </div>
             <div className="p-4 rounded-xl bg-surface">
-              <p className="text-xs text-text-muted uppercase mb-1">Price/m²</p>
+              <p className="text-xs text-text-muted uppercase mb-1">Precio/m²</p>
               <p className="font-mono text-lg font-semibold text-text-primary">{formatCurrency(selectedLand.pricePerSquareMeter)}/m²</p>
             </div>
             <div className="p-4 rounded-xl bg-surface">
-              <p className="text-xs text-text-muted uppercase mb-1">Expected Appreciation</p>
-              <p className="font-mono text-lg font-semibold text-success">{selectedLand.expectedAppreciationAnnual}%/year</p>
+              <p className="text-xs text-text-muted uppercase mb-1">Apreciación Esperada</p>
+              <p className="font-mono text-lg font-semibold text-success">{selectedLand.expectedAppreciationAnnual}%/año</p>
             </div>
           </div>
           {selectedLand.notes && (
             <div className="mt-4 p-4 rounded-xl bg-surface">
-              <h4 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Notes</h4>
+              <h4 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Notas</h4>
               <p className="text-sm text-text-secondary">{selectedLand.notes}</p>
             </div>
           )}
@@ -591,12 +489,12 @@ function CreditsTab({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-text-primary">Mortgage Credits</h2>
-          <p className="text-sm text-text-muted mt-1">{credits.length} credits analyzed</p>
+          <h2 className="text-lg font-bold text-text-primary">Créditos Hipotecarios</h2>
+          <p className="text-sm text-text-muted mt-1">{credits.length} créditos analizados</p>
         </div>
         <button className="glyph-btn glyph-btn-primary">
           <Plus className="h-4 w-4" />
-          Add Credit
+          Agregar Crédito
         </button>
       </div>
 
@@ -756,52 +654,72 @@ function CalculatorTab({
         <div className="glass-card-elevated p-6">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-text-primary">
             <Trees className="h-5 w-5 text-success" />
-            Land Data
+            Datos del Terreno
           </h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Sale Price (CLP)</label>
+              <LabelWithTooltip
+                label="Sale Price (CLP)"
+                tooltipContent={INVESTMENT_TOOLTIPS.askingPrice.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.askingPrice.example}
+              />
               <input
                 type="number"
                 value={customLand.askingPrice}
                 onChange={(e) => setCustomLand({ ...customLand, askingPrice: Number(e.target.value) })}
-                className="input-field"
+                className="input-field mt-2"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Area (m²)</label>
+              <LabelWithTooltip
+                label="Area (m²)"
+                tooltipContent="El tamaño del terreno en metros cuadrados. Se usa para calcular el precio por m² y comparar oportunidades."
+                tooltipExample="1,000 m² es un terreno pequeño (1/10 hectárea). 5,000 m² es un terreno estándar para una casa grande."
+              />
               <input
                 type="number"
                 value={customLand.landAreaSquareMeters}
                 onChange={(e) => setCustomLand({ ...customLand, landAreaSquareMeters: Number(e.target.value) })}
-                className="input-field"
+                className="input-field mt-2"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Appraisal Value (CLP)</label>
+              <LabelWithTooltip
+                label="Appraisal Value (CLP)"
+                tooltipContent={INVESTMENT_TOOLTIPS.appraisalValue.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.appraisalValue.example}
+              />
               <input
                 type="number"
                 value={customLand.appraisalValue}
                 onChange={(e) => setCustomLand({ ...customLand, appraisalValue: Number(e.target.value) })}
-                className="input-field"
+                className="input-field mt-2"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Expected Appreciation (%/year)</label>
+              <LabelWithTooltip
+                label="Expected Appreciation (%/year)"
+                tooltipContent={INVESTMENT_TOOLTIPS.expectedAppreciation.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.expectedAppreciation.example}
+              />
               <input
                 type="number"
                 step="0.1"
                 value={customLand.expectedAppreciationAnnual}
                 onChange={(e) => setCustomLand({ ...customLand, expectedAppreciationAnnual: Number(e.target.value) })}
-                className="input-field"
+                className="input-field mt-2"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Zoning</label>
+              <LabelWithTooltip
+                label="Zoning"
+                tooltipContent={INVESTMENT_TOOLTIPS.zoningType.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.zoningType.example}
+              />
               <select
                 value={customLand.zoning}
                 onChange={(e) => setCustomLand({ ...customLand, zoning: e.target.value as any })}
-                className="input-field"
+                className="input-field mt-2"
               >
                 <option value="residential">Residential</option>
                 <option value="commercial">Commercial</option>
@@ -817,46 +735,66 @@ function CalculatorTab({
         <div className="glass-card-elevated p-6">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2 text-text-primary">
             <Building2 className="h-5 w-5 text-info" />
-            Credit Data
+            Datos del Crédito
           </h3>
           <div className="space-y-4">
             <div className="p-4 rounded-xl border border-warning/20 bg-warning-dim">
-              <label className="block text-xs font-semibold tracking-widest text-warning uppercase mb-2">"Advertised" Amount (CLP)</label>
+              <LabelWithTooltip
+                label='"Advertised" Amount (CLP)'
+                tooltipTitle="Advertised Amount"
+                tooltipContent="El monto que el banco publicita en sus avisos. NO es lo que realmente recibes. Siempre es mayor que el efectivo real."
+                tooltipExample='Banco dice "Crédito hipotecario $100 millones" pero luego te cobran fees y exigen pie.'
+              />
               <input
                 type="number"
                 value={customCredit.advertisedCreditAmount}
                 onChange={(e) => setCustomCredit({ ...customCredit, advertisedCreditAmount: Number(e.target.value) })}
-                className="input-field border-warning/30"
+                className="input-field border-warning/30 mt-2"
               />
               <p className="text-xs text-warning mt-1">What the bank advertises</p>
             </div>
             <div className="p-4 rounded-xl border border-error/20 bg-error-dim">
-              <label className="block text-xs font-semibold tracking-widest text-error uppercase mb-2">Required Down Payment (CLP)</label>
+              <LabelWithTooltip
+                label="Required Down Payment (CLP)"
+                tooltipTitle="Down Payment (Pie)"
+                tooltipContent={INVESTMENT_TOOLTIPS.downPayment.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.downPayment.example}
+              />
               <input
                 type="number"
                 value={customCredit.requiredDownPayment}
                 onChange={(e) => setCustomCredit({ ...customCredit, requiredDownPayment: Number(e.target.value) })}
-                className="input-field border-error/30"
+                className="input-field border-error/30 mt-2"
               />
               <p className="text-xs text-error mt-1">What you MUST pay in cash</p>
             </div>
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Annual Interest Rate (%)</label>
+              <LabelWithTooltip
+                label="Annual Interest Rate (%)"
+                tooltipTitle="Interest Rate"
+                tooltipContent={INVESTMENT_TOOLTIPS.interestRate.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.interestRate.example}
+              />
               <input
                 type="number"
                 step="0.1"
                 value={customCredit.annualInterestRate}
                 onChange={(e) => setCustomCredit({ ...customCredit, annualInterestRate: Number(e.target.value) })}
-                className="input-field"
+                className="input-field mt-2"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold tracking-widest text-cream-muted uppercase mb-2">Term (years)</label>
+              <LabelWithTooltip
+                label="Term (years)"
+                tooltipTitle="Loan Term"
+                tooltipContent={INVESTMENT_TOOLTIPS.termYears.content}
+                tooltipExample={INVESTMENT_TOOLTIPS.termYears.example}
+              />
               <input
                 type="number"
                 value={customCredit.termYears}
                 onChange={(e) => setCustomCredit({ ...customCredit, termYears: Number(e.target.value) })}
-                className="input-field"
+                className="input-field mt-2"
               />
             </div>
             <div className="flex items-center gap-2 p-3 rounded-lg bg-success-dim border border-success/20">
@@ -867,8 +805,14 @@ function CalculatorTab({
                 onChange={(e) => setCustomCredit({ ...customCredit, isDFL2: e.target.checked })}
                 className="w-4 h-4 rounded border-border"
               />
-              <label htmlFor="isDFL2" className="text-sm text-success font-medium cursor-pointer">
+              <label htmlFor="isDFL2" className="text-sm text-success font-medium cursor-pointer flex items-center gap-2">
                 Aplica beneficio DFL2 (ahorro 0.6% en impuesto al mutuo)
+                <HelpTooltip
+                  title="DFL2 Benefit"
+                  content={INVESTMENT_TOOLTIPS.dfl2.content}
+                  example={INVESTMENT_TOOLTIPS.dfl2.example}
+                  size="sm"
+                />
               </label>
             </div>
 
@@ -876,29 +820,46 @@ function CalculatorTab({
               <summary className="cursor-pointer text-sm text-text-muted hover:text-text-primary flex items-center gap-1 transition-colors">
                 <ChevronDown className="h-4 w-4 group-open:rotate-180 transition-transform" />
                 Gastos Operacionales Detallados
+                <HelpTooltip
+                  title="Operational Expenses"
+                  content={INVESTMENT_TOOLTIPS.operationalExpenses.content}
+                  example={INVESTMENT_TOOLTIPS.operationalExpenses.example}
+                  size="sm"
+                />
               </summary>
               <div className="mt-3 space-y-3">
                 {[
-                  { key: 'notaryFees', label: 'Gastos Notariales', hint: '~UF 2.5' },
-                  { key: 'registrationFees', label: 'Inscripción CBR', hint: '~UF 2.5' },
-                  { key: 'appraisalFee', label: 'Tasación', hint: '~UF 2.5' },
-                  { key: 'insuranceFees', label: 'Seguros', hint: 'Desgravamen + Incendio' },
-                  { key: 'stampTax', label: `Impuesto al Mutuo (${customCredit.isDFL2 ? '0.2%' : '0.8%'})`, hint: customCredit.isDFL2 ? 'Ahorro con DFL2' : 'Normal' },
+                  { key: 'notaryFees', label: 'Gastos Notariales', hint: '~UF 2.5', tooltip: INVESTMENT_TOOLTIPS.notaryFees },
+                  { key: 'registrationFees', label: 'Inscripción CBR', hint: '~UF 2.5', tooltip: INVESTMENT_TOOLTIPS.registrationFees },
+                  { key: 'appraisalFee', label: 'Tasación', hint: '~UF 2.5', tooltip: INVESTMENT_TOOLTIPS.appraisalFee },
+                  { key: 'insuranceFees', label: 'Seguros', hint: 'Desgravamen + Incendio', tooltip: INVESTMENT_TOOLTIPS.insuranceFees },
+                  { key: 'stampTax', label: `Impuesto al Mutuo (${customCredit.isDFL2 ? '0.2%' : '0.8%'})`, hint: customCredit.isDFL2 ? 'Ahorro con DFL2' : 'Normal', tooltip: INVESTMENT_TOOLTIPS.stampTax },
                   { key: 'otherFees', label: 'Otros gastos', hint: 'Gestión, etc.' },
-                ].map(({ key, label, hint }) => (
-                  <div key={key}>
-                    <label className="block text-xs text-text-muted mb-1">
-                      {label}
-                      <span className="text-text-muted/60 ml-1">({hint})</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={customCredit[key as keyof typeof customCredit] as number}
-                      onChange={(e) => setCustomCredit({ ...customCredit, [key]: Number(e.target.value) })}
-                      className="input-field"
-                    />
-                  </div>
-                ))}
+                ].map(({ key, label, hint, tooltip }) => {
+                  const numValue = customCredit[key as keyof typeof customCredit]
+                  return (
+                    <div key={key}>
+                      {tooltip ? (
+                        <LabelWithTooltip
+                          label={label}
+                          tooltipContent={tooltip.content}
+                          tooltipExample={(tooltip as any).example}
+                        />
+                      ) : (
+                        <label className="block text-xs text-text-muted mb-1">
+                          {label}
+                          <span className="text-text-muted/60 ml-1">({hint})</span>
+                        </label>
+                      )}
+                      <input
+                        type="number"
+                        value={typeof numValue === 'number' ? numValue : 0}
+                        onChange={(e) => setCustomCredit({ ...customCredit, [key]: Number(e.target.value) })}
+                        className="input-field mt-1"
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </details>
           </div>

@@ -1,6 +1,6 @@
 {
-  "name": "PRISM",
-  "short_name": "PRISM",
+  "name": "Prism",
+  "short_name": "Prism",
   "description": "Your investment lens. Connected to NEXUS."
   "start_url": "/",
   "display": "standalone",

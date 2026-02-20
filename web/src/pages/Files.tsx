@@ -17,19 +17,19 @@ import { formatDate, formatFileSize } from '../lib/utils'
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   pending: { 
-    label: 'Pending', 
+    label: 'Pendiente', 
     className: 'bg-warning-dim text-warning border-warning/20' 
   },
   processing: { 
-    label: 'Processing', 
+    label: 'Procesando', 
     className: 'bg-info-dim text-info border-info/20' 
   },
   completed: { 
-    label: 'Completed', 
+    label: 'Completado', 
     className: 'bg-success-dim text-success border-success/20' 
   },
   failed: { 
-    label: 'Failed', 
+    label: 'Fallido', 
     className: 'bg-error-dim text-error border-error/20' 
   },
 }
@@ -72,7 +72,7 @@ export default function Files() {
       document.body.removeChild(link)
     } catch (error) {
       console.error('Download error:', error)
-      alert('Failed to generate download link')
+      alert('Error al generar el link de descarga')
     }
   }
 
@@ -93,9 +93,9 @@ export default function Files() {
             <FolderOpen className="h-4 w-4 text-cream-muted" />
             <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Storage</span>
           </div>
-          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Files</h1>
+          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Archivos</h1>
           <p className="text-text-secondary mt-1">
-            Browse and manage uploaded documents
+            Explora y gestiona los documentos subidos
           </p>
         </div>
         
@@ -115,7 +115,7 @@ export default function Files() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
             <input
               type="text"
-              placeholder="Search files..."
+              placeholder="Buscar archivos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field pl-11"
@@ -128,11 +128,11 @@ export default function Files() {
               onChange={(e) => setStatus(e.target.value)}
               className="input-field py-2.5 pr-10"
             >
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
+              <option value="">Todos los Estados</option>
+              <option value="pending">Pendiente</option>
+              <option value="processing">Procesando</option>
+              <option value="completed">Completado</option>
+              <option value="failed">Fallido</option>
             </select>
           </div>
         </div>
@@ -141,114 +141,158 @@ export default function Files() {
       {/* Results Count */}
       <div className="flex items-center justify-between text-xs text-text-muted">
         <span>
-          {filteredFiles?.length || 0} file{filteredFiles?.length !== 1 ? 's' : ''}
+          {filteredFiles?.length || 0} archivo{filteredFiles?.length !== 1 ? 's' : ''}
         </span>
         {(search || status) && (
           <button 
             onClick={() => { setSearch(''); setStatus('') }}
             className="text-cream-muted hover:text-cream transition-colors"
           >
-            Clear filters
+            Limpiar filtros
           </button>
         )}
       </div>
 
       {/* File List */}
       {isLoading ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-surface rounded-xl animate-pulse" />
+            <div key={i} className="h-20 sm:h-16 bg-surface rounded-xl animate-pulse" />
           ))}
         </div>
       ) : filteredFiles?.length ? (
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
-                    File
-                  </th>
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
-                    Size
-                  </th>
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
-                    Uploaded
-                  </th>
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-right text-[10px] font-semibold tracking-widest text-text-muted uppercase">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {filteredFiles.map((file: any) => {
-                  const Icon = getFileIcon(file.mime_type)
-                  const iconColorClass = getFileIconColor(file.mime_type)
-                  return (
-                    <tr key={file.id} className="group hover:bg-surface-elevated/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className={`flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl ${iconColorClass}`}>
-                            <Icon className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium text-text-primary truncate max-w-[200px] sm:max-w-xs">
-                              {file.original_filename}
+        <>
+          {/* Desktop Table View */}
+          <div className="hidden sm:block glass-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
+                      Archivo
+                    </th>
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
+                      Tamaño
+                    </th>
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
+                      Subido
+                    </th>
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold tracking-widest text-text-muted uppercase">
+                      Estado
+                    </th>
+                    <th className="px-6 py-4 text-right text-[10px] font-semibold tracking-widest text-text-muted uppercase">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {filteredFiles.map((file: any) => {
+                    const Icon = getFileIcon(file.mime_type)
+                    const iconColorClass = getFileIconColor(file.mime_type)
+                    return (
+                      <tr key={file.id} className="group hover:bg-surface-elevated/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-4">
+                            <div className={`flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-xl ${iconColorClass}`}>
+                              <Icon className="h-5 w-5" />
                             </div>
-                            <div className="text-xs text-text-muted">
-                              {file.mime_type?.split('/')[1]?.toUpperCase() || 'FILE'}
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-text-primary truncate max-w-[200px] lg:max-w-xs">
+                                {file.original_filename}
+                              </div>
+                              <div className="text-xs text-text-muted">
+                                {file.mime_type?.split('/')[1]?.toUpperCase() || 'FILE'}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-mono text-text-secondary">
-                          {file.file_size_bytes ? formatFileSize(file.file_size_bytes) : '—'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-text-secondary">
-                          {formatDate(file.uploaded_at)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full border ${
-                          statusConfig[file.status]?.className || statusConfig.pending.className
-                        }`}>
-                          {statusConfig[file.status]?.label || file.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button
-                          onClick={() => handleDownload(file.id, file.original_filename)}
-                          className="p-2 rounded-lg text-text-muted hover:text-cream hover:bg-cream/10 transition-colors"
-                          title="Download"
-                        >
-                          <Download className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-mono text-text-secondary">
+                            {file.file_size_bytes ? formatFileSize(file.file_size_bytes) : '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-text-secondary">
+                            {formatDate(file.uploaded_at)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase rounded-full border ${
+                            statusConfig[file.status]?.className || statusConfig.pending.className
+                          }`}>
+                            {statusConfig[file.status]?.label || file.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <button
+                            onClick={() => handleDownload(file.id, file.original_filename)}
+                            className="p-2 rounded-lg text-text-muted hover:text-cream hover:bg-cream/10 transition-colors"
+                            title="Download"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile Card View */}
+          <div className="sm:hidden space-y-3">
+            {filteredFiles.map((file: any) => {
+              const Icon = getFileIcon(file.mime_type)
+              const iconColorClass = getFileIconColor(file.mime_type)
+              return (
+                <div 
+                  key={file.id} 
+                  className="glass-card p-4 flex items-center gap-3"
+                >
+                  <div className={`flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-xl ${iconColorClass}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">
+                      {file.original_filename}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-text-muted">
+                        {file.file_size_bytes ? formatFileSize(file.file_size_bytes) : '—'}
+                      </span>
+                      <span className="text-border-strong">•</span>
+                      <span className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full border ${
+                        statusConfig[file.status]?.className || statusConfig.pending.className
+                      }`}>
+                        {statusConfig[file.status]?.label || file.status}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDownload(file.id, file.original_filename)}
+                    className="flex-shrink-0 p-3 rounded-xl text-text-muted hover:text-cream hover:bg-cream/10 transition-colors"
+                    title="Download"
+                  >
+                    <Download className="h-5 w-5" />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </>
       ) : (
         <div className="text-center py-16 border border-dashed border-border rounded-3xl">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface flex items-center justify-center">
             <FileText className="h-8 w-8 text-text-muted" />
           </div>
           <h3 className="text-lg font-medium text-text-primary mb-1">
-            {search || status ? 'No matches found' : 'No files yet'}
+            {search || status ? 'No se encontraron coincidencias' : 'Aún no hay archivos'}
           </h3>
           <p className="text-sm text-text-muted">
             {search || status 
-              ? 'Try adjusting your search or filters'
-              : 'Upload files from the investments page'
+              ? 'Intenta ajustar tu búsqueda o filtros'
+              : 'Sube archivos desde la página de inversiones'
             }
           </p>
         </div>

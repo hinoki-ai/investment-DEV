@@ -43,6 +43,7 @@ import {
   Award,
   Scale
 } from 'lucide-react'
+import { HelpTooltip, INVESTMENT_TOOLTIPS } from './HelpTooltip'
 
 // ============================================================================
 // UTILITY COMPONENTS
@@ -139,7 +140,8 @@ function MetricCard({
   subtext,
   icon: Icon,
   color = 'cream',
-  highlight = false
+  highlight = false,
+  tooltip
 }: { 
   label: string
   value: string
@@ -147,6 +149,7 @@ function MetricCard({
   icon: React.ElementType
   color?: 'cream' | 'success' | 'error' | 'warning' | 'info'
   highlight?: boolean
+  tooltip?: { title?: string; content: string; example?: string }
 }) {
   const colorClasses = {
     cream: 'text-cream',
@@ -161,6 +164,9 @@ function MetricCard({
       <div className="flex items-center gap-2 mb-2">
         <Icon className={`h-4 w-4 ${colorClasses[color]}`} />
         <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{label}</span>
+        {tooltip && (
+          <HelpTooltip title={tooltip.title || label} content={tooltip.content} example={tooltip.example} size="sm" />
+        )}
       </div>
       <p className={`text-xl font-bold ${colorClasses[color]}`}>{value}</p>
       {subtext && <p className="text-xs text-text-muted mt-1">{subtext}</p>}
@@ -224,14 +230,17 @@ export function CreditTruthRevealer({ credit, className = '' }: CreditTruthRevea
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Credit Amount Comparison */}
         <div className="rounded-2xl border border-border bg-surface p-5">
-          <p className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3">Monto del Crédito</p>
+          <p className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3 flex items-center gap-1">
+            Monto del Crédito
+            <HelpTooltip title="Credit Amount" content="La diferencia entre lo que el banco publicita vs. lo que realmente recibes después del pie y fees." example='Banco dice "$100M crédito" pero recibes solo $75M efectivo.' size="sm" />
+          </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-text-muted">Publicitado:</span>
               <span className="font-mono">{formatCurrency(credit.advertisedCreditAmount)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-text-muted">Real:</span>
+              <span className="text-text-muted">Real (Effective Credit):</span>
               <span className="font-mono text-cream">{formatCurrency(trueCost.effectiveCredit)}</span>
             </div>
             <div className="pt-2 border-t border-border">
@@ -245,29 +254,38 @@ export function CreditTruthRevealer({ credit, className = '' }: CreditTruthRevea
 
         {/* Cash Required */}
         <div className="rounded-2xl border border-warning/20 bg-warning-dim p-5">
-          <p className="text-xs font-semibold tracking-widest text-warning uppercase mb-3">Pie + Gastos</p>
+          <p className="text-xs font-semibold tracking-widest text-warning uppercase mb-3 flex items-center gap-1">
+            Pie + Gastos (Cash Required)
+            <HelpTooltip title="Cash Required" content={INVESTMENT_TOOLTIPS.cashRequired.content} example={INVESTMENT_TOOLTIPS.cashRequired.example} size="sm" />
+          </p>
           <p className="font-mono text-2xl font-semibold text-warning">
             {formatCurrency(trueCost.totalCashRequired)}
           </p>
           <p className="text-xs text-text-muted mt-1">
-            {formatPercent((trueCost.totalCashRequired / credit.advertisedCreditAmount) * 100)} del "crédito"
+            {formatPercent((trueCost.totalCashRequired / credit.advertisedCreditAmount) * 100)} del "crédito" publicitado
           </p>
         </div>
 
         {/* Monthly Payment */}
         <div className="rounded-2xl border border-info/20 bg-info-dim p-5">
-          <p className="text-xs font-semibold tracking-widest text-info uppercase mb-3">Dividendo Mensual</p>
+          <p className="text-xs font-semibold tracking-widest text-info uppercase mb-3 flex items-center gap-1">
+            Dividendo Mensual
+            <HelpTooltip title="Monthly Payment" content={INVESTMENT_TOOLTIPS.monthlyPayment.content} example={INVESTMENT_TOOLTIPS.monthlyPayment.example} size="sm" />
+          </p>
           <p className="font-mono text-2xl font-semibold text-info">
             {formatCurrency(trueCost.monthlyPayment)}
           </p>
           <p className="text-xs text-text-muted mt-1">
-            Por {credit.termYears} años
+            Por {credit.termYears} años ({credit.termYears * 12} pagos)
           </p>
         </div>
 
         {/* Total Cost */}
         <div className="rounded-2xl border border-cream/10 bg-cream/5 p-5">
-          <p className="text-xs font-semibold tracking-widest text-cream uppercase mb-3">Costo Total del Crédito</p>
+          <p className="text-xs font-semibold tracking-widest text-cream uppercase mb-3 flex items-center gap-1">
+            Costo Total (True Cost)
+            <HelpTooltip title="True Cost" content={INVESTMENT_TOOLTIPS.trueCost.content} example={INVESTMENT_TOOLTIPS.trueCost.example} size="sm" />
+          </p>
           <p className="font-mono text-2xl font-semibold text-cream">
             {formatCurrency(trueCost.totalCreditCost)}
           </p>
@@ -387,7 +405,7 @@ export function AmortizationChart({ credit, monthlyInsurance = 0, className = ''
         <TrendingUp className="h-4 w-4" />
         Evolución de la Deuda
       </h3>
-      <div className="h-80">
+      <div className="h-64 sm:h-80">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>
@@ -467,15 +485,15 @@ export function PaymentBreakdownChart({ credit, className = '' }: PaymentBreakdo
   return (
     <div className={`glass-card p-5 ${className}`}>
       <h3 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-4">Composición del Costo Total</h3>
-      <div className="h-64">
+      <div className="h-56 sm:h-64">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={80}
+              innerRadius={50}
+              outerRadius={70}
               paddingAngle={5}
               dataKey="value"
             >
@@ -554,9 +572,10 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
           <MetricCard
             label="Cash-on-Cash"
             value={formatPercent(advancedMetrics.cashOnCashReturn)}
-            subtext="Retorno anual sobre efectivo"
+            subtext="Retorno anual sobre efectivo invertido"
             icon={DollarSign}
             color={advancedMetrics.cashOnCashReturn > 10 ? 'success' : advancedMetrics.cashOnCashReturn > 5 ? 'cream' : 'warning'}
+            tooltip={INVESTMENT_TOOLTIPS.cashOnCash}
           />
           <MetricCard
             label="IRR"
@@ -564,13 +583,15 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
             subtext="Tasa interna de retorno"
             icon={Percent}
             color={advancedMetrics.irr > 15 ? 'success' : advancedMetrics.irr > 10 ? 'cream' : 'warning'}
+            tooltip={INVESTMENT_TOOLTIPS.irr}
           />
           <MetricCard
             label="Cap Rate"
             value={formatPercent(advancedMetrics.capRate)}
-            subtext="Capitalización"
+            subtext="Tasa de capitalización"
             icon={Building2}
             color={advancedMetrics.capRate > 5 ? 'success' : advancedMetrics.capRate > 3 ? 'cream' : 'warning'}
+            tooltip={INVESTMENT_TOOLTIPS.capRate}
           />
         </div>
       </div>
@@ -581,23 +602,33 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
         <div className="glass-card p-4">
           <h4 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3 flex items-center gap-2">
             <Scale className="h-4 w-4" />
-            Apalancamiento
+            Apalancamiento (Leverage)
+            <HelpTooltip title="Leverage" content="Qué tanto usas deuda para financiar la inversión. Más apalancamiento = más riesgo pero también más retorno potencial sobre tu efectivo." example="20% pie = 5x apalancamiento. Si sube 10%, tú ganas 50% sobre tu efectivo." size="sm" />
           </h4>
           <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-sm text-text-secondary">LTV (Loan-to-Value)</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-text-secondary flex items-center gap-1">
+                LTV (Loan-to-Value)
+                <HelpTooltip title="LTV" content={INVESTMENT_TOOLTIPS.ltv.content} example={INVESTMENT_TOOLTIPS.ltv.example} size="sm" />
+              </span>
               <span className={`font-mono ${advancedMetrics.loanToValue > 80 ? 'text-error' : 'text-text-primary'}`}>
                 {advancedMetrics.loanToValue.toFixed(1)}%
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-secondary">DSCR</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-text-secondary flex items-center gap-1">
+                DSCR
+                <HelpTooltip title="DSCR" content={INVESTMENT_TOOLTIPS.dscr.content} example={INVESTMENT_TOOLTIPS.dscr.example} size="sm" />
+              </span>
               <span className={`font-mono ${advancedMetrics.dscr < 1.25 ? 'text-warning' : 'text-success'}`}>
                 {advancedMetrics.dscr.toFixed(2)}x
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-secondary">Equity Multiple</span>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-text-secondary flex items-center gap-1">
+                Equity Multiple
+                <HelpTooltip title="Equity Multiple" content={INVESTMENT_TOOLTIPS.equityMultiple.content} example={INVESTMENT_TOOLTIPS.equityMultiple.example} size="sm" />
+              </span>
               <span className="font-mono text-text-primary">{advancedMetrics.equityMultiple.toFixed(2)}x</span>
             </div>
             <div className="text-xs text-text-muted mt-2 pt-2 border-t border-border">
@@ -671,7 +702,7 @@ export function AdvancedMetricsDashboard({ combo, className = '' }: AdvancedMetr
             <TrendingUp className="h-4 w-4" />
             Proyección de Plusvalía
           </h4>
-          <div className="h-48">
+          <div className="h-40 sm:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={[
                 { year: 'Año 0', value: combo.land.askingPrice, label: 'Compra' },

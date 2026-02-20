@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
@@ -14,10 +14,28 @@ import {
   Calendar,
   Tag,
   ChevronRight,
-  ExternalLink
+  ExternalLink,
+  Calculator,
+  Building2,
+  AlertTriangle,
+  CheckCircle
 } from 'lucide-react'
 import { investmentsApi, uploadsApi } from '../lib/api'
 import { formatCurrency, formatDate } from '../lib/utils'
+import { 
+  SAMPLE_CREDITS,
+  CreditScenario,
+  LandOpportunity,
+  analyzeLandCreditCombo,
+  formatPercent,
+  CURRENT_UF_VALUE
+} from '../lib/landCredit'
+import { 
+  CreditTruthRevealer,
+  AmortizationChart,
+  PaymentBreakdownChart
+} from '../components/CreditAnalysis'
+
 
 const categoryIcons: Record<string, string> = {
   land: '🏞️',
@@ -31,19 +49,19 @@ const categoryIcons: Record<string, string> = {
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: { 
-    label: 'Active', 
+    label: 'Activo', 
     className: 'bg-success-dim text-success border-success/20' 
   },
   sold: { 
-    label: 'Sold', 
+    label: 'Vendido', 
     className: 'bg-surface text-text-muted border-border' 
   },
   pending: { 
-    label: 'Pending', 
+    label: 'Pendiente', 
     className: 'bg-warning-dim text-warning border-warning/20' 
   },
   under_contract: { 
-    label: 'Under Contract', 
+    label: 'En Contrato', 
     className: 'bg-info-dim text-info border-info/20' 
   },
 }
@@ -100,7 +118,7 @@ export default function InvestmentDetail() {
       queryClient.invalidateQueries({ queryKey: ['investment', id] })
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Upload failed. Please try again.')
+      alert('Error al subir. Intenta nuevamente.')
     } finally {
       setIsUploading(false)
       // Reset input so same file can be selected again
@@ -147,13 +165,59 @@ export default function InvestmentDetail() {
   if (!investment) {
     return (
       <div className="text-center py-16">
-        <p className="text-text-muted">Investment not found</p>
+        <p className="text-text-muted">Inversión no encontrada</p>
       </div>
     )
   }
 
   const returnPositive = (investment.return_percentage || 0) >= 0
   const status = statusConfig[investment.status] || statusConfig.active
+
+  // Credit Analysis State (for land investments)
+  const [selectedCredit, setSelectedCredit] = useState<CreditScenario>(SAMPLE_CREDITS[0])
+  
+  // Build land opportunity from investment data
+  const landOpportunity: LandOpportunity | null = useMemo(() => {
+    if (investment.category !== 'land') return null
+    return {
+      id: investment.id,
+      name: investment.name,
+      location: {
+        region: investment.state || 'Unknown',
+        city: investment.city || 'Unknown',
+        commune: investment.city || 'Unknown'
+      },
+      askingPrice: investment.purchase_price || investment.current_value || 0,
+      landAreaSquareMeters: (investment.land_area_hectares || 0) * 10000,
+      pricePerSquareMeter: investment.purchase_price && investment.land_area_hectares 
+        ? investment.purchase_price / (investment.land_area_hectares * 10000)
+        : 0,
+      appraisalValue: investment.current_value || investment.purchase_price || 0,
+      belowAppraisalBy: investment.purchase_price && investment.current_value
+        ? ((investment.current_value - investment.purchase_price) / investment.current_value) * 100
+        : 0,
+      zoning: (investment.zoning_type as any) || 'residential',
+      hasBasicServices: true,
+      hasRoadAccess: true,
+      topography: 'flat',
+      expectedAppreciationAnnual: 5,
+      status: 'available',
+      listingDate: investment.purchase_date || new Date().toISOString(),
+      notes: investment.description || ''
+    }
+  }, [investment])
+
+  // Calculate analysis when we have land data
+  const creditAnalysis = useMemo(() => {
+    if (!landOpportunity || !selectedCredit) return null
+    return analyzeLandCreditCombo(landOpportunity, selectedCredit)
+  }, [landOpportunity, selectedCredit])
+
+  // Get applicable credits based on land price
+  const applicableCredits = useMemo(() => {
+    if (!landOpportunity) return []
+    return SAMPLE_CREDITS.filter(c => c.effectiveCreditAmount <= (landOpportunity.askingPrice * 0.9))
+  }, [landOpportunity])
 
   return (
     <div className="space-y-6 fade-in">
@@ -190,11 +254,11 @@ export default function InvestmentDetail() {
         <div className="flex items-center gap-2">
           <button className="glyph-btn glyph-btn-ghost">
             <Edit className="h-4 w-4" />
-            Edit
+            Editar
           </button>
           <button 
             onClick={() => {
-              if (confirm('Are you sure you want to delete this investment?')) {
+              if (confirm('¿Estás seguro de eliminar esta inversión?')) {
                 deleteMutation.mutate()
               }
             }}
@@ -206,22 +270,22 @@ export default function InvestmentDetail() {
       </div>
 
       {/* Details Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Info */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Financial Overview */}
           <section className="glass-card-elevated">
-            <div className="p-5 border-b border-border">
+            <div className="p-4 sm:p-5 border-b border-border">
               <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4 text-cream-muted" />
-                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Financial Overview</span>
+                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Resumen Financiero</span>
               </div>
             </div>
-            <div className="p-5">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="p-4 sm:p-5">
+              <div className="grid grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Purchase Price</p>
-                  <p className="font-mono text-xl font-semibold text-text-primary">
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Precio de Compra</p>
+                  <p className="font-mono text-lg sm:text-xl font-semibold text-text-primary break-all">
                     {investment.purchase_price 
                       ? formatCurrency(investment.purchase_price)
                       : '—'
@@ -229,8 +293,8 @@ export default function InvestmentDetail() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Current Value</p>
-                  <p className="font-mono text-xl font-semibold text-cream">
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Valor Actual</p>
+                  <p className="font-mono text-lg sm:text-xl font-semibold text-cream break-all">
                     {investment.current_value 
                       ? formatCurrency(investment.current_value)
                       : '—'
@@ -238,11 +302,11 @@ export default function InvestmentDetail() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Return</p>
-                  <p className={`font-mono text-xl font-semibold flex items-center gap-1 ${
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Retorno</p>
+                  <p className={`font-mono text-lg sm:text-xl font-semibold flex items-center gap-1 ${
                     returnPositive ? 'text-success' : 'text-error'
                   }`}>
-                    {returnPositive ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                    {returnPositive ? <TrendingUp className="h-4 w-4 flex-shrink-0" /> : <TrendingDown className="h-4 w-4 flex-shrink-0" />}
                     {investment.return_percentage !== undefined
                       ? `${returnPositive ? '+' : ''}${investment.return_percentage.toFixed(1)}%`
                       : '—'
@@ -250,8 +314,8 @@ export default function InvestmentDetail() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Documents</p>
-                  <p className="font-mono text-xl font-semibold text-text-primary">
+                  <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Documentos</p>
+                  <p className="font-mono text-lg sm:text-xl font-semibold text-text-primary">
                     {investment.document_count || 0}
                   </p>
                 </div>
@@ -263,47 +327,179 @@ export default function InvestmentDetail() {
           {investment.description && (
             <section className="glass-card">
               <div className="p-5">
-                <h2 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3">Description</h2>
+                <h2 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3">Descripción</h2>
                 <p className="text-sm text-text-secondary leading-relaxed">{investment.description}</p>
               </div>
             </section>
           )}
 
-          {/* Land Specific */}
-          {investment.category === 'land' && (
-            <section className="glass-card-elevated">
-              <div className="p-5 border-b border-border">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🏞️</span>
-                  <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Land Details</span>
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                  <div>
-                    <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Area</p>
-                    <p className="font-mono text-lg font-semibold text-text-primary">
-                      {investment.land_area_hectares 
-                        ? `${investment.land_area_hectares} ha`
-                        : '—'
-                      }
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Zoning</p>
-                    <p className="font-mono text-lg font-semibold text-text-primary capitalize">
-                      {investment.zoning_type || '—'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Ownership</p>
-                    <p className="font-mono text-lg font-semibold text-text-primary">
-                      {investment.ownership_percentage}%
-                    </p>
+          {/* Land Specific with Credit Analysis */}
+          {investment.category === 'land' && landOpportunity && (
+            <>
+              {/* Land Details */}
+              <section className="glass-card-elevated">
+                <div className="p-4 sm:p-5 border-b border-border">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🏞️</span>
+                    <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Detalles del Terreno</span>
                   </div>
                 </div>
-              </div>
-            </section>
+                <div className="p-4 sm:p-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+                    <div>
+                      <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Área</p>
+                      <p className="font-mono text-base sm:text-lg font-semibold text-text-primary">
+                        {investment.land_area_hectares 
+                          ? `${investment.land_area_hectares} ha`
+                          : '—'
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Zonificación</p>
+                      <p className="font-mono text-base sm:text-lg font-semibold text-text-primary capitalize">
+                        {investment.zoning_type || '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Propiedad</p>
+                      <p className="font-mono text-base sm:text-lg font-semibold text-text-primary">
+                        {investment.ownership_percentage}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Credit Analysis Section */}
+              <section className="glass-card-elevated border border-cream/10">
+                <div className="p-4 sm:p-5 border-b border-border">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <Calculator className="h-5 w-5 text-cream" />
+                      <span className="text-sm font-semibold tracking-widest text-cream uppercase">Análisis de Crédito</span>
+                    </div>
+                    <span className="text-xs text-text-muted">Valor UF: {formatCurrency(CURRENT_UF_VALUE)}</span>
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-5 space-y-6">
+                  {/* Warning Banner */}
+                  <div className="rounded-xl border border-warning/20 bg-warning-dim p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-warning font-medium">Análisis Real del Costo del Crédito</p>
+                        <p className="text-xs text-text-secondary mt-1">
+                          Los bancos anuncian montos que realmente no recibes. Selecciona un escenario de crédito para ver el 
+                          <strong> costo real</strong> y los <strong>pagos mensuales</strong> para este terreno.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Credit Selector */}
+                  <div>
+                    <h4 className="text-xs font-semibold tracking-widest text-cream-muted uppercase mb-3 flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Seleccionar Escenario de Crédito
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {applicableCredits.length > 0 ? (
+                        applicableCredits.map((credit) => (
+                          <button
+                            key={credit.id}
+                            onClick={() => setSelectedCredit(credit)}
+                            className={`
+                              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                              ${selectedCredit.id === credit.id
+                                ? 'bg-cream text-void'
+                                : 'bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong'
+                              }
+                            `}
+                          >
+                            <div className="flex flex-col items-start">
+                              <span>{credit.bank}</span>
+                              <span className="text-[10px] opacity-70">
+                                {credit.annualInterestRate}% • {credit.termYears} yrs
+                              </span>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        SAMPLE_CREDITS.slice(0, 3).map((credit) => (
+                          <button
+                            key={credit.id}
+                            onClick={() => setSelectedCredit(credit)}
+                            className={`
+                              px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                              ${selectedCredit.id === credit.id
+                                ? 'bg-cream text-void'
+                                : 'bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong'
+                              }
+                            `}
+                          >
+                            <div className="flex flex-col items-start">
+                              <span>{credit.bank}</span>
+                              <span className="text-[10px] opacity-70">
+                                {credit.annualInterestRate}% • {credit.termYears} yrs
+                              </span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Quick Stats */}
+                  {creditAnalysis && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="rounded-xl border border-border bg-surface p-4">
+                        <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Pago Mensual</p>
+                        <p className="font-mono text-lg font-semibold text-info">
+                          {formatCurrency(creditAnalysis.monthlyPayment)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-surface p-4">
+                        <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Efectivo Requerido</p>
+                        <p className="font-mono text-lg font-semibold text-warning">
+                          {formatCurrency(creditAnalysis.cashRequired)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-surface p-4">
+                        <p className="text-xs text-text-muted uppercase tracking-wider mb-1">ROI 5 Años</p>
+                        <p className={`font-mono text-lg font-semibold ${creditAnalysis.roi5Year > 0 ? 'text-success' : 'text-error'}`}>
+                          {creditAnalysis.roi5Year > 0 ? '+' : ''}{formatPercent(creditAnalysis.roi5Year)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-border bg-surface p-4">
+                        <p className="text-xs text-text-muted uppercase tracking-wider mb-1">Puntaje</p>
+                        <div className="flex items-center gap-2">
+                          <p className={`font-mono text-lg font-semibold ${
+                            creditAnalysis.score >= 70 ? 'text-success' : 
+                            creditAnalysis.score >= 50 ? 'text-cream' : 'text-warning'
+                          }`}>
+                            {creditAnalysis.score}
+                          </p>
+                          {creditAnalysis.score >= 70 && (
+                            <CheckCircle className="h-4 w-4 text-success" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Charts */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <AmortizationChart credit={selectedCredit} />
+                    <PaymentBreakdownChart credit={selectedCredit} />
+                  </div>
+
+                  {/* Detailed Credit Truth */}
+                  <CreditTruthRevealer credit={selectedCredit} />
+                </div>
+              </section>
+            </>
           )}
 
           {/* Documents List */}
@@ -313,9 +509,9 @@ export default function InvestmentDetail() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-cream-muted" />
-                    <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Documents</span>
+                    <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Documentos</span>
                   </div>
-                  <span className="text-xs text-text-muted">{(investment as any).documents.length} files</span>
+                  <span className="text-xs text-text-muted">{(investment as any).documents.length} archivos</span>
                 </div>
               </div>
               <div className="p-2">
@@ -344,10 +540,10 @@ export default function InvestmentDetail() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Upload Card */}
           <section 
-            className={`relative overflow-hidden rounded-2xl border-2 border-dashed p-5 transition-all duration-200 ${
+            className={`relative overflow-hidden rounded-2xl border-2 border-dashed p-4 sm:p-5 transition-all duration-200 ${
               isDragging 
                 ? 'border-cream bg-cream/10' 
                 : 'border-cream/20 bg-gradient-to-br from-cream/10 to-surface'
@@ -356,14 +552,13 @@ export default function InvestmentDetail() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-
             <div className="relative">
               <div className="flex items-center gap-2 mb-3">
                 <Upload className="h-4 w-4 text-cream" />
-                <h3 className="font-semibold text-cream">Upload Documents</h3>
+                <h3 className="font-semibold text-cream text-sm sm:text-base">Subir Documentos</h3>
               </div>
               <p className="text-xs text-cream-muted mb-4">
-                Drag & drop files here or click to browse. AI analysis starts automatically.
+                Arrastra archivos aquí o haz click para buscar. El análisis AI comienza automáticamente.
               </p>
               <input
                 ref={fileInputRef}
@@ -375,40 +570,40 @@ export default function InvestmentDetail() {
               />
               <label 
                 htmlFor="file-upload"
-                className={`glyph-btn glyph-btn-primary w-full flex items-center justify-center gap-2 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                className={`glyph-btn glyph-btn-primary w-full flex items-center justify-center gap-2 py-3 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <Upload className="h-4 w-4" />
-                {isUploading ? 'Uploading...' : 'Choose File'}
+                {isUploading ? 'Subiendo...' : 'Elegir Archivo'}
               </label>
             </div>
           </section>
 
           {/* Key Info */}
           <section className="glass-card">
-            <div className="p-5 border-b border-border">
-              <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Key Information</span>
+            <div className="p-4 sm:p-5 border-b border-border">
+              <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Información Clave</span>
             </div>
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+              <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 text-sm text-text-muted">
-                  <Tag className="h-4 w-4" />
-                  Status
+                  <Tag className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Estado</span>
                 </span>
                 <span className="text-sm font-medium text-text-primary capitalize">{investment.status}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 text-sm text-text-muted">
-                  <Calendar className="h-4 w-4" />
-                  Purchase Date
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Fecha de Compra</span>
                 </span>
                 <span className="text-sm font-medium text-text-primary">
                   {investment.purchase_date ? formatDate(investment.purchase_date) : '—'}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2 text-sm text-text-muted">
-                  <Calendar className="h-4 w-4" />
-                  Last Updated
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">Última Actualización</span>
                 </span>
                 <span className="text-sm font-medium text-text-primary">
                   {formatDate(investment.updated_at)}
@@ -420,7 +615,7 @@ export default function InvestmentDetail() {
               <>
                 <div className="border-t border-border mx-5" />
                 <div className="p-5">
-                  <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase block mb-3">Tags</span>
+                  <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase block mb-3">Etiquetas</span>
                   <div className="flex flex-wrap gap-2">
                     {investment.tags.map((tag: string) => (
                       <span 
@@ -439,21 +634,21 @@ export default function InvestmentDetail() {
           {/* Quick Actions */}
           <section className="glass-card">
             <div className="p-5 border-b border-border">
-              <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Quick Actions</span>
+              <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Acciones Rápidas</span>
             </div>
             <div className="p-2">
               <Link 
                 to="/land-analyzer"
                 className="flex items-center justify-between p-3 rounded-xl hover:bg-surface transition-colors group"
               >
-                <span className="text-sm text-text-secondary group-hover:text-text-primary">Land Credit Analysis</span>
+                <span className="text-sm text-text-secondary group-hover:text-text-primary">Análisis de Crédito</span>
                 <ChevronRight className="h-4 w-4 text-text-muted" />
               </Link>
               <Link 
                 to="/analysis"
                 className="flex items-center justify-between p-3 rounded-xl hover:bg-surface transition-colors group"
               >
-                <span className="text-sm text-text-secondary group-hover:text-text-primary">View AI Analysis</span>
+                <span className="text-sm text-text-secondary group-hover:text-text-primary">Ver Análisis AI</span>
                 <ChevronRight className="h-4 w-4 text-text-muted" />
               </Link>
             </div>

@@ -27,13 +27,13 @@ const categoryIcons: Record<string, string> = {
 
 // Category labels
 const categoryLabels: Record<string, string> = {
-  land: 'Land',
-  stocks: 'Stocks',
-  gold: 'Gold',
+  land: 'Terrenos',
+  stocks: 'Acciones',
+  gold: 'Oro',
   crypto: 'Crypto',
-  real_estate: 'Real Estate',
-  bonds: 'Bonds',
-  other: 'Other'
+  real_estate: 'Inmuebles',
+  bonds: 'Bonos',
+  other: 'Otros'
 }
 
 // Skeleton loader component
@@ -90,59 +90,59 @@ export default function Dashboard() {
             <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Dashboard</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">
-            Portfolio Overview
+            Resumen del Portafolio
           </h1>
           <p className="text-text-secondary mt-1">
-            Track and manage your family's investment portfolio
+            Gestiona el portafolio de inversiones familiares
           </p>
         </div>
         
         <div className="flex items-center gap-2 text-xs text-text-muted">
           <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span>Live Data</span>
+          <span>En vivo</span>
           <span className="text-border-strong">|</span>
-          <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <span>{new Date().toLocaleDateString('es-CL', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
         </div>
       </div>
 
       {/* Featured Total Value */}
       <FeaturedStat
-        label="Total Portfolio Value"
+        label="Valor Total del Portafolio"
         value={formatCurrency(totalValue)}
-        sublabel="Combined value across all investment categories"
+        sublabel="Valor combinado de todas las categorías de inversión"
         icon={DollarSign}
       />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
         <StatCard
-          title="Investments"
+          title="Inversiones"
           value={formatNumber(totalInvestments)}
-          description="Active assets tracked"
+          description="Activos monitoreados"
           icon={Trees}
           variant="default"
           delay={0}
         />
         <StatCard
-          title="Files Stored"
+          title="Archivos"
           value={formatNumber(totalFiles)}
-          description="Documents & media"
+          description="Documentos y media"
           icon={FileText}
           variant="default"
           delay={50}
         />
         <StatCard
-          title="AI Analyses"
+          title="Análisis AI"
           value={formatNumber(completedAnalyses)}
-          description={`${pendingAnalyses} pending`}
+          description={`${pendingAnalyses} pendientes`}
           icon={Brain}
           variant="accent"
           delay={100}
         />
         <StatCard
-          title="Categories"
+          title="Categorías"
           value={Object.keys(stats?.investments_by_category || {}).length}
-          description="Asset types diversified"
+          description="Diversificación de activos"
           icon={TrendingUp}
           variant="default"
           delay={150}
@@ -153,13 +153,13 @@ export default function Dashboard() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Categories</span>
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Categorías</span>
           </div>
           <Link 
             to="/investments" 
             className="text-xs text-cream-muted hover:text-cream transition-colors flex items-center gap-1"
           >
-            View All <ChevronRight className="h-3 w-3" />
+            Ver Todo <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
         
@@ -194,13 +194,13 @@ export default function Dashboard() {
               <div className="p-2 rounded-lg bg-surface-elevated">
                 <Clock className="h-4 w-4 text-cream-muted" />
               </div>
-              <span className="text-sm font-semibold text-text-primary">Recent Uploads</span>
+              <span className="text-sm font-semibold text-text-primary">Subidas Recientes</span>
             </div>
             <Link 
               to="/files"
               className="glyph-btn glyph-btn-ghost py-1.5 px-3 text-xs"
             >
-              View All
+              Ver Todo
             </Link>
           </div>
           
@@ -238,7 +238,7 @@ export default function Dashboard() {
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-elevated flex items-center justify-center">
                   <FileText className="h-5 w-5 text-text-muted" />
                 </div>
-                <p className="text-sm text-text-muted">No recent uploads</p>
+                <p className="text-sm text-text-muted">No hay subidas recientes</p>
               </div>
             )}
           </div>
@@ -251,13 +251,13 @@ export default function Dashboard() {
               <div className="p-2 rounded-lg bg-surface-elevated">
                 <TrendingUp className="h-4 w-4 text-cream-muted" />
               </div>
-              <span className="text-sm font-semibold text-text-primary">Recent Investments</span>
+              <span className="text-sm font-semibold text-text-primary">Inversiones Recientes</span>
             </div>
             <Link 
               to="/investments"
               className="glyph-btn glyph-btn-ghost py-1.5 px-3 text-xs"
             >
-              View All
+              Ver Todo
             </Link>
           </div>
           
@@ -279,7 +279,7 @@ export default function Dashboard() {
                         <span>{categoryIcons[inv.category] || '📦'}</span>
                         <span>{categoryLabels[inv.category] || inv.category}</span>
                         <span className="text-border-strong">•</span>
-                        <span>{inv.city || 'No location'}</span>
+                        <span>{inv.city || 'Sin ubicación'}</span>
                       </p>
                     </div>
                     <span className="font-mono text-sm text-cream ml-4">
@@ -293,7 +293,7 @@ export default function Dashboard() {
                 <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-elevated flex items-center justify-center">
                   <Trees className="h-5 w-5 text-text-muted" />
                 </div>
-                <p className="text-sm text-text-muted">No investments yet</p>
+                <p className="text-sm text-text-muted">Aún no hay inversiones</p>
               </div>
             )}
           </div>

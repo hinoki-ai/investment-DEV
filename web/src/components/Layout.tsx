@@ -11,11 +11,12 @@ import {
   ChevronRight,
   PanelLeft,
   ChevronDown,
-  FolderOpen,
   Download,
+  FolderOpen,
   type LucideIcon
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
+import MarketDataTicker from './MarketDataTicker'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -63,28 +64,28 @@ const isNavItem = (el: NavElement): el is NavItem => {
 
 // Navigation structure with nested categories
 const navigation: NavElement[] = [
-  { path: '/', label: 'Overview', icon: LayoutDashboard },
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   
-  { type: 'section', label: 'Portfolio' },
+  { type: 'section', label: 'Portafolio' },
   {
     type: 'group',
-    label: 'Investments',
+    label: 'Inversiones',
     icon: Trees,
     defaultExpanded: true,
     items: [
-      { path: '/investments', label: 'All Investments', icon: FolderOpen },
+      { path: '/investments', label: 'Todas', icon: FolderOpen },
       { path: '/land-analyzer', label: 'Land Analyzer', icon: Calculator, badge: 'AI', badgeColor: 'cream' },
     ]
   },
   
-  { type: 'section', label: 'Documents' },
+  { type: 'section', label: 'Documentos' },
   {
     type: 'group',
-    label: 'Files & Analysis',
+    label: 'Archivos y Análisis',
     icon: FileText,
     items: [
-      { path: '/files', label: 'All Files', icon: FolderOpen },
-      { path: '/analysis', label: 'AI Analysis', icon: Brain, badge: 'New', badgeColor: 'success' },
+      { path: '/files', label: 'Todos los Archivos', icon: FolderOpen },
+      { path: '/analysis', label: 'Análisis AI', icon: Brain, badge: 'New', badgeColor: 'success' },
     ]
   },
 ]
@@ -105,7 +106,7 @@ export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+  // Hover state removed - only manual toggle
   
   // Track expanded groups - initialize based on active state
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
@@ -162,7 +163,7 @@ export default function Layout({ children }: LayoutProps) {
     })
   }, [])
 
-  const isExpanded = !sidebarCollapsed || isHovered
+  const isExpanded = !sidebarCollapsed
 
   // Badge component
   const Badge = ({ text, color }: { text: string, color?: string }) => {
@@ -337,7 +338,7 @@ export default function Layout({ children }: LayoutProps) {
         }
       }
     }
-    return 'Overview'
+    return 'Dashboard'
   }
 
   return (
@@ -348,42 +349,54 @@ export default function Layout({ children }: LayoutProps) {
         className={`hidden lg:flex fixed left-0 top-0 h-full flex-col border-r border-border bg-void-deep/80 backdrop-blur-xl z-40 transition-all duration-300 ease-out ${
           isExpanded ? 'w-72' : 'w-16'
         }`}
-        onMouseEnter={() => sidebarCollapsed && setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Logo Section */}
-        <div className={`p-4 transition-all duration-300 ${isExpanded ? '' : 'px-3'}`}>
-          <Link to="/" className={`flex items-center gap-3 group ${isExpanded ? '' : 'justify-center'}`}>
+        {/* Logo Section with Collapse Button */}
+        <div className={`p-4 flex items-center gap-2 ${isExpanded ? '' : 'px-3 justify-center'}`}>
+          <Link to="/" className="flex items-center gap-3 group flex-1 min-w-0">
             <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
-              <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20 group-hover:border-cream/40 transition-colors" />
+              <div className="absolute inset-0 bg-cream/10 rounded-xl border border-cream/20 group-hover:border-cream/40" />
               <img 
                 src="/favinv.png" 
                 alt="FavInv" 
-                className="relative w-5 h-5 object-contain opacity-90 group-hover:opacity-100 transition-opacity"
+                className="relative w-5 h-5 object-contain opacity-90 group-hover:opacity-100"
               />
             </div>
-            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-              <span className="text-sm font-semibold tracking-wide text-text-primary whitespace-nowrap">FAMINV</span>
-              <span className="block text-[10px] tracking-widest text-text-muted uppercase whitespace-nowrap">Investments</span>
-            </div>
+            {isExpanded && (
+              <div className="overflow-hidden">
+                <span className="text-sm font-semibold tracking-wide text-text-primary whitespace-nowrap">PRISM</span>
+                <span className="block text-[10px] tracking-widest text-text-muted uppercase whitespace-nowrap">Investments</span>
+              </div>
+            )}
           </Link>
+          {isExpanded && (
+            <button
+              onClick={toggleSidebar}
+              className="p-2 text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-lg flex-shrink-0"
+              title="Collapse sidebar"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
-        {/* Toggle Button */}
-        <div className={`px-4 mb-2 transition-all duration-300 ${isExpanded ? '' : 'px-2'}`}>
-          <button
-            onClick={toggleSidebar}
-            className={`flex items-center gap-2 text-text-muted hover:text-text-primary transition-all duration-200 ${
-              isExpanded ? 'w-full px-3 py-2 rounded-lg hover:bg-surface/50' : 'w-full justify-center p-2 rounded-lg hover:bg-surface/50'
-            }`}
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <PanelLeft className={`h-4 w-4 transition-transform duration-300 ${sidebarCollapsed ? 'rotate-180' : ''}`} />
-            <span className={`text-xs font-medium overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-              {sidebarCollapsed ? 'Expand' : 'Collapse'}
-            </span>
-          </button>
-        </div>
+        {/* Expand Button (when collapsed) */}
+        {!isExpanded && (
+          <div className="px-3 mb-2">
+            <button
+              onClick={toggleSidebar}
+              className="w-full flex justify-center p-2 text-text-muted hover:text-text-primary hover:bg-surface/50 rounded-lg"
+              title="Expand sidebar"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Market Data Ticker */}
+        <MarketDataTicker collapsed={!isExpanded} />
+
+        {/* Separator */}
+        <div className={`h-px bg-border mx-4 mb-2 transition-all duration-300 ${isExpanded ? '' : 'mx-2'}`} />
 
         {/* Navigation */}
         <nav className={`flex-1 py-2 overflow-y-auto custom-scrollbar transition-all duration-300 ${isExpanded ? 'px-3' : 'px-2'}`}>
@@ -401,7 +414,7 @@ export default function Layout({ children }: LayoutProps) {
               className={`glyph-btn glyph-btn-primary transition-all duration-300 ${
                 isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
               }`}
-              title={!isExpanded ? "Upload Document" : undefined}
+              title={!isExpanded ? "Subir Documento" : undefined}
             >
               <Upload className="h-4 w-4 flex-shrink-0" />
               <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
@@ -414,7 +427,7 @@ export default function Layout({ children }: LayoutProps) {
               className={`glyph-btn glyph-btn-secondary transition-all duration-300 ${
                 isExpanded ? 'w-full justify-center' : 'w-full p-3 justify-center'
               }`}
-              title={!isExpanded ? "Download App" : undefined}
+              title={!isExpanded ? "Descargar App" : undefined}
             >
               <Download className="h-4 w-4 flex-shrink-0" />
               <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
@@ -430,13 +443,13 @@ export default function Layout({ children }: LayoutProps) {
                 <img src="/favinv.png" alt="" className="w-4 h-4 object-contain" />
               </div>
               <span className={`text-xs text-text-muted overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Nest
+                Nido
               </span>
             </div>
             <div className={`flex items-center gap-2 text-xs text-text-muted ${isExpanded ? '' : 'flex-col'}`}>
               <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse flex-shrink-0" />
               <span className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-                Online
+                En línea
               </span>
             </div>
           </div>
@@ -447,22 +460,10 @@ export default function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Desktop Header (when sidebar collapsed) */}
-      <header className="hidden lg:flex fixed top-0 left-16 right-0 h-16 items-center justify-between px-6 z-30 bg-void/50 backdrop-blur-sm">
+      <header className="hidden lg:flex fixed top-0 left-16 right-0 h-16 items-center px-6 z-30 bg-void/50 backdrop-blur-sm">
         <h1 className="text-lg font-semibold text-text-primary">
           {getCurrentPageLabel()}
         </h1>
-        <div className="flex items-center gap-4">
-          <a
-            href="/releases/nexus-v1.0.apk"
-            download
-            className="glyph-btn glyph-btn-secondary flex items-center gap-2"
-            title="Download Android App"
-          >
-            <Download className="h-4 w-4" />
-            <span>Get App</span>
-          </a>
-          <span className="text-xs text-text-muted">{new Date().toLocaleDateString()}</span>
-        </div>
       </header>
 
       {/* Mobile Header */}
@@ -479,7 +480,7 @@ export default function Layout({ children }: LayoutProps) {
               />
             </div>
             <div>
-              <span className="text-sm font-semibold tracking-wide">FAMINV</span>
+              <span className="text-sm font-semibold tracking-wide">PRISM</span>
             </div>
           </Link>
 

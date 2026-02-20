@@ -176,6 +176,17 @@
     border-color: var(--border-default);
   }
   
+  .glyph-btn-secondary {
+    background: var(--surface-elevated);
+    color: var(--cream);
+    border-color: var(--border-strong);
+  }
+  
+  .glyph-btn-secondary:hover {
+    background: var(--surface-higher);
+    border-color: var(--cream-muted);
+  }
+  
 
   /* Input fields */
   .input-field {
@@ -404,6 +415,54 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Help Tooltip Animations */
+  @keyframes tooltipFadeIn {
+    from { 
+      opacity: 0; 
+      transform: scale(0.95) translateY(5px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1) translateY(0); 
+    }
+  }
+
+  @keyframes tooltipSlideUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(8px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .tooltip-enter {
+    animation: tooltipFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Help icon pulse on hover */
+  .help-icon-pulse {
+    animation: helpPulse 2s infinite;
+  }
+
+  @keyframes helpPulse {
+    0%, 100% { 
+      opacity: 0.6; 
+      transform: scale(1); 
+    }
+    50% { 
+      opacity: 1; 
+      transform: scale(1.1); 
+    }
+  }
+
+  /* Glow effect for help icons */
+  .help-glow:hover {
+    filter: drop-shadow(0 0 8px var(--glow-cream));
+  }
   
   /* Stagger children animation */
   .stagger-children > * {
@@ -428,5 +487,38 @@
   
   .bg-gradient-warm {
     background: linear-gradient(135deg, var(--surface) 0%, var(--surface-elevated) 100%);
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Minimum touch target size */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Safe area padding for notched devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
   }
 }

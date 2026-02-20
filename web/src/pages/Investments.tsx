@@ -18,31 +18,31 @@ import { investmentsApi } from '../lib/api'
 import { formatCurrency } from '../lib/utils'
 
 const categories = [
-  { value: '', label: 'All Categories' },
-  { value: 'land', label: '🏞️ Land' },
-  { value: 'stocks', label: '📈 Stocks' },
-  { value: 'gold', label: '🪙 Gold' },
+  { value: '', label: 'Todas las Categorías' },
+  { value: 'land', label: '🏞️ Terrenos' },
+  { value: 'stocks', label: '📈 Acciones' },
+  { value: 'gold', label: '🪙 Oro' },
   { value: 'crypto', label: '₿ Crypto' },
-  { value: 'real_estate', label: '🏢 Real Estate' },
-  { value: 'bonds', label: '📜 Bonds' },
-  { value: 'other', label: '📦 Other' },
+  { value: 'real_estate', label: '🏢 Inmuebles' },
+  { value: 'bonds', label: '📜 Bonos' },
+  { value: 'other', label: '📦 Otros' },
 ]
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: { 
-    label: 'Active', 
+    label: 'Activo', 
     className: 'bg-success-dim text-success border-success/20' 
   },
   sold: { 
-    label: 'Sold', 
+    label: 'Vendido', 
     className: 'bg-surface text-text-muted border-border' 
   },
   pending: { 
-    label: 'Pending', 
+    label: 'Pendiente', 
     className: 'bg-warning-dim text-warning border-warning/20' 
   },
   under_contract: { 
-    label: 'Contract', 
+    label: 'En Contrato', 
     className: 'bg-info-dim text-info border-info/20' 
   },
 }
@@ -81,11 +81,11 @@ export default function Investments() {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Trees className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Portfolio</span>
+            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Portafolio</span>
           </div>
-          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Investments</h1>
+          <h1 className="text-3xl font-bold text-text-primary tracking-tight">Inversiones</h1>
           <p className="text-text-secondary mt-1">
-            Manage and track your investment assets
+            Gestiona y monitorea tus activos de inversión
           </p>
         </div>
         <Link 
@@ -93,7 +93,7 @@ export default function Investments() {
           className="glyph-btn glyph-btn-primary"
         >
           <Plus className="h-4 w-4" />
-          Add Investment
+          Agregar Inversión
         </Link>
       </div>
 
@@ -104,7 +104,7 @@ export default function Investments() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
             <input
               type="text"
-              placeholder="Search investments..."
+              placeholder="Buscar inversiones..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field pl-11"
@@ -148,14 +148,14 @@ export default function Investments() {
       {/* Results Count */}
       <div className="flex items-center justify-between text-xs text-text-muted">
         <span>
-          {filteredInvestments?.length || 0} investment{filteredInvestments?.length !== 1 ? 's' : ''}
+          {filteredInvestments?.length || 0} inversión{filteredInvestments?.length !== 1 ? 'es' : ''}
         </span>
         {(search || category) && (
           <button 
             onClick={() => { setSearch(''); setCategory('') }}
             className="text-cream-muted hover:text-cream transition-colors"
           >
-            Clear filters
+            Limpiar filtros
           </button>
         )}
       </div>
@@ -164,7 +164,7 @@ export default function Investments() {
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-28 bg-surface rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 sm:h-28 bg-surface rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filteredInvestments?.length ? (
@@ -173,17 +173,17 @@ export default function Investments() {
             <Link
               key={investment.id}
               to={`/investments/${investment.id}`}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5 card-hover"
+              className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-4 sm:p-5 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5 card-hover"
             >
               {/* Hover glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-cream/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               
               <div className="relative">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start justify-between gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
                       <span className="text-lg">{categoryIcons[investment.category] || '📦'}</span>
-                      <h3 className="text-base font-semibold text-text-primary group-hover:text-cream transition-colors">
+                      <h3 className="text-sm sm:text-base font-semibold text-text-primary group-hover:text-cream transition-colors truncate">
                         {investment.name}
                       </h3>
                     </div>
@@ -198,12 +198,12 @@ export default function Investments() {
                       {investment.city && (
                         <span className="flex items-center gap-1 text-xs text-text-muted">
                           <MapPin className="h-3 w-3" />
-                          {investment.city}
+                          <span className="truncate max-w-[100px] sm:max-w-none">{investment.city}</span>
                         </span>
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-4 mt-3 text-xs text-text-muted">
+                    <div className="flex items-center gap-3 sm:gap-4 mt-3 text-xs text-text-muted">
                       {investment.land_area_hectares && (
                         <span className="font-mono">{investment.land_area_hectares} ha</span>
                       )}
@@ -213,9 +213,9 @@ export default function Investments() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <div className="text-right">
-                      <p className="font-mono text-lg font-semibold text-cream">
+                      <p className="font-mono text-base sm:text-lg font-semibold text-cream">
                         {investment.current_value 
                           ? formatCurrency(investment.current_value)
                           : '—'
@@ -235,7 +235,7 @@ export default function Investments() {
                         </p>
                       )}
                     </div>
-                    <ChevronRight className="h-5 w-5 text-text-muted group-hover:text-cream transition-colors" />
+                    <ChevronRight className="h-5 w-5 text-text-muted group-hover:text-cream transition-colors flex-shrink-0" />
                   </div>
                 </div>
               </div>
@@ -248,18 +248,18 @@ export default function Investments() {
             <DollarSign className="h-8 w-8 text-text-muted" />
           </div>
           <h3 className="text-lg font-medium text-text-primary mb-1">
-            {search || category ? 'No matches found' : 'No investments yet'}
+            {search || category ? 'No se encontraron coincidencias' : 'Aún no hay inversiones'}
           </h3>
           <p className="text-sm text-text-muted mb-6">
             {search || category 
-              ? 'Try adjusting your search or filters'
-              : 'Get started by adding your first investment'
+              ? 'Intenta ajustar tu búsqueda o filtros'
+              : 'Comienza agregando tu primera inversión'
             }
           </p>
           {!(search || category) && (
             <Link to="/investments/new" className="glyph-btn glyph-btn-primary">
               <Plus className="h-4 w-4" />
-              Add Investment
+              Agregar Inversión
             </Link>
           )}
         </div>

@@ -185,6 +185,7 @@ export interface LandOpportunity {
     maxFloors?: number
     density?: number // units per hectare
     landUseEfficiency?: number // %
+    buildableArea?: number // m² construibles
   }
   
   // Status
@@ -753,7 +754,7 @@ export function analyzeLandCreditCombo(
   
   // Residual land value calculation (if development potential exists)
   let residualValue: ResidualLandValue | undefined
-  const buildableArea = (land.developmentPotential as any)?.buildableArea
+  const buildableArea = land.buildableArea || land.developmentPotential?.buildableArea
   if (buildableArea) {
     const gdv = buildableArea * 1500000 // $1.5M/m² estimated
     residualValue = calculateResidualLandValue(

@@ -133,7 +133,7 @@ export default function StatCard({
 
 // Large featured stat card
 interface FeaturedStatProps {
-  label: string
+  label: string | React.ReactNode
   value: string | number
   sublabel?: string
   icon: LucideIcon
@@ -144,23 +144,23 @@ export function FeaturedStat({ label, value, sublabel, icon: Icon, className = '
   const animatedValue = useAnimatedValue(value, 1200)
   
   return (
-    <div className={`relative overflow-hidden rounded-3xl border border-cream/10 bg-surface p-8 ${className}`}>
+    <div className={`relative overflow-hidden rounded-3xl border border-cream/10 bg-surface p-6 sm:p-8 ${className}`}>
       <div className="relative">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-2xl bg-cream/10 border border-cream/20">
-            <Icon className="h-6 w-6 text-cream" />
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
+          <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-cream/10 border border-cream/20">
+            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-cream" />
           </div>
           <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
             {label}
           </span>
         </div>
         
-        <div className="font-mono text-5xl sm:text-6xl font-bold text-gradient tracking-tight">
+        <div className="font-mono text-3xl sm:text-5xl lg:text-6xl font-bold text-gradient tracking-tight break-all">
           {animatedValue}
         </div>
         
         {sublabel && (
-          <p className="text-sm text-text-secondary mt-3">
+          <p className="text-sm text-text-secondary mt-2 sm:mt-3">
             {sublabel}
           </p>
         )}
