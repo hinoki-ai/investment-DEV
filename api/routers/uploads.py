@@ -5,6 +5,7 @@ UPLOAD ROUTER - Direct-to-Storage Upload Flow
 Phone → Gets pre-signed URL → Uploads directly to R2/S3 → Confirms upload → Creates job
 ===============================================================================
 """
+import sys
 from typing import Optional
 from uuid import UUID
 
@@ -12,13 +13,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-import sys
+# Import API SQLAlchemy models first (local)
+sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/api')
+from models import FileRegistry, ProcessingJob, Document, FileStatus, JobType, JobStatus
+
+# Then import shared Pydantic schemas
 sys.path.insert(0, '/home/hinoki/HinokiDEV/Investments/shared')
 from models import UploadUrlRequest, UploadUrlResponse, ConfirmUploadRequest, FileRegistryResponse
 
 from database import get_async_db, redis_client
 from storage import get_storage_service
-import models as db_models
 
 
 router = APIRouter()
@@ -46,7 +50,7 @@ async def request_upload_url(
     )
     
     # Create file registry entry
-    file_entry = db_models.FileRegistry(
+    file_entry = FileRegistry(
         original_filename=request.filename,
         storage_key=storage_key,
         storage_bucket=storage.bucket,
@@ -54,7 +58,7 @@ async def request_upload_url(
         source_device=request.source_device,
         investment_id=request.investment_id,
         metadata=request.metadata,
-        status=db_models.FileStatus.PENDING
+        status=FileStatus.PENDING
     )
     
     db.add(file_entry)
@@ -89,7 +93,7 @@ async def confirm_upload(
     """
     # Get file entry
     result = await db.execute(
-        select(db_models.FileRegistry).where(db_models.FileRegistry.id == request.file_id)
+        select(FileRegistry).where(FileRegistry.id == request.file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -111,7 +115,7 @@ async def confirm_upload(
         )
     
     # Update file status
-    file_entry.status = db_models.FileStatus.COMPLETED
+    file_entry.status = FileStatus.COMPLETED
     file_entry.investment_id = request.investment_id or file_entry.investment_id
     
     await db.commit()
@@ -126,7 +130,7 @@ async def confirm_upload(
     # Create document if investment is specified
     document = None
     if request.document_type and request.investment_id:
-        document = db_models.Document(
+        document = Document(
             investment_id=request.investment_id,
             file_id=file_entry.id,
             document_type=request.document_type,
@@ -145,12 +149,12 @@ async def confirm_upload(
     
     # Queue for analysis if requested
     if request.request_analysis:
-        job = db_models.ProcessingJob(
-            job_type=request.analysis_type or db_models.JobType.DOCUMENT_ANALYSIS,
+        job = ProcessingJob(
+            job_type=request.analysis_type or JobType.DOCUMENT_ANALYSIS,
             file_id=file_entry.id,
             investment_id=request.investment_id,
             priority=5,
-            status=db_models.JobStatus.QUEUED
+            status=JobStatus.QUEUED
         )
         db.add(job)
         await db.commit()
@@ -179,7 +183,7 @@ async def get_upload_status(
 ):
     """Get upload status and metadata."""
     result = await db.execute(
-        select(db_models.FileRegistry).where(db_models.FileRegistry.id == file_id)
+        select(FileRegistry).where(FileRegistry.id == file_id)
     )
     file_entry = result.scalar_one_or_none()
     
@@ -214,7 +218,7 @@ async def request_upload_urls_batch(
         )
         
         # Create file registry entry
-        file_entry = db_models.FileRegistry(
+        file_entry = FileRegistry(
             original_filename=request.filename,
             storage_key=storage_key,
             storage_bucket=storage.bucket,
@@ -222,7 +226,7 @@ async def request_upload_urls_batch(
             source_device=request.source_device,
             investment_id=request.investment_id,
             metadata=request.metadata,
-            status=db_models.FileStatus.PENDING
+            status=FileStatus.PENDING
         )
         
         db.add(file_entry)
@@ -262,7 +266,7 @@ async def confirm_uploads_batch(
         try:
             # Get file entry
             result = await db.execute(
-                select(db_models.FileRegistry).where(db_models.FileRegistry.id == request.file_id)
+                select(FileRegistry).where(FileRegistry.id == request.file_id)
             )
             file_entry = result.scalar_one_or_none()
             
@@ -287,7 +291,7 @@ async def confirm_uploads_batch(
                 continue
             
             # Update file status
-            file_entry.status = db_models.FileStatus.COMPLETED
+            file_entry.status = FileStatus.COMPLETED
             file_entry.investment_id = request.investment_id or file_entry.investment_id
             
             await db.commit()
@@ -300,7 +304,7 @@ async def confirm_uploads_batch(
             
             # Create document if investment is specified
             if request.document_type and request.investment_id:
-                document = db_models.Document(
+                document = Document(
                     investment_id=request.investment_id,
                     file_id=file_entry.id,
                     document_type=request.document_type,
@@ -319,12 +323,12 @@ async def confirm_uploads_batch(
             
             # Queue for analysis if requested
             if request.request_analysis:
-                job = db_models.ProcessingJob(
-                    job_type=request.analysis_type or db_models.JobType.DOCUMENT_ANALYSIS,
+                job = ProcessingJob(
+                    job_type=request.analysis_type or JobType.DOCUMENT_ANALYSIS,
                     file_id=file_entry.id,
                     investment_id=request.investment_id,
                     priority=5,
-                    status=db_models.JobStatus.QUEUED
+                    status=JobStatus.QUEUED
                 )
                 db.add(job)
                 await db.commit()

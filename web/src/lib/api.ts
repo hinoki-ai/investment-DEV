@@ -119,6 +119,7 @@ export interface ChatRequest {
   file_ids?: string[]
   stream?: boolean
   model?: string
+  api_key?: string
 }
 
 export interface ChatResponse {

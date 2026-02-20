@@ -11,7 +11,11 @@ import {
   Trash2,
   Copy,
   Check,
-  Upload
+  Upload,
+  Settings,
+  ChevronDown,
+  Key,
+  Cpu
 } from 'lucide-react'
 import { chatApi, uploadsApi } from '../lib/api'
 
@@ -63,6 +67,20 @@ export default function Chat() {
   // File input ref for direct upload
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set())
+
+  // Model settings
+  const [showModelSettings, setShowModelSettings] = useState(false)
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('chat_api_key') || '')
+  const [modelName, setModelName] = useState(() => localStorage.getItem('chat_model_name') || 'gpt-4o')
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('chat_api_key', apiKey)
+  }, [apiKey])
+
+  useEffect(() => {
+    localStorage.setItem('chat_model_name', modelName)
+  }, [modelName])
 
   // Fetch data for context selection
   const { data: investments } = useQuery({
@@ -204,6 +222,8 @@ export default function Chat() {
         messages: apiMessages,
         investment_id: selectedInvestment?.id,
         file_ids: selectedFiles.map(f => f.id),
+        model: modelName,
+        api_key: apiKey || undefined,
       })
 
       const reader = stream
@@ -474,21 +494,94 @@ export default function Chat() {
             className="hidden"
           />
 
-          {/* Textarea container with upload button inside */}
+          {/* Textarea container with buttons inside */}
           <div className="flex-1 relative flex items-start">
-            {/* Upload button inside textarea area */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || uploadingFiles.size > 0}
-              className="absolute left-0 bottom-1 p-2 rounded-lg text-text-muted hover:text-cream hover:bg-surface-elevated transition-colors disabled:opacity-50 z-10"
-              title="Adjuntar archivo"
-            >
-              {uploadingFiles.size > 0 ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4" />
+            {/* Left buttons: Upload and Model Settings */}
+            <div className="absolute left-0 bottom-1 flex items-center gap-1 z-10">
+              {/* Upload button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || uploadingFiles.size > 0}
+                className="p-2 rounded-lg text-text-muted hover:text-cream hover:bg-surface-elevated transition-colors disabled:opacity-50"
+                title="Adjuntar archivo"
+              >
+                {uploadingFiles.size > 0 ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+              </button>
+
+              {/* Model Settings button */}
+              <button
+                onClick={() => setShowModelSettings(!showModelSettings)}
+                disabled={isLoading}
+                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                  showModelSettings || apiKey 
+                    ? 'text-cream bg-cream/10' 
+                    : 'text-text-muted hover:text-cream hover:bg-surface-elevated'
+                }`}
+                title="Configurar modelo"
+              >
+                <Cpu className="h-4 w-4" />
+              </button>
+
+              {/* Model Settings Dropdown */}
+              {showModelSettings && (
+                <div className="absolute left-0 bottom-full mb-2 w-72 bg-surface-elevated border border-border rounded-xl shadow-2xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-text-primary">Modelo</span>
+                    <button 
+                      onClick={() => setShowModelSettings(false)}
+                      className="text-text-muted hover:text-text-primary"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  {/* Model Name Input */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-text-muted uppercase tracking-wider">Nombre del Modelo</label>
+                    <input
+                      type="text"
+                      value={modelName}
+                      onChange={(e) => setModelName(e.target.value)}
+                      placeholder="gpt-4o, claude-3-5-sonnet, etc."
+                      className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-cream/30"
+                    />
+                    <p className="text-[10px] text-text-muted">
+                      Ej: gpt-4o, claude-3-5-sonnet, gemini-1.5-flash
+                    </p>
+                  </div>
+
+                  {/* API Key Input */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-text-muted uppercase tracking-wider">API Key</label>
+                    <div className="relative">
+                      <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
+                      <input
+                        type="password"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        placeholder="sk-..."
+                        className="w-full pl-9 pr-3 py-2 bg-surface border border-border rounded-lg text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-cream/30"
+                      />
+                    </div>
+                    <p className="text-[10px] text-text-muted">
+                      Se guarda localmente en tu navegador
+                    </p>
+                  </div>
+
+                  {/* Current Model Display */}
+                  <div className="pt-2 border-t border-border">
+                    <div className="flex items-center gap-2 text-xs text-text-muted">
+                      <div className={`w-2 h-2 rounded-full ${apiKey ? 'bg-success' : 'bg-warning'}`} />
+                      {apiKey ? `Usando: ${modelName}` : 'Usando modelo por defecto del servidor'}
+                    </div>
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
 
             <textarea
               ref={textareaRef}
@@ -497,7 +590,7 @@ export default function Chat() {
               onKeyDown={handleKeyDown}
               placeholder="Escribe tu mensaje..."
               rows={1}
-              className="w-full bg-transparent text-text-primary placeholder:text-text-muted resize-none outline-none text-sm min-h-[24px] max-h-[200px] py-2 pl-10 pr-2"
+              className="w-full bg-transparent text-text-primary placeholder:text-text-muted resize-none outline-none text-sm min-h-[24px] max-h-[200px] py-2 pl-20 pr-2"
               disabled={isLoading}
             />
           </div>
