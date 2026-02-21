@@ -36,8 +36,8 @@ RELEASES_DIR="$PRISM_WEB_DIR/public/releases"
 APK_OUTPUT_DIR="$NEXUS_MOBILE_DIR/app/build/outputs/apk/release"
 
 # APK Configuration
-APK_NAME="nexus-v1.0.apk"
-APK_VERSION="1.0.0"
+APK_NAME="nexus-latest-release.apk"
+APK_VERSION="1.0.2"
 
 # Cloudflare
 CF_PROJECT="${CF_PROJECT:-investment-aramac}"

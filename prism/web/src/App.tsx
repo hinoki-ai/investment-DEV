@@ -24,6 +24,7 @@ const Analysis = lazy(() => import('./pages/Analysis'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const Chat = lazy(() => import('./pages/Chat'))
 const Download = lazy(() => import('./pages/Download'))
+const Settings = lazy(() => import('./pages/Settings'))
 
 // Page loader component for lazy-loaded routes
 function PageLoader() {
@@ -146,6 +147,14 @@ function App() {
             element={
               <Suspense fallback={<PageLoader />}>
                 <Download />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <Settings />
               </Suspense>
             }
           />

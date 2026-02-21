@@ -1,0 +1,5 @@
+
+> prism@1.0.0 build
+> tsc && vite build
+
+sh: line 1: tsc: command not found

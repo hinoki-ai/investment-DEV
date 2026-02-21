@@ -255,23 +255,11 @@ prod-backup: ## Backup production database
 	@echo "✅ Backup saved to backups/"
 
 # =============================================================================
-# Railway Deployment (when you want cloud hosting)
+# Vercel Deployment
 # =============================================================================
 
-railway-login: ## Login to Railway (one-time browser auth)
-	railway login
-
-railway-setup: ## Setup Railway project and PostgreSQL
-	./scripts/railway-setup.sh
-
-railway-deploy: ## Deploy to Railway (requires: make railway-login)
-	./scripts/deploy-railway.sh
-
-railway-db: ## Get Railway database URL
-	@echo "DATABASE_URL=$$(railway variables get DATABASE_URL)"
-
 deploy-web: ## Deploy web to Vercel
-	cd web && npx vercel --prod
+	cd prism/web && npx vercel --prod
 
 # =============================================================================
 # Utilities
@@ -290,7 +278,7 @@ install-hooks: ## Install git hooks
 
 docs: ## Generate documentation
 	@echo "Generating documentation..."
-	cd api && python -m pydoc-markdown || echo "Install pydoc-markdown for API docs"
+	cd prism/api && python -m pydoc-markdown || echo "Install pydoc-markdown for API docs"
 
 changelog: ## Generate changelog
 	git log --pretty=format:"- %s (%h)" --no-merges | head -50
@@ -300,10 +288,10 @@ changelog: ## Generate changelog
 # =============================================================================
 
 mobile-build: ## Build Android app
-	cd mobile/android && ./gradlew assembleDebug
+	cd nexus/mobile && ./gradlew assembleRelease
 
 mobile-install: ## Install Android app to connected device
-	cd mobile/android && ./gradlew installDebug
+	cd nexus/mobile && ./gradlew installDebug
 
 mobile-clean: ## Clean Android build
-	cd mobile/android && ./gradlew clean
+	cd nexus/mobile && ./gradlew clean

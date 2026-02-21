@@ -12,6 +12,7 @@ import {
   MessageSquare,
   BarChart3,
   Smartphone,
+  Settings as SettingsIcon,
   type LucideIcon
 } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
@@ -137,6 +138,7 @@ const navigation: NavElement[] = [
   { path: '/chat', label: 'Asistente', icon: MessageSquare },
   { path: '/files', label: 'Documentos', icon: FileText },
   { path: '/download', label: 'App Móvil', icon: Smartphone },
+  { path: '/settings', label: 'Configuración', icon: SettingsIcon },
 ]
 
 // Check if a group contains the active path

@@ -929,3 +929,35 @@ Download page: https://inv.aramac.dev/download
 - [ ] Data export (CSV, PDF reports)
 - [ ] Tax calculation helpers
 - [ ] Market data integration
+
+
+---
+
+## 🗺️ Future Roadmap & Consolidated Development Notes
+*(Synthesized from legacy documentation files)*
+
+### 1. Immediate Technical Debt & Fixes
+- **Layout Width Mismatch**: Fix `lg:ml-64` to `lg:ml-72` in `web/src/components/Layout.tsx`.
+- **Delete Stale Files**: Remove `api/=0.2.36`.
+- **Testing Setup**: Add `vitest` in `web/package.json`.
+- **React Stability**: Implemented Error Boundary in `web/src/App.tsx`.
+- **Python Deprecations**: Replace `datetime.utcnow` with `datetime.now(timezone.utc)` in `api/models.py`.
+- **Logging**: Fix double `structlog.configure()` in `api/logging_config.py`.
+
+### 2. Architecture & Infrastructure Next Steps
+- **Observability**: Add Prometheus metrics (`/metrics`) and structured JSON logging (`structlog`).
+- **Database**: Add Alembic migrations, missing indexes (e.g. `file_registry.uploaded_at`), and auto-backups.
+- **API Strategy**: API Versioning (`/api/v2/`), rate-limiting (`slowapi`), and connection pooling.
+- **Event-Driven**: WebSocket support (+ Redis pub/sub) for realtime upload/AI progress.
+- **Performance**: N+1 DB query optimization, API response caching, frontend code splitting.
+
+### 3. PRISM (Web) & NEXUS (Mobile) Features
+- **PRISM Dashboard**: Portfolio performance charts, goal tracker, and multi-currency conversion.
+- **PRISM Capabilities**: Bulk edit, map view for land, drag-and-drop uploads, detailed settings (Theme/Lang).
+- **NEXUS App**: Background WorkManager uploads, offline cache sync, Quick Capture, and Play Store release prep.
+- **Content/UX**: Add empty states, tooltip explanations for financial metrics, error toasts.
+
+### 4. AI & Intelligence Focus
+- **Document Smart Routing**: Auto-classify documents upon upload.
+- **Generative AI Tools**: Portfolio recommendations, natural language querying.
+- **Resilience**: AI fallback chains (`Kimi -> GPT-4o -> Claude`).

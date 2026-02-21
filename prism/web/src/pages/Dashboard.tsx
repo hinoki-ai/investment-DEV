@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   Trees,
@@ -8,12 +9,48 @@ import {
   ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
-  Percent
+  Percent,
+  Plus
 } from 'lucide-react'
 import StatCard, { FeaturedStat } from '../components/StatCard'
+import { InvestmentForm, type InvestmentFormData } from '../components/InvestmentForm'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { dashboardApi, investmentsApi } from '../lib/api'
 import { formatCurrency, formatNumber } from '../lib/utils'
 import { Link } from 'react-router-dom'
+
+function AddInvestmentModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const queryClient = useQueryClient()
+  const createMutation = useMutation({
+    mutationFn: (data: InvestmentFormData) => investmentsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+      onClose()
+    },
+  })
+  if (!isOpen) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-void/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-surface border border-border rounded-2xl shadow-2xl">
+        <div className="sticky top-0 z-10 bg-surface border-b border-border p-5 flex items-center justify-between rounded-t-2xl">
+          <div>
+            <h2 className="text-lg font-bold text-text-primary">Nueva Inversión Rápida</h2>
+            <p className="text-xs text-text-muted mt-0.5">Agrega un nuevo activo a tu portafolio rápidamente</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-surface-elevated text-text-muted hover:text-text-primary transition-colors">
+            X
+          </button>
+        </div>
+        <div className="p-5">
+          <InvestmentForm mode="create" onSubmit={(data) => createMutation.mutate(data)}
+            onCancel={onClose} isSubmitting={createMutation.isPending} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // Category icon mapping
 const categoryIcons: Record<string, string> = {
@@ -55,6 +92,7 @@ function DashboardSkeleton() {
 }
 
 export default function Dashboard() {
+  const [showAddModal, setShowAddModal] = useState(false)
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats,
@@ -78,13 +116,24 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8 fade-in">
-      {/* Featured Total Value */}
-      <FeaturedStat
-        label="Valor Total del Portafolio"
-        value={formatCurrency(totalValue)}
-        sublabel="Valor combinado de todas las categorías de inversión"
-        icon={DollarSign}
-      />
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex-1 w-full">
+          <FeaturedStat
+            label="Valor Total del Portafolio"
+            value={formatCurrency(totalValue)}
+            sublabel="Valor combinado de todas las categorías de inversión"
+            icon={DollarSign}
+          />
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="glyph-btn glyph-btn-primary flex items-center gap-2 whitespace-nowrap self-stretch sm:self-auto py-8 sm:py-auto"
+        >
+          <Plus className="h-5 w-5" /> Inversión Rápida
+        </button>
+      </div>
+
+      <AddInvestmentModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
@@ -195,10 +244,10 @@ export default function Dashboard() {
                       </span>
                     </div>
                     <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full ${file.status === 'completed'
-                        ? 'bg-success-dim text-success'
-                        : file.status === 'processing'
-                          ? 'bg-info-dim text-info'
-                          : 'bg-warning-dim text-warning'
+                      ? 'bg-success-dim text-success'
+                      : file.status === 'processing'
+                        ? 'bg-info-dim text-info'
+                        : 'bg-warning-dim text-warning'
                       }`}>
                       {file.status}
                     </span>

@@ -113,6 +113,7 @@ mobile/android/cxx/
 *.aab
 *.ap_
 *.dex
+!prism/web/public/releases/*.apk
 
 # =============================================================================
 # Infrastructure

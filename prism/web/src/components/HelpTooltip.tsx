@@ -101,6 +101,33 @@ export function HelpTooltip({
     right: 'right-full top-1/2 -translate-y-1/2 border-t-transparent border-b-transparent border-l-transparent border-r-surface-elevated',
   }
 
+  const tooltipRef = useRef<HTMLDivElement>(null)
+
+  // Clamp tooltip to screen edges to prevent horizontal scrolling / flickering
+  useEffect(() => {
+    if ((isVisible || isPinned) && tooltipRef.current) {
+      const rect = tooltipRef.current.getBoundingClientRect()
+      let xOffset = 0
+
+      if (rect.right > window.innerWidth - 10) {
+        xOffset = window.innerWidth - 10 - rect.right
+      } else if (rect.left < 10) {
+        xOffset = 10 - rect.left
+      }
+
+      if (xOffset !== 0) {
+        const inner = tooltipRef.current.querySelector('.tooltip-inner') as HTMLElement
+        if (inner) {
+          inner.style.transform = `translateX(${xOffset}px)`
+          inner.style.transition = 'transform 0.1s ease-out'
+        }
+      } else {
+        const inner = tooltipRef.current.querySelector('.tooltip-inner') as HTMLElement
+        if (inner) inner.style.transform = `translateX(0px)`
+      }
+    }
+  }, [isVisible, isPinned])
+
   return (
     <div
       ref={containerRef}
@@ -135,14 +162,15 @@ export function HelpTooltip({
       {/* Tooltip Bubble */}
       {(isVisible || isPinned) && (
         <div
+          ref={tooltipRef}
           className={`
             absolute z-50 ${positionClasses[position]} ${sizeClasses[size]}
-            animate-in fade-in duration-200
+            animate-in fade-in duration-200 pointer-events-none hover:pointer-events-auto
           `}
         >
           <div className="relative">
             {/* Bubble Content */}
-            <div className="bg-surface-elevated border border-cream/20 rounded-xl shadow-2xl shadow-black/50 overflow-hidden">
+            <div className="tooltip-inner bg-surface-elevated border border-cream/20 rounded-xl shadow-2xl shadow-black/50 overflow-hidden pointer-events-auto">
               {/* Header con gradient */}
               <div className="bg-gradient-to-r from-cream/10 to-transparent px-4 py-2.5 border-b border-cream/10 flex items-center justify-between">
                 {title && (

@@ -17,7 +17,8 @@ import {
   PieChart, BarChart3, Trophy, AlertTriangle,
   X, Award, Target, Activity,
   Flame, Snowflake, Crown,
-  Percent, Layers
+  Percent, Layers, Globe, Map, LineChart,
+  Coins, Building2, Landmark, Briefcase
 } from 'lucide-react'
 import {
   PieChart as RechartsPie, Pie, Cell,
@@ -34,14 +35,14 @@ import { InvestmentForm, type InvestmentFormData } from '../components/Investmen
 // =============================================================================
 
 const categories = [
-  { value: '', label: 'Todas', icon: '🌐' },
-  { value: 'land', label: 'Terrenos', icon: '🏞️' },
-  { value: 'stocks', label: 'Acciones', icon: '📈' },
-  { value: 'gold', label: 'Oro', icon: '🪙' },
-  { value: 'crypto', label: 'Crypto', icon: '₿' },
-  { value: 'real_estate', label: 'Inmuebles', icon: '🏢' },
-  { value: 'bonds', label: 'Bonos', icon: '📜' },
-  { value: 'other', label: 'Otros', icon: '📦' },
+  { value: '', label: 'Todas', icon: Globe },
+  { value: 'land', label: 'Terrenos', icon: Map },
+  { value: 'stocks', label: 'Acciones', icon: LineChart },
+  { value: 'gold', label: 'Oro', icon: Coins },
+  { value: 'crypto', label: 'Crypto', icon: Activity },
+  { value: 'real_estate', label: 'Inmuebles', icon: Building2 },
+  { value: 'bonds', label: 'Bonos', icon: Landmark },
+  { value: 'other', label: 'Otros', icon: Briefcase },
 ]
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -51,9 +52,9 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   under_contract: { label: 'En Contrato', className: 'bg-info-dim text-info border-info/20' },
 }
 
-const categoryIcons: Record<string, string> = {
-  land: '🏞️', stocks: '📈', gold: '🪙', crypto: '₿',
-  real_estate: '🏢', bonds: '📜', other: '📦'
+const categoryIcons: Record<string, any> = {
+  land: Map, stocks: LineChart, gold: Coins, crypto: Activity,
+  real_estate: Building2, bonds: Landmark, other: Briefcase
 }
 
 const categoryLabels: Record<string, string> = {
@@ -194,8 +195,11 @@ function RoiHeatMap({ investments }: { investments: any[] }) {
             <Link key={inv.id} to={`/investments/${inv.id}`}
               className={`heat-cell relative rounded-xl p-3 ${getHeatColor(inv.return_percentage || 0)} cursor-pointer group`}
               style={{ animationDelay: `${i * 40}ms` }}>
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-xs">{categoryIcons[inv.category] || '📦'}</span>
+              <div className="flex items-center gap-1.5 mb-1">
+                {(() => {
+                  const Icon = categoryIcons[inv.category] || Briefcase
+                  return <Icon className="h-3 w-3 opacity-70" />
+                })()}
                 <span className="text-[10px] font-semibold truncate">{inv.name}</span>
               </div>
               <div className="font-mono text-lg font-bold">
@@ -378,7 +382,7 @@ export default function Investments() {
   const portfolio = portfolioData?.data
 
   const toggleSort = (field: 'value' | 'return' | 'name') => {
-    if (sortBy === field) { setSortDir(d => d === 'asc' ? 'desc' : 'asc') }
+    if (sortBy === field) { setSortDir((d: 'asc' | 'desc') => d === 'asc' ? 'desc' : 'asc') }
     else { setSortBy(field); setSortDir('desc') }
   }
 
@@ -386,15 +390,10 @@ export default function Investments() {
     <div className="space-y-6 fade-in">
 
       {/* ================================================================= */}
-      {/* WEALTH PULSE HERO                                                 */}
+      {/* INVESTMENT HERO                                                   */}
       {/* ================================================================= */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface-elevated via-surface to-void p-6 sm:p-8 wealth-pulse">
-        <div className="absolute inset-0 bg-glyph-pattern bg-glyph opacity-30" />
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-cream/5 rounded-full blur-3xl" />
-        <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-cream/3 rounded-full blur-2xl" />
-        <div className="absolute right-10 bottom-10 w-32 h-32 bg-success/3 rounded-full blur-2xl" />
-
-        <div className="relative">
+      <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface-elevated/80 to-surface p-6 sm:p-8">
+        <div className="relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
             {/* Left side: metrics */}
             <div className="flex-1">
@@ -411,7 +410,7 @@ export default function Investments() {
               {/* Big number */}
               <div className="mb-6">
                 <span className="text-3xs font-semibold tracking-widest text-cream-muted uppercase">Valor Total Neto</span>
-                <p className="font-mono text-4xl sm:text-5xl font-bold number-shimmer tracking-tight mt-1">
+                <p className="font-mono text-4xl sm:text-5xl font-bold text-cream tracking-tight mt-1">
                   {formatCurrency(totalValue)}
                 </p>
               </div>
@@ -468,233 +467,255 @@ export default function Investments() {
       {/* ================================================================= */}
       {/* CHARTS ROW 1: Allocation + Performance                           */}
       {/* ================================================================= */}
-      {investmentsArray.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Category Allocation Donut */}
-          {categoryPieData.length > 0 && (
-            <section className="glass-card-elevated overflow-hidden">
-              <div className="p-5 border-b border-border flex items-center gap-2">
-                <PieChart className="h-4 w-4 text-cream-muted" />
-                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
-                  Distribución por Categoría
-                </span>
-              </div>
-              <div className="p-4">
-                <div className="flex flex-col md:flex-row items-center gap-4">
-                  <div className="w-full md:w-1/2" style={{ height: 260 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPie>
-                        <Pie data={categoryPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={95}
-                          paddingAngle={3} dataKey="value" nameKey="name" label={renderCustomizedLabel}
-                          labelLine={false} animationBegin={0} animationDuration={1200} animationEasing="ease-out">
-                          {categoryPieData.map((entry: any, i: number) => (
-                            <Cell key={i} fill={entry.fill} stroke="rgba(10,10,10,0.5)" strokeWidth={2} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip content={<CustomTooltip />} />
-                      </RechartsPie>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="w-full md:w-1/2 space-y-2">
-                    {categoryPieData.map((entry: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface/50 transition-colors group cursor-default">
-                        <div className="flex items-center gap-2.5">
-                          <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.fill }} />
-                          <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors">
-                            {categoryIcons[entry.name]} {categoryLabels[entry.name] || entry.name}
-                          </span>
+      {
+        investmentsArray.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Category Allocation Donut */}
+            {categoryPieData.length > 0 && (
+              <section className="glass-card-elevated overflow-hidden">
+                <div className="p-5 border-b border-border flex items-center gap-2">
+                  <PieChart className="h-4 w-4 text-cream-muted" />
+                  <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
+                    Distribución por Categoría
+                  </span>
+                </div>
+                <div className="p-4">
+                  <div className="flex flex-col md:flex-row items-center gap-4">
+                    <div className="w-full md:w-1/2" style={{ height: 260 }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPie>
+                          <Pie data={categoryPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={95}
+                            paddingAngle={3} dataKey="value" nameKey="name" label={renderCustomizedLabel}
+                            labelLine={false} animationBegin={0} animationDuration={1200} animationEasing="ease-out">
+                            {categoryPieData.map((entry: any, i: number) => (
+                              <Cell key={i} fill={entry.fill} stroke="rgba(10,10,10,0.5)" strokeWidth={2} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip content={<CustomTooltip />} />
+                        </RechartsPie>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="w-full md:w-1/2 space-y-2">
+                      {categoryPieData.map((entry: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface/50 transition-colors group cursor-default">
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: entry.fill }} />
+                            <span className="text-sm text-text-secondary group-hover:text-text-primary transition-colors flex items-center gap-2">
+                              {(() => {
+                                const Icon = categoryIcons[entry.name] || Briefcase
+                                return <Icon className="h-3.5 w-3.5 opacity-60" />
+                              })()}
+                              {categoryLabels[entry.name] || entry.name}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-mono text-cream font-medium">{formatCurrency(entry.value)}</span>
+                            <span className="text-xs text-text-muted ml-2">({entry.count})</span>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <span className="text-sm font-mono text-cream font-medium">{formatCurrency(entry.value)}</span>
-                          <span className="text-xs text-text-muted ml-2">({entry.count})</span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </section>
-          )}
+              </section>
+            )}
 
-          {/* Performance Waterfall */}
-          {performanceBarData.length > 0 && (
-            <section className="glass-card-elevated overflow-hidden">
-              <div className="p-5 border-b border-border flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-cream-muted" />
-                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
-                  Rendimiento por Inversión (ROI%)
-                </span>
-              </div>
-              <div className="p-4" style={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={performanceBarData} layout="vertical" margin={{ top: 5, right: 20, bottom: 5, left: 5 }}>
-                    <CartesianGrid horizontal={false} stroke="rgba(232, 213, 196, 0.06)" />
-                    <XAxis type="number" tick={{ fill: '#8a8279', fontSize: 11, fontFamily: 'JetBrains Mono' }}
-                      axisLine={{ stroke: 'rgba(232, 213, 196, 0.1)' }} tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: '#8a8279', fontSize: 11, fontFamily: 'Inter' }}
-                      axisLine={false} tickLine={false} width={130} />
-                    <RechartsTooltip content={({ active, payload }: any) => {
-                      if (!active || !payload?.length) return null
-                      const d = payload[0].payload
-                      return (
-                        <div className="bg-surface-elevated border border-border rounded-xl px-4 py-3 shadow-xl">
-                          <p className="text-sm font-semibold text-text-primary mb-1">{d.fullName}</p>
-                          <p className="text-xs text-text-secondary">
-                            ROI: <span className={`font-mono font-semibold ${d.roi >= 0 ? 'text-success' : 'text-error'}`}>
-                              {d.roi >= 0 ? '+' : ''}{d.roi.toFixed(2)}%</span>
-                          </p>
-                          <p className="text-xs text-text-secondary">Valor: <span className="font-mono text-cream">{formatCurrency(d.value)}</span></p>
-                        </div>
-                      )
-                    }} />
-                    <Bar dataKey="roi" name="ROI" radius={[0, 6, 6, 0]} animationDuration={1200} animationEasing="ease-out">
-                      {performanceBarData.map((entry: any, i: number) => (
-                        <Cell key={i} fill={entry.fill} fillOpacity={0.85} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </section>
-          )}
-        </div>
-      )}
+            {/* Performance Waterfall */}
+            {performanceBarData.length > 0 && (
+              <section className="glass-card-elevated overflow-hidden">
+                <div className="p-5 border-b border-border flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-cream-muted" />
+                  <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
+                    Rendimiento por Inversión (ROI%)
+                  </span>
+                </div>
+                <div className="p-4" style={{ height: 300 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={performanceBarData} layout="vertical" margin={{ top: 5, right: 20, bottom: 5, left: 5 }}>
+                      <CartesianGrid horizontal={false} stroke="rgba(232, 213, 196, 0.06)" />
+                      <XAxis type="number" tick={{ fill: '#8a8279', fontSize: 11, fontFamily: 'JetBrains Mono' }}
+                        axisLine={{ stroke: 'rgba(232, 213, 196, 0.1)' }} tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+                      <YAxis type="category" dataKey="name" tick={{ fill: '#8a8279', fontSize: 11, fontFamily: 'Inter' }}
+                        axisLine={false} tickLine={false} width={130} />
+                      <RechartsTooltip content={({ active, payload }: any) => {
+                        if (!active || !payload?.length) return null
+                        const d = payload[0].payload
+                        return (
+                          <div className="bg-surface-elevated border border-border rounded-xl px-4 py-3 shadow-xl">
+                            <p className="text-sm font-semibold text-text-primary mb-1">{d.fullName}</p>
+                            <p className="text-xs text-text-secondary">
+                              ROI: <span className={`font-mono font-semibold ${d.roi >= 0 ? 'text-success' : 'text-error'}`}>
+                                {d.roi >= 0 ? '+' : ''}{d.roi.toFixed(2)}%</span>
+                            </p>
+                            <p className="text-xs text-text-secondary">Valor: <span className="font-mono text-cream">{formatCurrency(d.value)}</span></p>
+                          </div>
+                        )
+                      }} />
+                      <Bar dataKey="roi" name="ROI" radius={[0, 6, 6, 0]} animationDuration={1200} animationEasing="ease-out">
+                        {performanceBarData.map((entry: any, i: number) => (
+                          <Cell key={i} fill={entry.fill} fillOpacity={0.85} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </section>
+            )}
+          </div>
+        )
+      }
 
       {/* ================================================================= */}
       {/* CHARTS ROW 2: Wealth Timeline + Treemap                          */}
       {/* ================================================================= */}
-      {investmentsArray.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Wealth Timeline */}
-          {wealthTimeline.length > 1 && (
-            <section className="lg:col-span-2 glass-card-elevated overflow-hidden">
+      {
+        investmentsArray.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Wealth Timeline */}
+            {wealthTimeline.length > 1 && (
+              <section className="lg:col-span-2 glass-card-elevated overflow-hidden">
+                <div className="p-5 border-b border-border flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-cream-muted" />
+                  <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
+                    Evolución del Patrimonio
+                  </span>
+                </div>
+                <div className="p-4" style={{ height: 280 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={wealthTimeline} margin={{ top: 5, right: 20, bottom: 5, left: 5 }}>
+                      <defs>
+                        <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#e8d5c4" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#e8d5c4" stopOpacity={0.02} />
+                        </linearGradient>
+                        <linearGradient id="colorInvertido" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6b8cae" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#6b8cae" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(232,213,196,0.06)" />
+                      <XAxis dataKey="date" tick={{ fill: '#8a8279', fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: '#8a8279', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+                        axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${(v / 1e6).toFixed(1)}M`} />
+                      <RechartsTooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="invertido" name="Invertido" stroke="#6b8cae" fill="url(#colorInvertido)"
+                        strokeWidth={2} animationDuration={1500} />
+                      <Area type="monotone" dataKey="valor" name="Valor Actual" stroke="#e8d5c4" fill="url(#colorValor)"
+                        strokeWidth={2} animationDuration={1500} />
+                      <Legend wrapperStyle={{ fontSize: 11, color: '#8a8279' }} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </section>
+            )}
+
+            {/* Top & Worst + CAGR */}
+            <section className="glass-card-elevated overflow-hidden">
               <div className="p-5 border-b border-border flex items-center gap-2">
-                <Activity className="h-4 w-4 text-cream-muted" />
-                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
-                  Evolución del Patrimonio
-                </span>
+                <Trophy className="h-4 w-4 text-cream-muted" />
+                <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Destacados</span>
               </div>
-              <div className="p-4" style={{ height: 280 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={wealthTimeline} margin={{ top: 5, right: 20, bottom: 5, left: 5 }}>
-                    <defs>
-                      <linearGradient id="colorValor" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#e8d5c4" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#e8d5c4" stopOpacity={0.02} />
-                      </linearGradient>
-                      <linearGradient id="colorInvertido" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6b8cae" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#6b8cae" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(232,213,196,0.06)" />
-                    <XAxis dataKey="date" tick={{ fill: '#8a8279', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#8a8279', fontSize: 10, fontFamily: 'JetBrains Mono' }}
-                      axisLine={false} tickLine={false} tickFormatter={(v: number) => `$${(v / 1e6).toFixed(1)}M`} />
-                    <RechartsTooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="invertido" name="Invertido" stroke="#6b8cae" fill="url(#colorInvertido)"
-                      strokeWidth={2} animationDuration={1500} />
-                    <Area type="monotone" dataKey="valor" name="Valor Actual" stroke="#e8d5c4" fill="url(#colorValor)"
-                      strokeWidth={2} animationDuration={1500} />
-                    <Legend wrapperStyle={{ fontSize: 11, color: '#8a8279' }} />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="p-4 space-y-4">
+                {topPerformer && (
+                  <Link to={`/investments/${topPerformer.id}`}
+                    className="block p-4 rounded-xl border border-success/15 bg-success/5 hover:border-success/25 transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="h-4 w-4 text-success" />
+                      <span className="text-2xs font-semibold tracking-widest text-success uppercase">Mejor Rendimiento</span>
+                    </div>
+                    <p className="text-sm font-semibold text-text-primary group-hover:text-cream transition-colors truncate flex items-center gap-2">
+                      {(() => {
+                        const Icon = categoryIcons[topPerformer.category] || Briefcase
+                        return <Icon className="h-4 w-4 opacity-70" />
+                      })()}
+                      {topPerformer.name}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="font-mono text-lg font-bold text-success">
+                        {topPerformer.return_percentage !== undefined ? `${topPerformer.return_percentage >= 0 ? '+' : ''}${topPerformer.return_percentage.toFixed(1)}%` : '—'}
+                      </span>
+                      <span className="font-mono text-sm text-cream">{topPerformer.current_value ? formatCurrency(topPerformer.current_value) : '—'}</span>
+                    </div>
+                  </Link>
+                )}
+                {worstPerformer && worstPerformer.id !== topPerformer?.id && (
+                  <Link to={`/investments/${worstPerformer.id}`}
+                    className="block p-4 rounded-xl border border-border bg-surface/40 hover:border-border-strong transition-all duration-200 group">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertTriangle className="h-4 w-4 text-warning" />
+                      <span className="text-2xs font-semibold tracking-widest text-text-muted uppercase">Menor Rendimiento</span>
+                    </div>
+                    <p className="text-sm font-semibold text-text-primary group-hover:text-cream transition-colors truncate flex items-center gap-2">
+                      {(() => {
+                        const Icon = categoryIcons[worstPerformer.category] || Briefcase
+                        return <Icon className="h-4 w-4 opacity-70" />
+                      })()}
+                      {worstPerformer.name}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className={`font-mono text-lg font-bold ${(worstPerformer.return_percentage || 0) >= 0 ? 'text-success' : 'text-error'}`}>
+                        {worstPerformer.return_percentage !== undefined ? `${worstPerformer.return_percentage >= 0 ? '+' : ''}${worstPerformer.return_percentage.toFixed(1)}%` : '—'}
+                      </span>
+                      <span className="font-mono text-sm text-cream">{worstPerformer.current_value ? formatCurrency(worstPerformer.current_value) : '—'}</span>
+                    </div>
+                  </Link>
+                )}
+                {portfolio && (
+                  <div className="p-4 rounded-xl border border-border bg-surface/40">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Activity className="h-4 w-4 text-info" />
+                      <span className="text-2xs font-semibold tracking-widest text-text-muted uppercase">CAGR Ponderado</span>
+                    </div>
+                    <p className="font-mono text-2xl font-bold text-cream">
+                      {portfolio.summary.weighted_cagr !== null ? `${portfolio.summary.weighted_cagr.toFixed(2)}%` : 'N/A'}
+                    </p>
+                    <p className="text-xs text-text-muted mt-1">Tasa de crecimiento anual compuesta</p>
+                  </div>
+                )}
               </div>
             </section>
-          )}
-
-          {/* Top & Worst + CAGR */}
-          <section className="glass-card-elevated overflow-hidden">
-            <div className="p-5 border-b border-border flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-cream-muted" />
-              <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">Destacados</span>
-            </div>
-            <div className="p-4 space-y-4">
-              {topPerformer && (
-                <Link to={`/investments/${topPerformer.id}`}
-                  className="block p-4 rounded-xl border border-success/15 bg-success/5 hover:border-success/25 transition-all duration-200 group">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="h-4 w-4 text-success" />
-                    <span className="text-2xs font-semibold tracking-widest text-success uppercase">Mejor Rendimiento</span>
-                  </div>
-                  <p className="text-sm font-semibold text-text-primary group-hover:text-cream transition-colors truncate">
-                    {categoryIcons[topPerformer.category]} {topPerformer.name}
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="font-mono text-lg font-bold text-success">
-                      {topPerformer.return_percentage !== undefined ? `${topPerformer.return_percentage >= 0 ? '+' : ''}${topPerformer.return_percentage.toFixed(1)}%` : '—'}
-                    </span>
-                    <span className="font-mono text-sm text-cream">{topPerformer.current_value ? formatCurrency(topPerformer.current_value) : '—'}</span>
-                  </div>
-                </Link>
-              )}
-              {worstPerformer && worstPerformer.id !== topPerformer?.id && (
-                <Link to={`/investments/${worstPerformer.id}`}
-                  className="block p-4 rounded-xl border border-border bg-surface/40 hover:border-border-strong transition-all duration-200 group">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="h-4 w-4 text-warning" />
-                    <span className="text-2xs font-semibold tracking-widest text-text-muted uppercase">Menor Rendimiento</span>
-                  </div>
-                  <p className="text-sm font-semibold text-text-primary group-hover:text-cream transition-colors truncate">
-                    {categoryIcons[worstPerformer.category]} {worstPerformer.name}
-                  </p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className={`font-mono text-lg font-bold ${(worstPerformer.return_percentage || 0) >= 0 ? 'text-success' : 'text-error'}`}>
-                      {worstPerformer.return_percentage !== undefined ? `${worstPerformer.return_percentage >= 0 ? '+' : ''}${worstPerformer.return_percentage.toFixed(1)}%` : '—'}
-                    </span>
-                    <span className="font-mono text-sm text-cream">{worstPerformer.current_value ? formatCurrency(worstPerformer.current_value) : '—'}</span>
-                  </div>
-                </Link>
-              )}
-              {portfolio && (
-                <div className="p-4 rounded-xl border border-border bg-surface/40">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Activity className="h-4 w-4 text-info" />
-                    <span className="text-2xs font-semibold tracking-widest text-text-muted uppercase">CAGR Ponderado</span>
-                  </div>
-                  <p className="font-mono text-2xl font-bold text-cream">
-                    {portfolio.summary.weighted_cagr !== null ? `${portfolio.summary.weighted_cagr.toFixed(2)}%` : 'N/A'}
-                  </p>
-                  <p className="text-xs text-text-muted mt-1">Tasa de crecimiento anual compuesta</p>
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-      )}
+          </div>
+        )
+      }
 
       {/* Treemap */}
-      {flatTreemapData.length > 0 && (
-        <section className="glass-card-elevated overflow-hidden">
-          <div className="p-5 border-b border-border flex items-center gap-2">
-            <Layers className="h-4 w-4 text-cream-muted" />
-            <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
-              Mapa de Valor del Portafolio
-            </span>
-          </div>
-          <div className="p-4" style={{ height: 260 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <Treemap data={flatTreemapData} dataKey="value" nameKey="name"
-                aspectRatio={4 / 3} animationDuration={800} content={<TreemapContent />} />
-            </ResponsiveContainer>
-          </div>
-        </section>
-      )}
+      {
+        flatTreemapData.length > 0 && (
+          <section className="glass-card-elevated overflow-hidden">
+            <div className="p-5 border-b border-border flex items-center gap-2">
+              <Layers className="h-4 w-4 text-cream-muted" />
+              <span className="text-xs font-semibold tracking-widest text-cream-muted uppercase">
+                Mapa de Valor del Portafolio
+              </span>
+            </div>
+            <div className="p-4" style={{ height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <Treemap data={flatTreemapData} dataKey="value" nameKey="name"
+                  aspectRatio={4 / 3} animationDuration={800} content={<TreemapContent />} />
+              </ResponsiveContainer>
+            </div>
+          </section>
+        )
+      }
 
       {/* ================================================================= */}
       {/* FILTERS & SEARCH                                                 */}
       {/* ================================================================= */}
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          {categories.map((c) => (
-            <button key={c.value} onClick={() => setCategory(c.value)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${category === c.value
-                ? 'bg-cream text-void shadow-glow' : 'bg-surface border border-border text-text-secondary hover:text-text-primary hover:border-border-strong'}`}>
-              <span>{c.icon}</span><span>{c.label}</span>
-              {c.value && (<span className={`text-xs ${category === c.value ? 'text-void/60' : 'text-text-muted'}`}>
-                {investmentsArray.filter((inv: any) => inv.category === c.value).length}</span>)}
-            </button>
-          ))}
+          {categories.map((c) => {
+            const Icon = c.icon
+            return (
+              <button key={c.value} onClick={() => setCategory(c.value)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all duration-300 ${category === c.value
+                  ? 'bg-cream text-void' : 'bg-surface-elevated border border-border text-text-muted hover:text-text-primary hover:border-border-strong'}`}>
+                <Icon className="h-3.5 w-3.5" />
+                <span>{c.label}</span>
+                {c.value && (<span className={`ml-1 ${category === c.value ? 'text-void/60' : 'text-text-muted'}`}>
+                  {investmentsArray.filter((inv: any) => inv.category === c.value).length}</span>)}
+              </button>
+            )
+          })}
         </div>
 
         <div className="glass-card p-4">
@@ -737,83 +758,88 @@ export default function Investments() {
       {/* ================================================================= */}
       {/* INVESTMENT LIST / GRID                                            */}
       {/* ================================================================= */}
-      {investmentsLoading ? (
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (<div key={i} className="h-32 sm:h-28 bg-surface rounded-2xl animate-pulse" />))}
-        </div>
-      ) : filteredInvestments?.length ? (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'}>
-          {filteredInvestments.map((investment: any, index: number) => (
-            <Link key={investment.id} to={`/investments/${investment.id}`}
-              className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-4 sm:p-5 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5 card-hover"
-              style={{ animationDelay: `${index * 30}ms` }}>
-              <div className="absolute inset-0 bg-gradient-to-br from-cream/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              {investment.return_percentage !== undefined && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
-                  style={{ backgroundColor: investment.return_percentage >= 0 ? '#7fb069' : '#c76b6b', opacity: 0.6 }} />
-              )}
-              <div className="relative">
-                <div className="flex items-start justify-between gap-3 sm:gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <span className="text-lg">{categoryIcons[investment.category] || '📦'}</span>
-                      <h3 className="text-sm sm:text-base font-semibold text-text-primary group-hover:text-cream transition-colors truncate">
-                        {investment.name}
-                      </h3>
+      {
+        investmentsLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (<div key={i} className="h-32 sm:h-28 bg-surface rounded-2xl animate-pulse" />))}
+          </div>
+        ) : filteredInvestments?.length ? (
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'}>
+            {filteredInvestments.map((investment: any, index: number) => (
+              <Link key={investment.id} to={`/investments/${investment.id}`}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-4 sm:p-5 transition-all duration-300 hover:border-border-strong hover:-translate-y-0.5 card-hover"
+                style={{ animationDelay: `${index * 30}ms` }}>
+                <div className="absolute inset-0 bg-gradient-to-br from-cream/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                {investment.return_percentage !== undefined && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
+                    style={{ backgroundColor: investment.return_percentage >= 0 ? '#7fb069' : '#c76b6b', opacity: 0.6 }} />
+                )}
+                <div className="relative">
+                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 flex-wrap mb-2">
+                        {(() => {
+                          const Icon = categoryIcons[investment.category] || Briefcase
+                          return <Icon className="h-4 w-4 text-cream-muted" />
+                        })()}
+                        <h3 className="text-sm sm:text-base font-semibold text-text-primary group-hover:text-cream transition-colors truncate">
+                          {investment.name}
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full border ${statusConfig[investment.status]?.className || statusConfig.active.className}`}>
+                          {statusConfig[investment.status]?.label || investment.status}
+                        </span>
+                        {investment.city && (
+                          <span className="flex items-center gap-1 text-xs text-text-muted">
+                            <MapPin className="h-3 w-3" />
+                            <span className="truncate max-w-[100px] sm:max-w-none">{investment.city}</span>
+                          </span>)}
+                      </div>
+                      <div className="flex items-center gap-3 sm:gap-4 mt-3 text-xs text-text-muted">
+                        {investment.land_area_hectares && <span className="font-mono">{investment.land_area_hectares} ha</span>}
+                        {investment.document_count !== undefined && <span>{investment.document_count} docs</span>}
+                        {investment.purchase_price && <span className="font-mono text-text-muted">Compra: {formatCurrency(investment.purchase_price)}</span>}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[10px] font-medium tracking-wider uppercase px-2 py-1 rounded-full border ${statusConfig[investment.status]?.className || statusConfig.active.className}`}>
-                        {statusConfig[investment.status]?.label || investment.status}
-                      </span>
-                      {investment.city && (
-                        <span className="flex items-center gap-1 text-xs text-text-muted">
-                          <MapPin className="h-3 w-3" />
-                          <span className="truncate max-w-[100px] sm:max-w-none">{investment.city}</span>
-                        </span>)}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                      <div className="text-right">
+                        <p className="font-mono text-base sm:text-lg font-semibold text-cream">
+                          {investment.current_value ? formatCurrency(investment.current_value) : '—'}
+                        </p>
+                        {investment.return_percentage !== undefined && (
+                          <p className={`text-xs font-mono flex items-center justify-end gap-1 ${investment.return_percentage >= 0 ? 'text-success' : 'text-error'}`}>
+                            {investment.return_percentage >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                            {investment.return_percentage >= 0 ? '+' : ''}{investment.return_percentage.toFixed(1)}%
+                          </p>)}
+                      </div>
+                      <ChevronRight className="h-5 w-5 text-text-muted group-hover:text-cream transition-colors flex-shrink-0" />
                     </div>
-                    <div className="flex items-center gap-3 sm:gap-4 mt-3 text-xs text-text-muted">
-                      {investment.land_area_hectares && <span className="font-mono">{investment.land_area_hectares} ha</span>}
-                      {investment.document_count !== undefined && <span>{investment.document_count} docs</span>}
-                      {investment.purchase_price && <span className="font-mono text-text-muted">Compra: {formatCurrency(investment.purchase_price)}</span>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                    <div className="text-right">
-                      <p className="font-mono text-base sm:text-lg font-semibold text-cream">
-                        {investment.current_value ? formatCurrency(investment.current_value) : '—'}
-                      </p>
-                      {investment.return_percentage !== undefined && (
-                        <p className={`text-xs font-mono flex items-center justify-end gap-1 ${investment.return_percentage >= 0 ? 'text-success' : 'text-error'}`}>
-                          {investment.return_percentage >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                          {investment.return_percentage >= 0 ? '+' : ''}{investment.return_percentage.toFixed(1)}%
-                        </p>)}
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-text-muted group-hover:text-cream transition-colors flex-shrink-0" />
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-16 border border-dashed border-border rounded-3xl">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface flex items-center justify-center">
-            <DollarSign className="h-8 w-8 text-text-muted" />
+              </Link>
+            ))}
           </div>
-          <h3 className="text-lg font-medium text-text-primary mb-1">
-            {search || category ? 'No se encontraron coincidencias' : 'Aún no hay inversiones'}
-          </h3>
-          <p className="text-sm text-text-muted mb-6">
-            {search || category ? 'Intenta ajustar tu búsqueda o filtros' : 'Comienza agregando tu primera inversión'}
-          </p>
-          {!(search || category) && (
-            <button onClick={() => setShowAddModal(true)} className="glyph-btn glyph-btn-primary">
-              <Plus className="h-4 w-4" /> Agregar Inversión
-            </button>)}
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-16 border border-dashed border-border rounded-3xl">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-surface flex items-center justify-center">
+              <DollarSign className="h-8 w-8 text-text-muted" />
+            </div>
+            <h3 className="text-lg font-medium text-text-primary mb-1">
+              {search || category ? 'No se encontraron coincidencias' : 'Aún no hay inversiones'}
+            </h3>
+            <p className="text-sm text-text-muted mb-6">
+              {search || category ? 'Intenta ajustar tu búsqueda o filtros' : 'Comienza agregando tu primera inversión'}
+            </p>
+            {!(search || category) && (
+              <button onClick={() => setShowAddModal(true)} className="glyph-btn glyph-btn-primary">
+                <Plus className="h-4 w-4" /> Agregar Inversión
+              </button>)}
+          </div>
+        )
+      }
 
       <AddInvestmentModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
-    </div>
+    </div >
   )
 }

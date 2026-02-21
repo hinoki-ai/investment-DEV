@@ -249,7 +249,7 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
           </div>
         }
         example={tooltipData?.example}
-        position="right"
+        position="bottom"
       >
         <div className={`w-7 h-7 flex items-center justify-center rounded-lg bg-surface/50 text-text-muted transition-colors hover:bg-surface ${color} cursor-help`}>
           {children}
@@ -278,7 +278,7 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
           title={tooltipData.title}
           content={tooltipData.content}
           example={tooltipData.example}
-          position="right"
+          position="bottom"
         >
           {labelContent}
         </HelpTooltip>
