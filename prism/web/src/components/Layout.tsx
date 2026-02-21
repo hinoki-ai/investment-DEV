@@ -358,27 +358,27 @@ export default function Layout({ children }: LayoutProps) {
           }`}
       >
         {/* Compact Header: Large Favicon (toggle) + Time/Date Panel */}
-        <div className={`${isExpanded ? 'p-3 pb-2' : 'p-3 pb-0'}`}>
-          <div className={`flex items-center gap-3 ${isExpanded ? '' : 'justify-center flex-col gap-1.5'}`}>
+        <div className={`${isExpanded ? 'px-4 pt-3 pb-0' : 'p-3 pb-0'}`}>
+          <div className={`flex items-center gap-2 ${isExpanded ? '' : 'justify-center flex-col gap-1.5'}`}>
             {/* Large Favicon - Acts as sidebar toggle */}
             <button
               onClick={toggleSidebar}
               className="flex-shrink-0 relative group"
               title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
             >
-              <div className="relative w-12 h-12 flex items-center justify-center">
-                <div className="absolute inset-0 bg-surface/40 rounded-xl border border-border group-hover:bg-surface/50 transition-colors" />
+              <div className="relative w-[46px] h-[46px] flex items-center justify-center">
+                <div className="absolute inset-0 bg-surface/40 rounded-xl border border-border/50 group-hover:bg-surface/50 transition-colors" />
                 <img
                   src="/favinv.png"
                   alt="FavInv"
-                  className="relative w-7 h-7 object-contain opacity-90"
+                  className="relative w-6 h-6 object-contain opacity-90"
                 />
               </div>
             </button>
 
             {/* Time/Date Panel (only when expanded) */}
             {isExpanded && (
-              <div className="flex-1 min-w-0 py-1.5 px-3 bg-surface/30 rounded-lg border border-border/30">
+              <div className="flex-1 min-w-0 p-2.5 bg-surface/40 rounded-xl border border-border/50">
                 <CompactTimeDisplay />
               </div>
             )}

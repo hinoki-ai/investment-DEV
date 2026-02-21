@@ -5,6 +5,9 @@
   "outputDirectory": "prism/web/dist",
   "framework": "vite",
   "installCommand": "npm install",
+  "github": {
+    "enabled": false
+  },
   "rewrites": [
     {
       "source": "/releases/(.*)",

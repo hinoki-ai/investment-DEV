@@ -454,6 +454,53 @@ else
 fi
 
 # =============================================================================
+# WEB BUILD (as segment)
+# =============================================================================
+
+if [[ "$VV_PREBUILD" == true ]]; then
+    ui_first
+    ui_first
+    ui_segment_title "${C_PRIMARY}Building Project"
+    
+    ui_spinner_advance
+    ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building project..."
+    
+    tmp_build_out=$(mktemp)
+    
+    # Run build
+    (cd "$WEB_DIR" && npm run build > "$tmp_build_out" 2>&1; echo $? > "$tmp_build_out.exit") &
+    build_pid=$!
+    
+    spinner_start=$(date +%s)
+    while kill -0 $build_pid 2>/dev/null; do
+        ui_spinner_advance
+        ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building project..."
+        sleep 0.08
+    done
+    
+    while [[ $(($(date +%s) - spinner_start)) -lt 1 ]]; do
+        ui_spinner_advance
+        ui_spinner_line "${C_NOTE}${UI_CURRENT_FRAME}${NC}" "${C_TEXT}Building project..."
+        sleep 0.08
+    done
+    
+    wait $build_pid 2>/dev/null || true
+    build_exit=$(cat "$tmp_build_out.exit" 2>/dev/null || echo "1")
+    cat "$tmp_build_out" >> "$DEPLOYMENT_LOG"
+    rm -f "$tmp_build_out" "$tmp_build_out.exit"
+    ui_spinner_reset
+    
+    if [[ $build_exit -eq 0 ]]; then
+        ui_spinner_result "${ICON_OK}" "${C_SUCCESS_BRIGHT}" "Build: ${C_SUCCESS}Complete" "${C_TEXT}"
+    else
+        ui_spinner_result "${ICON_ERROR}" "${C_ERROR_BRIGHT}" "Build: ${C_ERROR}Failed" "${C_TEXT}"
+        ui_segment_close
+        exit $build_exit
+    fi
+    UI_FIRST_LINE=false
+fi
+
+# =============================================================================
 # CLOUDFLARE DEPLOYMENT (as segment)
 # =============================================================================
 
