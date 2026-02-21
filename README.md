@@ -27,6 +27,16 @@ Built with **separation of concerns** at its core:
 
 ---
 
+## 🌍 Language & Terminology System ("Spanglish")
+
+NEXUS & PRISM follow a strict **Spanglish** approach tailored for our bilingual workflow:
+- **General Tone & UI:** Everyday interactions are in Spanish (e.g., *Pasos de Instalación*, *Descargar APK*).
+- **Technical & Financial Terminology:** English (e.g., *Direct Upload*, *Pre-signed URLs*, *Smart Contracts*, *AI Analysis*, *Cash Flow*, *Yield*).
+
+**Why?** This fusion ensures we maintain a native, comfortable feel while preserving the **professionalism and raw international prowess** of precise technical and economic terms. We do not dilute or incorrectly translate industry-standard tech or finance jargon.
+
+---
+
 ## 🏗️ Architecture
 
 ```
