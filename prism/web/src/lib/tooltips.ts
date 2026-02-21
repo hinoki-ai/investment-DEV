@@ -5,355 +5,331 @@
 export const INVESTMENT_TOOLTIPS = {
     // Categorías
     category: {
-        title: 'Category (Categoría)',
-        content: 'El tipo de activo en el que inviertes. Cada categoría tiene diferentes niveles de riesgo, retornos y tratamiento fiscal.',
-        example: 'Land (tierra) suele apreciar lento pero seguro. Crypto es volátil pero puede tener altos retornos.',
+        title: 'Categoría',
+        content: 'El tipo de activo en el que inviertes. Cada categoría tiene diferentes riesgos, retornos y estructura fiscal.',
+        example: 'Terrenos suelen apreciar lento pero seguro; Cripto es más volátil pero con retornos más altos.',
     },
 
     // Info básica
     name: {
-        title: 'Investment Name',
-        content: 'Un nombre descriptivo para identificar esta inversión en tu portfolio. Que sea claro para que recuerdes qué es.',
-        example: '"Departamento Playa Floripa" o "Apple Stock - Broker X"',
+        title: 'Nombre de la Inversión',
+        content: 'Un nombre descriptivo para identificar rápidamente esta inversión en tu portafolio.',
+        example: '"Departamento Playa Floripa" o "Acciones Apple"',
     },
 
     status: {
-        title: 'Status (Estado)',
-        content: 'El estado actual de esta inversión. Ayuda a trackear qué activos están generando dinero activamente vs. los que están en transición.',
-        example: 'Active = lo tienes ahora. Sold = lo vendiste. Pending = lo estás comprando. Under Contract = papeleo en progreso.',
+        title: 'Estado (Status)',
+        content: 'El estatus actual del activo. Te ayuda a saber si está activo, vendido o en transición transaccional.',
+        example: 'Activo = Lo mantienes hoy; Pendiente = En proceso; Vendido = Ya liquidaste.',
     },
 
     description: {
-        title: 'Description (Descripción)',
-        content: 'Notas sobre esta inversión. Escribe cualquier cosa que te ayude a recordar detalles después - por qué lo compraste, características especiales, preocupaciones, etc.',
-        example: 'Gran ubicación cerca de futura estación de metro. Vendedor motivado. Necesita renovación.',
+        title: 'Descripción',
+        content: 'Cualquier nota adicional que te ayude a recordar características o detalles clave de tu activo.',
+        example: 'Cerca de futura línea de metro, necesita remodelación mayor, etc.',
     },
 
     tags: {
-        title: 'Tags (Etiquetas)',
-        content: 'Palabras clave para organizar y filtrar tus inversiones. Agrega cualquier label que te ayude a categorizar.',
-        example: 'riesgoso, jubilación, ingreso-renta, fixer-upper, diversificar',
+        title: 'Etiquetas (Tags)',
+        content: 'Palabras clave para filtrar y organizar tu portafolio con mayor agilidad.',
+        example: 'riesgoso, jubilación, renta, diversificar',
     },
 
     // Financiero
     purchasePrice: {
-        title: 'Purchase Price (Precio de Compra)',
-        content: 'Cuánto pagaste realmente para adquirir esta inversión. Incluye todos los costos upfront como fees, impuestos y renovaciones.',
-        example: 'Si compraste tierra por $100k y pagaste $5k en fees, ingresa $105,000.',
+        title: 'Precio de Compra (Purchase Price)',
+        content: 'Cuánto te costó adquirirlo base, incluyendo los costos iniciales, comisiones y gastos del broker.',
+        example: 'Compraste a $100k y pagaste $5k en trámites, el precio de compra es $105,000.',
     },
 
     currentValue: {
-        title: 'Current Value (Valor Actual)',
-        content: 'Cuánto vale esta inversión hoy. Actualiza periódicamente para trackear tus ganancias/pérdidas. Es tu mejor estimación basada en research de mercado.',
-        example: 'Revisa ventas similares, valores de tasación, o precios de mercado para stocks/crypto.',
+        title: 'Valor Actual',
+        content: 'Cuánto vale nominalmente esa inversión hoy para monitorear ganancias o pérdidas de tu equity.',
+        example: 'Puedes usar comparables o valores de tasación oficial (Appraisal).',
     },
 
     purchaseDate: {
-        title: 'Purchase Date (Fecha de Compra)',
-        content: 'Cuándo adquiriste esta inversión. Ayuda a calcular cuánto tiempo la has tenido y los retornos anuales.',
-        example: 'Se usa para calcular: "Compré esto hace 2 años y subió 20%" = 10% por año.',
+        title: 'Fecha de Compra',
+        content: 'Cuándo adquiriste y cerraste deal. Es clave para calcular retornos y flujos anualizados.',
     },
 
     ownershipPercentage: {
-        title: 'Ownership % (Porcentaje de Propiedad)',
-        content: 'Qué porcentaje de este activo posees realmente. Menos de 100% significa que eres co-dueño con alguien más.',
-        example: 'Si tú y tu cónyuge pusieron la mitad del dinero cada uno, cada uno posee 50%.',
+        title: 'Porcentaje de Propiedad',
+        content: 'Qué fracción en equity del activo te pertenece nominal y legalmente, vs tus co-inversionistas u otros stakeholders.',
+        example: 'Inviertes 50/50 con un socio estratégico = 50%.',
     },
 
     // Land específico
     landArea: {
-        title: 'Land Area (Superficie en hectáreas)',
-        content: 'El tamaño del terreno en hectáreas. 1 hectárea = 10,000 metros cuadrados = aproximadamente 2.5 acres. Esto afecta el cálculo de precio por metro cuadrado.',
-        example: 'Una cancha de fútbol es aproximadamente 0.7 hectáreas.',
+        title: 'Superficie (Hectáreas)',
+        content: 'El área bruta del terreno. Sirve para calcular precio por metro cuadrado comparativo.',
+        example: '1 hectárea (10,000 m²) representa approx. un cuarto de una hectárea tradicional en zonificación rústica.',
     },
 
     zoningType: {
-        title: 'Zoning Type (Zonificación)',
-        content: 'Para qué está legalmente permitido usar el terreno. Lo establece la municipalidad/gobierno y afecta el valor y opciones de desarrollo.',
-        example: 'Residential = solo casas. Commercial = tiendas/negocios. Mixed = ambos.',
+        title: 'Zonificación',
+        content: 'El uso normativo permitido (residencial, comercial, agrícola/forestal, mixto), definido por planos y planes reguladores del gobierno o municipalidades.',
     },
 
     // Ubicación
     address: {
-        title: 'Address (Dirección)',
-        content: 'La dirección física donde está ubicada esta inversión. Ayuda con la organización y encontrarla después.',
+        title: 'Dirección física',
+        content: 'La ubicación exacta in-situ. Útil para localizar polígonos o validar documentación ex-post.',
     },
 
     city: {
-        title: 'City (Ciudad)',
-        content: 'La ciudad o pueblo donde está ubicada esta inversión. Se usa para análisis regional y filtros.',
+        title: 'Ciudad',
+        content: 'Criterio geográfico subnacional para aislar riesgos sistémicos de la comuna en el análisis de portafolio.',
     },
 
     state: {
-        title: 'State/Province (Estado/Región)',
-        content: 'El estado, provincia o región donde está ubicada esta inversión. Diferentes regiones tienen diferentes reglas fiscales y condiciones de mercado.',
+        title: 'Región / Estado',
+        content: 'Región macro en la que reside la inversión. Cada una puede impactarse por incentivos locales distintos.',
     },
 
     country: {
-        title: 'Country (País)',
-        content: 'El país donde está ubicada esta inversión. Importante para cambio de divisas, impuestos y consideraciones legales.',
+        title: 'País',
+        content: 'Mercado de tu activo. Fundamental para calcular exposición cambiaria, riesgos fiscales foráneos y sovereign risk.',
     },
 
     // Dashboard/Stats
     totalValue: {
-        title: 'Total Portfolio Value (Valor Total del Portfolio)',
-        content: 'El valor actual combinado de todas tus inversiones ahora mismo. Este es tu net worth en inversiones.',
-        example: 'Si stocks valen $50k y tierra $100k, valor total = $150k.',
+        title: 'Valor Total del Portafolio',
+        content: 'El valor de mercado combinado de tu inventario (Asset Net Worth o AUM).',
+        example: 'Liquidez $50k + Tierra $100k = Portfolio Value Total de $150k.',
     },
 
     returnPercentage: {
-        title: 'Return % (Retorno %)',
-        content: 'Cuánto ha ganado o perdido tu inversión como porcentaje. Positivo = ganancia, Negativo = pérdida.',
-        example: 'Compraste por $100, ahora vale $120 = 20% retorno.',
+        title: 'Retorno %',
+        content: 'Cuánto porcentaje de rentabilidad acumulada total tienes desde el inicio del asset allocation.',
     },
 
     // Crédito/Hipotecario
     downPayment: {
-        title: 'Down Payment (Pie)',
-        content: 'El efectivo que debes pagar upfront al comprar con crédito. El resto lo pide prestado del banco.',
-        example: '10% de pie en una propiedad de $100k = $10k efectivo + $90k préstamo.',
+        title: 'Pie (Down Payment)',
+        content: 'El capital inyectado como enganche inicial (equity injection) sobre el valor estructurado comercial.',
+        example: '10% de pie en $200k significa poner tu liquidity de $20k y apalancarte con $180k del banco.',
     },
 
     interestRate: {
-        title: 'Annual Interest Rate (Tasa de Interés Anual)',
-        content: 'El porcentaje que el banco te cobra por año por pedir dinero prestado. Menor es mejor. Esto se compone (compound) con el tiempo.',
-        example: '4% sobre $100k = $4,000 de interés en el año 1 (simplificado).',
+        title: 'Tasa de Interés Anualizada',
+        content: 'Tasa de costo base del crédito pactada (interest rate). Modifica abismalmente la rentabilidad si las tasas compuestas escalan.',
     },
 
     termYears: {
-        title: 'Loan Term (Años) (Plazo del Crédito)',
-        content: 'Cuántas años tienes para pagar el préstamo. Plazos más largos = pagos mensuales más bajos pero MUCHO más interés total pagado.',
-        example: '20 años vs 30 años: el pago mensual es menor con 30, pero pagas mucho más en total.',
+        title: 'Plazo (Mortgage Term)',
+        content: 'Años para amortizar el capital. Reducirlo aumenta el dividendo pero corta exponencialmente el pago de intereses adosados.',
+        example: 'A 30 años la amortización se siente casi enteramente como pago puro de tasa bancaria los primeros años.',
     },
 
     monthlyPayment: {
-        title: 'Monthly Payment (Dividendo Mensual)',
-        content: 'Lo que le pagas al banco cada mes. Incluye principal (devolviendo el préstamo) + interés (fee del banco) + seguros.',
-        example: 'Si el pago es $500/mes, después de 20 años habrás pagado $120,000 por un préstamo de $100k!',
+        title: 'Dividendo Mensual',
+        content: 'Es tu obligación base recurrente (cuota mensual hipotecaria o carga amortizable). Incluye capital + interés (y a menudo seguros integrados).',
     },
 
     dfl2: {
-        title: 'DFL2 Benefit (Beneficio DFL2)',
-        content: 'Un beneficio tributario chileno para compradores de primera vivienda. Reduce el impuesto al mutuo del 0.8% al 0.2%, ahorrándote dinero.',
-        example: 'En un crédito de $100M CLP, el DFL2 te ahorra aproximadamente $600k CLP en impuestos.',
+        title: 'Exención DFL2',
+        content: 'Estatuto habitacional y beneficio de la autoridad fiscal en Chile (DFL-2) que reduce fuertemente arancel y derechos de impuesto al mutuo o timbres.',
     },
 
     effectiveCredit: {
-        title: 'Effective Credit (Crédito Efectivo)',
-        content: 'El dinero REAL que recibes del banco después de todos los fees y pie requerido. Los bancos anuncian números más altos de lo que realmente recibes.',
-        example: 'El banco dice "crédito de $100k" pero requiere $20k de pie + $5k en fees. Solo recibes $75k!',
+        title: 'Crédito Efectivo',
+        content: 'La inyección nominal final entregada en el banco. Restándole al total hipotecado tus gastos y requerimientos "on top".',
+        example: 'Un banco puede emitir 1500 UF de crédito, pero deducirá comisiones en caja, otorgándote neto 1480 UF efectivos.',
     },
 
     operationalExpenses: {
-        title: 'Operational Expenses (Gastos Operacionales)',
-        content: 'Todos los fees y costos extras para constituir una hipoteca: notaría, inscripción, tasación, seguros, impuestos. Estos suman rápido!',
-        example: 'Generalmente 2-5% del monto del préstamo en gastos.',
+        title: 'Gastos Operacionales',
+        content: 'Los onerosos desembolsos iniciales no amortizables: notarías, estudios de título corporativos, inscripciones conservatorias y peritos tasadores.',
     },
 
     // Métricas avanzadas
     roi: {
-        title: 'ROI - Return on Investment',
-        content: 'Cuánta ganancia haces en relación a lo invertido. El número principal para comparar inversiones.',
-        example: 'Inviertes $100k, vendes por $120k = 20% ROI. Haces esto en 2 años = 10% por año.',
+        title: 'Retorno sobre Inversión (ROI)',
+        content: 'Retorno porcentual universal con respecto a tu inversión del total del activo sin descuento temporal.',
     },
 
     irr: {
-        title: 'IRR - Internal Rate of Return (Tasa Interna de Retorno)',
-        content: 'Una forma sofisticada de calcular retorno anual que considera CUÁNDO recibes el dinero de vuelta. IRR más alto = mejor timing de inversión.',
-        example: 'Recibir ganancias más pronto es mejor que después, aunque el total sea el mismo.',
+        title: 'Tasa Interna de Retorno (TIR / IRR)',
+        content: 'El termómetro de rentabilidad profesional (internal rate of return). Castiga la dilación en recibir las rentas asumiendo el Timing y costo oportunidad de tu dinero futuro (Discount Rate).',
+        example: 'Doble de ganancia a 10 años es peor de ratio TIR que misma ganancia ganada íntegramente de retorno al mes dos.',
     },
 
     ltv: {
-        title: 'LTV - Loan-to-Value Ratio',
-        content: 'Cuánto estás pidiendo prestado vs. lo que vale la propiedad. Más bajo = más seguro, pero requiere más efectivo upfront.',
-        example: 'Propiedad vale $100k, préstamo $80k = 80% LTV.',
+        title: 'Loan-to-Value (LTV)',
+        content: 'Proporción porcentual del activo cubierto en base a deuda vs patrimonio. Determina de facto el nivel de apalancamiento riesgoso tolerado por la banca de inversión.',
+        example: 'Un préstamo con LTV 80% es más fácil de lograr que un agresivo 95% que exige primas adicionales.',
     },
 
     dscr: {
-        title: 'DSCR - Debt Service Coverage Ratio',
-        content: 'Puedes pagar el crédito? Compara tus ingresos contra los pagos de deuda. Los bancos quieren esto sobre 1.25x.',
-        example: 'DSCR de 1.5 = tus ingresos son 1.5x tus pagos de deuda. Seguro!',
+        title: 'Debt Service Coverage Ratio (DSCR)',
+        content: 'El margen real de supervivencia si el esquema opera con rentas. Relaciona Rentabilidad Neta y Gasto Fijo Bancario de deuda servible.',
+        example: 'DSCR < 1 significa que necesitas rescatar dinero externo mensual para soportar al banco.',
     },
 
     capRate: {
-        title: 'Cap Rate - Capitalization Rate (Tasa de Capitalización)',
-        content: 'Para propiedades de renta: ganancia anual como % del valor de la propiedad. Ayuda a comparar diferentes deals de real estate.',
-        example: 'Propiedad de $100k genera $5k/año en renta = 5% cap rate.',
+        title: 'Tasa de Capitalización (Cap Rate)',
+        content: 'Tu métrica madre de "Renta Perpetua Asumida sin deuda en Real Estate". Ganancias integrales Netas (NOI) como porcentaje del Costo Fijo bruto del proyecto actual.',
     },
 
     cashOnCash: {
-        title: 'Cash-on-Cash Return',
-        content: 'Tu ganancia anual como % del efectivo QUE TÚ pusiste (no el valor total). La mejor medida cuando usas créditos.',
-        example: 'Tú pusiste $20k efectivo, ganas $2k/año = 10% cash-on-cash.',
+        title: 'Rentabilidad Cash-on-Cash',
+        content: 'Tu ROI modificado que solo pesa desde el bolsillo (solo el efectivo real pagado), lo mejor indicativo de flujos constantes para los adictos al dividendo accionario o inmobiliario.',
     },
 
     // Análisis
     confidenceScore: {
-        title: 'Confidence Score (Nivel de Confianza)',
-        content: 'Qué tan segura está la IA de su análisis. Más alto = más confiable. Basado en la calidad y claridad del documento.',
-        example: '80%+ = alta confianza. Bajo 50% = el documento era poco claro o incompleto.',
+        title: 'Score de Confianza de Inteligencia IA',
+        content: 'El intervalo analítico de Machine Learning al indexar contratos poco legibles y asegurar qué tan acertada o confiable es la estructura mostrada.',
+        example: '85% es una transcripción casi transparente y perfecta del algoritmo sobre el activo subido.',
     },
 
     score: {
-        title: 'Investment Score (Puntaje de Inversión)',
-        content: 'La calificación de nuestro algoritmo sobre esta oportunidad de inversión. Considera ROI, riesgo, efectivo necesario y condiciones de mercado.',
-        example: '70+ = strong buy (compra fuerte). 50-70 = decente. Bajo 50 = riesgoso o malos retornos.',
+        title: 'Rating / Score del Portafolio',
+        content: 'Benchmark ponderado cruzadamente entre métricas rentables como el TIR y el riesgo estructural derivado del Loan-to-Value + liquidez inherente y momentum.',
     },
 
     breakEven: {
-        title: 'Break-Even Point (Punto de Equilibrio)',
-        content: 'Cuándo las ganancias de tu inversión cubren todos tus costos. Después de este punto, estás haciendo ganancia pura.',
-        example: 'Break-even en 3 años = recuperas tu dinero después de 3 años.',
+        title: 'Punto de Equilibrio (Break-Even)',
+        content: 'La franja de meses o años hasta lograr anular toda minusvalía operacional en un empate "Tablas" neteado a la inversión acumulada hundida.',
     },
 
     // Archivos
     fileStatus: {
-        title: 'File Status (Estado del Archivo)',
-        content: 'Dónde está este archivo en nuestro pipeline de procesamiento. El análisis de IA ocurre automáticamente después del upload.',
-        example: 'Pending = recién subido. Processing = IA está leyéndolo. Completed = análisis listo.',
+        title: 'Procesamiento e Ingestión',
+        content: 'Indica si tus repositorios y notas en formato PDF pasaron por el nodo central automatizado neuronal en el Cloud y finalizó con un Análisis.',
     },
 
     // Campos de calculadora específicos
     askingPrice: {
-        title: 'Asking Price (Precio de Venta)',
-        content: 'El precio que pide el vendedor por el terreno. Este es el punto de partida para negociar.',
-        example: 'Si el terreno está publicado en $50M CLP, ese es el asking price.',
+        title: 'Precio Listado Inicial (Asking Price)',
+        content: 'La solicitud inflada comercial e imperfecta por defecto impuesta en la negociación para arrancar a tasar en serio y hacer low-balling estructurado y justo.',
     },
 
     appraisalValue: {
-        title: 'Appraisal Value (Valor de Tasación)',
-        content: 'El valor profesional estimado de una propiedad, determinado por un tasador. Puede ser diferente del precio de venta.',
-        example: 'Si el banco lo tasa en $60M pero se vende en $50M, estás comprando bajo tasación.',
+        title: 'Valoración Tasada (Appraisal)',
+        content: 'El valor técnico conservador visado a menudo en firmas de peritaje que fundamentan el valor de piso o respaldo del colateral frente al mutuo bancario.',
     },
 
     pricePerSquareMeter: {
-        title: 'Price per m² (Precio por Metro Cuadrado)',
-        content: 'El precio dividido por los metros cuadrados. Permite comparar terrenos de diferentes tamaños.',
-        example: 'Terreno A: $50M / 1,000m² = $50,000/m². Terreno B: $80M / 2,000m² = $40,000/m². B tiene mejor precio por m².',
+        title: 'Precio por m²',
+        content: 'Estandarizando extensiones geográficas frente al metraje puro (square-meter equivalent price) en UF o CLP.',
     },
 
     expectedAppreciation: {
-        title: 'Expected Appreciation (Plusvalía Esperada)',
-        content: 'Cuánto esperas que suba el valor del terreno por año, en porcentaje. Basado en tendencias del mercado y desarrollo de la zona.',
-        example: 'Si una zona está creciendo rápido, podrías esperar 7-10% anual. Zona estable: 3-5%.',
+        title: 'Plusvalía Subyacente Proyectada',
+        content: 'Expectativa razonable analítica que tenderá el ciclo macroeconómico natural para revalorizar al alza sin injerencia constructiva adicional del desarrollador.',
     },
 
     // Gastos operacionales
     notaryFees: {
-        title: 'Notary Fees (Gastos Notariales)',
-        content: 'Costos de la escritura pública y firmas. En Chile, aproximadamente UF 2.5 (alrededor de $100k CLP).',
+        title: 'Diligencias Notariales',
+        content: 'Costes fijos transaccionales de ministros de fe en las transferencias soberanas, promesas bilaterales o escrituraciones crediticias notarizadas.',
     },
 
     registrationFees: {
-        title: 'Registration Fees (Inscripción CBR)',
-        content: 'Costos para inscribir la propiedad en el Conservador de Bienes Raíces. Generalmente similar a los gastos notariales.',
+        title: 'Derechos CBR',
+        content: 'Tasas pagadas en proporción al capital traspasado al registro central civil chileno del Conservador de Bienes Raíces. Otorga al título solidez universal y pública.',
     },
 
     appraisalFee: {
-        title: 'Appraisal Fee (Tasación)',
-        content: 'Costo de la tasación profesional que el banco requiere. Generalmente UF 2.5 o aproximadamente $100k CLP.',
+        title: 'Fee de Peritaje de Tasación',
+        content: 'Costo fijo (usualmente un par de UF) para solventar a entidades valuadoras bancarias externas u outsorcing que verifiquen tasación presencial de colaterales y garantías.',
     },
 
     insuranceFees: {
-        title: 'Insurance Fees (Seguros)',
-        content: 'Seguros requeridos por el banco: desgravamen (por si mueres) y/o incendio/sismo. Mensuales pero a veces hay costos upfront.',
+        title: 'Primas de Pólizas Asignadas',
+        content: 'Desgravamen de deudores, Sismos obligatorios o Incendios endosados a favor y en guarda bancaria. Aportan protección de pasivos no controlables.',
     },
 
     stampTax: {
-        title: 'Stamp Tax - Impuesto al Mutuo',
-        content: 'Impuesto estampilla del 0.8% normalmente, o 0.2% con beneficio DFL2. Se paga sobre el monto del crédito.',
-        example: 'En crédito de $100M: normal = $800k impuesto. Con DFL2 = $200k. Ahorro de $600k!',
+        title: 'Impuesto de Timbres Fiscal',
+        content: 'Arancel estipulado legalmente que encarece proporcionalmente emitir deudas por pagar (mutuos) y gravámenes formales hipotecantes en toda transacción.',
     },
 
     // Métricas de análisis land+credit
     cashRequired: {
-        title: 'Cash Required (Efectivo Requerido)',
-        content: 'Todo el dinero en efectivo que necesitas para cerrar el trato: pie + gastos operacionales + diferencia si el crédito no cubre todo.',
-        example: 'Pie $20M + Gastos $5M = $25M efectivo necesario.',
+        title: 'Fondos de Capital Propio Requeridos',
+        content: 'Masa monetaria tangible obligatoria que inyectarás desde depósitos bancarios frente al "closing cost" (el gap total). Pie, más todos los intermediarios e impuestos que se pagan sin excepción al instante en notaría.',
     },
 
     trueCost: {
-        title: 'True Cost (Costo Real)',
-        content: 'Cuánto pagarás en total durante la vida del préstamo: principal + intereses + seguros. Siempre es más del doble del préstamo!',
-        example: 'Crédito de $100M a 20 años al 4%: pagas aproximadamente $145M en total.',
+        title: 'Costo Monetario Real Total',
+        content: 'Sumando la vida útil total de tus flujos al capital adeudado: una muestra bruta de cuánto más caros son los endeudamientos largos y los intereses engordados sumando además varianzas inflacionarias (UF).',
     },
 
     equityMultiple: {
-        title: 'Equity Multiple',
-        content: 'Cuántas veces recuperas tu dinero invertido al final. 2.0x = duplicaste tu plata. 1.5x = 50% ganancia total.',
-        example: 'Inviertes $20k, recuperas $40k total = 2.0x equity multiple.',
+        title: 'Multiplicador Patrimonial (Equity Multiple)',
+        content: 'Razón matemática directa (x) en Private Equity para asimilar los dividendos recibidos con la plata expuesta en etapa temprana. Es tu "Factor Dinero Generado vs Riesgo Desembolsado Total".',
     },
 
     paybackPeriod: {
-        title: 'Payback Period (Período de Recuperación)',
-        content: 'Cuántos años tarda tu inversión en devolverte todo el dinero que pusiste. Después de esto es pura ganancia.',
-        example: 'Payback de 5 años = después del año 5, todo lo que ganes es ganancia neta.',
+        title: 'Período en Recuperación Real (Payback)',
+        content: 'Umbral cruzado y neto que toma devolver el monto inicial nominal hundido a través del sumatorio anual de liquidez, consolidando flujos mensuales sin descuento.',
     },
 
     taxBenefit: {
-        title: 'Tax Benefit (Beneficio Tributario)',
-        content: 'Ahorro en impuestos que obtienes por tener una hipoteca. En Chile, puedes deducir el interés pagado de tu renta tributaria.',
-        example: 'Si pagas $2M al año en intereses y tu tasa es 35%, ahorras $700k en impuestos.',
+        title: 'Amortización y Alivio Tributario Automático',
+        content: 'Beneficios o deducciones estipulados para deudores inversionistas chilenos sobre utilidades que deduzcan de interés pagado. Otorga blindaje al inversionista bajando pago residual anual en operaciones cruzadas de balances (Global Complementario en tributación local).',
     },
 
     // Indicadores Económicos
     uf: {
         title: 'Unidad de Fomento (UF)',
-        content: 'Valor en Chile que sube con la inflación. Sirve para que tu dinero o deudas mantengan su valor real (Inflation-adjusted unit).',
-        example: 'Si la inflación sube 1%, la UF sube 1%.',
+        content: 'Referencial único monetario (Fiat Indexed Unit) diseñado sistémicamente adosándole resguardo frente a shocks inflacionarios sobre poder el adquisitivo contable chileno (IPC). Clave para los instrumentos patrimoniales fijos no indexables de largo plazo en renta fija e inmobiliaria.',
     },
     utm: {
-        title: 'Unidad Tributaria Mensual (UTM)',
-        content: 'Unidad usada en Chile para pago de impuestos y multas (Monthly Tax Unit). Cambia cada mes según la inflación.',
+        title: 'TMT (Unidad Tributaria Mensual)',
+        content: 'Patrón estandarizado usado impositiva o sancionatoriamente en Chile. Anclado mensualmente según la canasta general contra el IPC en el escenario de flujos.',
     },
     eur: {
-        title: 'Euro (€)',
-        content: 'La moneda de la Unión Europea (European currency). Tener ahorros en Euros ayuda a diversificar tu riesgo si el peso chileno cae.',
+        title: 'Euro CEE (€)',
+        content: 'Reserva monetaria continental compartida por Europa institucional. Es una vía diversificadora al clásico USD y a menudo tiene asincrónica frente a devaluaciones estructurales pan-americanas en metales subyacentes locales.',
     },
     usd: {
-        title: 'Dólar Estadounidense (USD)',
-        content: 'La principal moneda del mundo (U.S. Dollar). Funciona como "Safe Haven" (refugio) cuando hay crisis o el peso se debilita.',
+        title: 'Dólar de EE.UU (USD)',
+        content: 'La reserva global primaria dominante "fiat". Tradicionalmente un valor refugio inquebrantable que sirve de "Safe Haven" principal frente a una tormenta o recesión sistemática de commodities en economías menos diversificadas e importadoras de capitales.',
     },
     nasdaq: {
-        title: 'NASDAQ Composite',
-        content: 'Índice de la bolsa de USA que sigue a las mayores empresas de tecnología (Tech Stock Index) como Apple o Google.',
-        example: 'Si el NASDAQ sube (Bullish), significa que hay optimismo en las tecnológicas.',
+        title: 'NASDAQ Exchange Composite',
+        content: 'La plataforma que indexa gigantes vanguardistas computacionales en USA y Biotech. Tendencia inigualable para proyectar si el capital global "VC y tecnológico" goza y empuja mercados bull con apetito de alto-riesgo e innovación (Growth vs Value investing).',
     },
     wti: {
-        title: 'WTI Crude Oil',
-        content: 'Precio del petróleo crudo (Oil Price) de USA. Si sube mucho, el transporte se encarece y genera inflación global.',
+        title: 'West Texas Intermediate (WTI Oil)',
+        content: 'Grado comercial principal global en cotización de combustibles fósiles de Occidente. El componente basal más inflamable respecto a las curvas de shocks micro-inflacionarios encareciendo la logística comercial entera sobre la oferta-demanda de toda importación a tu bolsillo final.',
     },
     gold: {
-        title: 'Oro (Gold)',
-        content: 'El clásico activo "Safe Haven" (refugio seguro). Inversionistas compran oro para protegerse del miedo en los mercados o inflación.',
+        title: 'Oro Spot Market (Au)',
+        content: 'Commodity tangible des-regularizado de ciclos expansivos inorgánicos que otorgan reserva natural secular (Physical Hedge Safe-Haven) y escasa cuando la fe colapsa frente al modelo fraccional accionario e impresiones inorgánicas sistémicas (QE).',
     },
     silver: {
-        title: 'Plata (Silver)',
-        content: 'Metal precioso (Precious Metal) más volátil que el oro. Tiene mucha demanda y uso en tecnología y paneles solares.',
+        title: 'Plata Spot Market (Ag)',
+        content: 'Oro de los "modestos" con doble filo: es un blindaje físico pero enormemente ligado al requerimiento de consumo conductor electrónico pesado post-revolución en semiconductores fotovoltaicos masivos o chips en electromovilidades que crecen en curva exponencial.',
     },
     copper: {
-        title: 'Cobre (Copper)',
-        content: 'La principal exportación de Chile. Su precio depende del crecimiento económico mundial (Economic Growth), especialmente en China.',
+        title: 'Cobre Grado A (Cu)',
+        content: 'Termómetro hiper-relevante e importado principal sobre infraestructura china o la salud fabril constructora global, es un pilar macro y barómetro insoslayable chileno; deprimiendo fuertemente el mercado local accionario (IPSA) frente a reveses de la demanda o super-ciclos de superávit infraestructural.',
     },
     lithium: {
-        title: 'Litio (Lithium)',
-        content: 'Material clave para las baterías de autos eléctricos (EV Batteries). ALB es la empresa que usamos como proxy para seguir tendencia.',
+        title: 'Cesta de Litio Básico (Li)',
+        content: 'Tendido crucialmente a la producción global EV-Tier o Battery Supply. Representa exposición pura a flotas y almacenamiento electro-dependientes escalables globales que transitan su red troncal desde refino hidrocarburífero y suplantan redes análogicas (Energy Storage Solutions).',
     },
     bitcoin: {
-        title: 'Bitcoin (BTC)',
-        content: 'La primera criptomoneda. Muchos la llaman "Digital Gold" (oro digital) por ser escasa: hay un límite máximo y no se puede imprimir más.',
+        title: 'Bitcoin Cypher-Net (BTC)',
+        content: 'Bancarrota contra-algorítmica digitalizada ("Oro Lógico/Computable y Escaso"), red-estado con descentralización e imposibilidad de corromper la inflación estipulada deflacionariamente para proveer colateral libre a gran escala, y anti-falsificable frente a "debasing de fiats".',
     },
     ethereum: {
-        title: 'Ethereum (ETH)',
-        content: 'La principal red crypto para aplicaciones e innovación web3. Permite hacer "Smart Contracts" (contratos inteligentes automáticos).',
+        title: 'Ethereum Mainnet Token (ETH)',
+        content: 'Riel informático general transnacional que cobra fees (gas tolls) sobre un mar y constelación general de aplicaciones de valor ("De-Fi", "Contratos Inequívocos y Automáticos") actuando y sustentado como token basal nativo (Yielding y Staking token).',
     },
     totalGain: {
-        title: 'Ganancia (Total Profit)',
-        content: 'Monto total ganado por sobre tu inversión inicial (Capital Gain).',
+        title: 'Rentabilidad Positiva Nominal',
+        content: 'Plusvalía total generada bruta del capital consolidado apreciado orgánicamente frente al precio original adquirido; sin tomar en cuenta el apalancamiento sino asumiendo flujos consolidados de tus subyacentes en posesión.',
     },
     totalLoss: {
-        title: 'Pérdida (Total Loss)',
-        content: 'Disminución del valor del portafolio (Unrealized Loss) frente a la compra. Es pérdida en "papel" a menos que vendas.',
+        title: 'Retroceso (Drawdown / Minusvalía)',
+        content: 'Pérdidas de valor nominal neteadas de valoración actual vs inyección histórica de caja que reportan destrucción en el "Net Worth Equity" base en los mercados sin haber liquidado (Paper losses) pero afectando apalancamientos (Margin/LTV calls reales).',
     },
 }
+
 

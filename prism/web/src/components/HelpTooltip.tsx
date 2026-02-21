@@ -88,10 +88,10 @@ export function HelpTooltip({
   }
 
   const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2',
+    top: 'bottom-full left-1/2 -translate-x-1/2 pb-2',
+    bottom: 'top-full left-1/2 -translate-x-1/2 pt-2',
+    left: 'right-full top-1/2 -translate-y-1/2 pr-2',
+    right: 'left-full top-1/2 -translate-y-1/2 pl-2',
   }
 
   const arrowClasses = {
@@ -137,7 +137,7 @@ export function HelpTooltip({
         <div
           className={`
             absolute z-50 ${positionClasses[position]} ${sizeClasses[size]}
-            animate-in fade-in zoom-in-95 duration-200
+            animate-in fade-in duration-200
           `}
         >
           <div className="relative">
