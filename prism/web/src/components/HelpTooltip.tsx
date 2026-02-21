@@ -8,11 +8,11 @@ import { HelpCircle, X } from 'lucide-react'
 
 interface HelpTooltipProps {
   /** El término técnico que se explica */
-  title?: string
+  title?: string | React.ReactNode
   /** La explicación útil en español */
-  content: string
+  content: React.ReactNode
   /** Opcional: ejemplo adicional */
-  example?: string
+  example?: string | React.ReactNode
   /** Posición del bubble */
   position?: 'top' | 'bottom' | 'left' | 'right'
   /** Tamaño */

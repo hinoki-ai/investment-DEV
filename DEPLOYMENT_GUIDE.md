@@ -1,18 +1,18 @@
-# NEXUS + PRISM Deployment Guide
+# NEXUS + PRISM Vercel Deployment Guide
 
 ## ✅ What's Been Completed
 
 ### 1. NEXUS Android APK
-- **Location**: `nexus/mobile/app/build/outputs/apk/release/app-release.apk`
+- **Location**: `nexus/mobile/app/build/outputs/apk/release/...`
 - **Releases folder**: `prism/web/public/releases/nexus-v1.0.apk`
 - **Size**: ~11 MB
 - **Download URL**: https://inv.aramac.dev/releases/nexus-v1.0.apk
 
 ### 2. PRISM Web Dashboard
-- **Download Page**: Beautiful React-based download page at `/download`
-- **Navigation**: "App Móvil" link added to sidebar
-- **SPA Routing**: All routes work correctly with `_redirects` file
-- **APK Integration**: APK is bundled with the web deployment
+- **Download Page**: React-based download page at `/download`
+- **Navigation**: "App Móvil" link is connected perfectly in navigation
+- **Vercel Config**: `vercel.json` ensures that rewrites for React router work correctly
+- **APK Integration**: APK is bundled with the Vercel web deployment in the `prism/web/dist/releases/` folder
 
 ### 3. Automation Script
 - **Script**: `./prism/vv/deploy-all` (or `./deploy-nexus-prism.sh`)
@@ -20,14 +20,18 @@
   - Builds NEXUS Android APK from source
   - Copies APK to web releases folder
   - Builds PRISM web app
-  - Deploys to Cloudflare Pages
+  - Deploys **DIRECTLY TO VERCEL** under `inv.aramac.dev` (No Cloudflare Pages allowed)
   - Supports `--skip-apk`, `--skip-web`, `--dry-run` flags
 
 ## 🚀 Quick Start
 
-### Deploy Everything (APK + Web)
+### Deploy Everything (APK + Web) -> VERCEL
 ```bash
 ./deploy-nexus-prism.sh
+```
+OR
+```bash
+./prism/vv/deploy-all
 ```
 
 ### Deploy Web Only (skip APK build)
@@ -35,46 +39,12 @@
 ./deploy-nexus-prism.sh --skip-apk
 ```
 
-### Test Without Deploying
-```bash
-./deploy-nexus-prism.sh --dry-run
-```
-
 ## 🌐 Current Status
 
-### Cloudflare Pages (Working ✅)
-- **Preview URL**: https://e6ad41f2.investment-aramac.pages.dev
-- **Status**: All routes working correctly
-- **Download Page**: https://e6ad41f2.investment-aramac.pages.dev/download ✅
-- **APK Download**: https://e6ad41f2.investment-aramac.pages.dev/releases/nexus-v1.0.apk ✅
-
-### Custom Domain (Needs DNS Update ⚠️)
-- **Domain**: https://inv.aramac.dev
-- **Current Status**: Points to Vercel (404 errors)
-- **Action Required**: Update DNS in Cloudflare dashboard
-
-## 🔧 DNS Configuration Required
-
-To point `inv.aramac.dev` to Cloudflare Pages:
-
-### Option 1: Cloudflare Dashboard (Recommended)
-1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Select your domain (aramac.dev)
-3. Go to **DNS** → **Records**
-4. Find the `inv` CNAME or A record
-5. Change it to point to `investment-aramac.pages.dev`
-   - Type: CNAME
-   - Name: inv
-   - Target: investment-aramac.pages.dev
-   - Proxy status: Proxied (orange cloud)
-
-### Option 2: Pages Custom Domain
-1. Go to [Cloudflare Pages](https://dash.cloudflare.com/pages)
-2. Select **investment-aramac** project
-3. Go to **Custom domains**
-4. Click **Set up a custom domain**
-5. Enter: `inv.aramac.dev`
-6. Follow the verification steps
+### Vercel (Working ✅)
+- **Domain**: https://inv.aramac.dev (Alias bound properly)
+- **Framework**: Vite SPA (React)
+- **Output Directory**: `prism/web/dist` inside `vercel.json`
 
 ## 📁 File Structure
 
@@ -85,55 +55,33 @@ To point `inv.aramac.dev` to Cloudflare Pages:
 ├── prism/web/
 │   ├── public/
 │   │   └── releases/                # APK bundled with web
-│   │       ├── nexus-v1.0.apk       # The APK file
-│   │       └── index.html           # Static download page (fallback)
-│   ├── src/
-│   │   ├── pages/
-│   │   │   └── Download.tsx         # React download page
-│   │   ├── components/
-│   │   │   └── Layout.tsx           # Added download nav link
-│   │   └── App.tsx                  # Added /download route
-│   └── dist/                        # Build output (deployed)
+│   │       └── nexus-v1.0.apk       # The APK file
+│   ├── src/                         # Source files
+│   └── dist/                        # Build output deployed onto Vercel
+├── vercel.json                      # Vercel Configuration pointing at prism/web/dist
 ├── prism/vv/
 │   └── deploy-all                   # Main deployment script
-└── deploy-nexus-prism.sh            # Convenience wrapper
+└── deploy-nexus-prism.sh            # Root-level deploy script
 ```
 
-## 🔄 Future Updates
+## 🔄 Updating the Deployment manually
 
-### Update APK Only
+### Build App + Web -> Vercel Deployment
 ```bash
+# Build Android App
 cd nexus/mobile && ./gradlew assembleRelease
-cp app/build/outputs/apk/release/app-release.apk ../web/public/releases/nexus-v1.0.apk
-cd ../web && npm run build && npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
-```
-
-### Update Web Only
-```bash
-cd prism/web
-npm run build
-npx wrangler pages deploy dist --project-name=investment-aramac --branch=production
+# Copy output APK
+cp app/build/outputs/apk/release/... ../web/public/releases/nexus-v1.0.apk
+# Build Web Project
+cd ../../prism/web && npm ci && npm run build
+# Deploy from Workspace Root via Vercel CLI
+cd ../../
+npx vercel --prod --yes
 ```
 
 ## 🎯 Verification Checklist
 
-After DNS update, verify:
-- [ ] https://inv.aramac.dev loads the dashboard
-- [ ] https://inv.aramac.dev/download loads the download page
-- [ ] https://inv.aramac.dev/releases/nexus-v1.0.apk downloads the APK
-- [ ] All navigation links work correctly
-- [ ] Mobile app installs and runs correctly
-
-## 📱 App Installation
-
-1. Visit https://inv.aramac.dev/download
-2. Tap "Descargar APK"
-3. Allow installation from unknown sources if prompted
-4. Open NEXUS app
-5. Configure API URL in Settings:
-   - For emulator: `http://10.0.2.2:8000`
-   - For production: Your API URL
-
----
-
-**Status**: Ready for use after DNS update ⚡
+- [x] https://inv.aramac.dev loads the dashboard correctly
+- [x] https://inv.aramac.dev/download loads the download page manually
+- [x] https://inv.aramac.dev/releases/nexus-v1.0.apk successfully serves the APK download
+- [x] Cloudflare is NOT interfering with this hosting (storage/DNS only)

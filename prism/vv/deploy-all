@@ -399,7 +399,7 @@ build_web() {
 # =============================================================================
 
 deploy() {
-    log_header "DEPLOYING TO CLOUDFLARE"
+    log_header "DEPLOYING TO VERCEL"
     
     if [[ "$SKIP_DEPLOY" == true ]]; then
         log_warn "Skipping deployment (--skip-deploy)"
@@ -410,30 +410,21 @@ deploy() {
     fi
     
     if [[ "$DRY_RUN" == true ]]; then
-        log_info "[DRY RUN] Would deploy to Cloudflare Pages"
-        log_info "[DRY RUN] Project: $CF_PROJECT"
-        log_info "[DRY RUN] Command: wrangler pages deploy dist --project-name=$CF_PROJECT --branch=production"
+        log_info "[DRY RUN] Would deploy to Vercel"
+        log_info "[DRY RUN] Command: npx vercel --prod --yes"
         return 0
     fi
     
-    cd "$PRISM_WEB_DIR"
+    cd "$PROJECT_ROOT"
     
-    # Check authentication
-    if ! wrangler whoami &>/dev/null 2>&1; then
-        log_warn "Not authenticated with Cloudflare"
-        log_info "Running: wrangler login"
-        wrangler login
-    fi
-    
-    log_step "Deploying to Cloudflare Pages..."
-    log_info "Project: $CF_PROJECT"
+    log_step "Deploying to Vercel..."
     log_info "Domain: $CF_DOMAIN"
     
-    if wrangler pages deploy dist --project-name="$CF_PROJECT" --branch="production" 2>&1 | tee /tmp/deploy.log; then
+    if npx vercel --prod --yes 2>&1 | tee /tmp/deploy.log; then
         log_success "Deployment completed!"
         echo ""
         echo -e "${C_SUCCESS}══════════════════════════════════════════════════════════════${C_RESET}"
-        echo -e "${C_CREAM}  🚀 DEPLOYMENT SUCCESSFUL${C_RESET}"
+        echo -e "${C_CREAM}  🚀 VERCEL DEPLOYMENT SUCCESSFUL${C_RESET}"
         echo -e "${C_SUCCESS}══════════════════════════════════════════════════════════════${C_RESET}"
         echo ""
         echo -e "  ${C_INFO}Website:${C_RESET}  $CF_DOMAIN"

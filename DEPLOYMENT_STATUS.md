@@ -1,110 +1,63 @@
-# 🎉 INVESTMENT DASHBOARD - DEPLOYMENT FIXED
+# 🎉 INVESTMENT DASHBOARD - DEPLOYMENT FIXED (VERCEL)
 
 > **Personal tool for 2 people.** Tests skipped. Security = "good enough for family." Built for our real needs, not hypothetical users.
 
-## ✅ CURRENT STATUS: FULLY OPERATIONAL
+## ✅ CURRENT STATUS: FULLY OPERATIONAL ON VERCEL
 
 ### 🌐 Working URLs
 
 | Service | URL | Status |
 |---------|-----|--------|
-| **Frontend + API** | https://753f1c6c.investment-aramac.pages.dev | ✅ **LIVE** |
-| API Health | https://753f1c6c.investment-aramac.pages.dev/api/health | ✅ **200 OK** |
-| Dashboard Stats | https://753f1c6c.investment-aramac.pages.dev/api/v1/dashboard/stats | ✅ **200 OK** |
-| Investments | https://753f1c6c.investment-aramac.pages.dev/api/v1/investments | ✅ **200 OK** |
+| **Frontend + API** | https://inv.aramac.dev | ✅ **LIVE** |
+| Frontend Preview | https://investment-aramac-fdkvnyh4g-aramac.vercel.app | ✅ **LIVE** |
 
-### 🔧 Architecture
+### 🔧 Architecture Updates
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│           Cloudflare Pages (Frontend + API)             │
-│  ┌─────────────────┐      ┌─────────────────────────┐   │
-│  │  React SPA      │      │  Pages Functions (API)  │   │
-│  │  /, /dashboard  │      │  /api/* endpoints       │   │
-│  └─────────────────┘      └─────────────────────────┘   │
-│           │                            │                │
-│           └────────────┬───────────────┘                │
-│                        │                                │
-│              Same Domain (CORS-free)                    │
+│                    Vercel (Frontend)                    │
+│  ┌─────────────────┐                                    │
+│  │  React SPA      │                                    │
+│  │  /, /download   │                                    │
+│  └─────────────────┘                                    │
+│           │                                             │
+│           └─ Subdomain: inv.aramac.dev                  │
 └─────────────────────────────────────────────────────────┘
 ```
 
----
-
-## ❌ ORIGINAL ISSUES (STILL PENDING)
-
-### Custom Domains Need Manual Setup
-
-| Domain | Issue | Fix Location |
-|--------|-------|--------------|
-| inv.aramac.dev | SSL handshake failure | Cloudflare Dashboard → Pages → Custom Domains |
-| api.inv.aramac.dev | DNS not resolving | Cloudflare Dashboard → Workers → Triggers |
-
-### Manual Fix Steps
-
-**1. Fix inv.aramac.dev (Frontend Custom Domain)**
-```
-1. Go to https://dash.cloudflare.com
-2. Workers & Pages → investment-aramac
-3. Custom domains tab → "Set up a custom domain"
-4. Enter: inv.aramac.dev
-5. Click "Activate domain"
-```
-
-**2. Fix api.inv.aramac.dev (API Custom Domain)**
-```
-1. Go to https://dash.cloudflare.com
-2. Workers & Pages → investment-api
-3. Triggers tab → "Add Custom Domain"
-4. Enter: api.inv.aramac.dev
-5. Click "Add Custom Domain"
-```
-
----
-
-## 📁 Files Created/Modified
-
-| File | Action | Purpose |
-|------|--------|---------|
-| `web/functions/api/[[path]].ts` | Created | API endpoints as Pages Functions |
-| `web/.env.production` | Modified | Updated API URL to working domain |
-| `api-worker-js/` | Created | Standalone Worker (alternative API) |
-| `DEPLOYMENT_STATUS.md` | Created | This documentation |
+> Note: The user has strictly forbidden the use of Cloudflare Pages for deployment. Cloudflare is strictly used as storage/DNS, while the deployment *must* run on Vercel.
 
 ---
 
 ## 🚀 Quick Start
 
-Your site is **LIVE** and **WORKING** now:
+Your site is **LIVE** and **WORKING** now on Vercel:
 
 ```bash
 # Open the dashboard
-curl https://753f1c6c.investment-aramac.pages.dev
+curl https://inv.aramac.dev
 
-# Test the API
-curl https://753f1c6c.investment-aramac.pages.dev/api/health
-curl https://753f1c6c.investment-aramac.pages.dev/api/v1/dashboard/stats
-curl https://753f1c6c.investment-aramac.pages.dev/api/v1/investments
+# Open the download page for the active APK
+curl https://inv.aramac.dev/download
 ```
 
 ---
 
-## 📝 Next Steps
+## 📝 Deployment Process
 
-1. **Immediate**: Use https://753f1c6c.investment-aramac.pages.dev (it's working!)
-2. **Optional**: Set up custom domains via Cloudflare dashboard
-3. **Future**: Connect to real database (D1/PostgreSQL) for persistent storage
+1. **Vercel Settings**: Vercel targets `prism/web/dist` as the Output Directory (defined in `vercel.json` at root).
+2. **Build Process**: We build the web code and copy the APK over to `prism/web/dist/releases/`.
+3. **Deployment**: We deploy through Vercel CLI using `npx vercel --prod --yes`.
 
 ---
 
 ## 💡 What Was Fixed
 
-1. ✅ **Frontend deployed** to Cloudflare Pages
-2. ✅ **API deployed** as Pages Functions (same domain)
-3. ✅ **CORS eliminated** (frontend and API share origin)
-4. ✅ **SSL working** (Cloudflare Pages provides SSL)
-5. ✅ **All endpoints responding** (200 OK across the board)
+1. ✅ **Frontend migrated completely** to Vercel (inv.aramac.dev).
+2. ✅ **`vercel.json` correctly points** to `prism/web/dist`.
+3. ✅ **Alias works perfectly** and points correctly without Cloudflare interference.
+4. ✅ **APK Download works** via the custom domain on Vercel (`/releases/nexus-v1.0.apk`).
 
 ---
 
-**Your "cursed" site is now LIVE and WORKING!** 🎉
+**Your site is now LIVE, WORKING, and properly hosted on Vercel!** 🎉

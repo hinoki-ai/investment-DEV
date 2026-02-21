@@ -295,4 +295,65 @@ export const INVESTMENT_TOOLTIPS = {
         content: 'Ahorro en impuestos que obtienes por tener una hipoteca. En Chile, puedes deducir el interés pagado de tu renta tributaria.',
         example: 'Si pagas $2M al año en intereses y tu tasa es 35%, ahorras $700k en impuestos.',
     },
+
+    // Indicadores Económicos
+    uf: {
+        title: 'Unidad de Fomento (UF)',
+        content: 'Valor en Chile que sube con la inflación. Sirve para que tu dinero o deudas mantengan su valor real (Inflation-adjusted unit).',
+        example: 'Si la inflación sube 1%, la UF sube 1%.',
+    },
+    utm: {
+        title: 'Unidad Tributaria Mensual (UTM)',
+        content: 'Unidad usada en Chile para pago de impuestos y multas (Monthly Tax Unit). Cambia cada mes según la inflación.',
+    },
+    eur: {
+        title: 'Euro (€)',
+        content: 'La moneda de la Unión Europea (European currency). Tener ahorros en Euros ayuda a diversificar tu riesgo si el peso chileno cae.',
+    },
+    usd: {
+        title: 'Dólar Estadounidense (USD)',
+        content: 'La principal moneda del mundo (U.S. Dollar). Funciona como "Safe Haven" (refugio) cuando hay crisis o el peso se debilita.',
+    },
+    nasdaq: {
+        title: 'NASDAQ Composite',
+        content: 'Índice de la bolsa de USA que sigue a las mayores empresas de tecnología (Tech Stock Index) como Apple o Google.',
+        example: 'Si el NASDAQ sube (Bullish), significa que hay optimismo en las tecnológicas.',
+    },
+    wti: {
+        title: 'WTI Crude Oil',
+        content: 'Precio del petróleo crudo (Oil Price) de USA. Si sube mucho, el transporte se encarece y genera inflación global.',
+    },
+    gold: {
+        title: 'Oro (Gold)',
+        content: 'El clásico activo "Safe Haven" (refugio seguro). Inversionistas compran oro para protegerse del miedo en los mercados o inflación.',
+    },
+    silver: {
+        title: 'Plata (Silver)',
+        content: 'Metal precioso (Precious Metal) más volátil que el oro. Tiene mucha demanda y uso en tecnología y paneles solares.',
+    },
+    copper: {
+        title: 'Cobre (Copper)',
+        content: 'La principal exportación de Chile. Su precio depende del crecimiento económico mundial (Economic Growth), especialmente en China.',
+    },
+    lithium: {
+        title: 'Litio (Lithium)',
+        content: 'Material clave para las baterías de autos eléctricos (EV Batteries). ALB es la empresa que usamos como proxy para seguir tendencia.',
+    },
+    bitcoin: {
+        title: 'Bitcoin (BTC)',
+        content: 'La primera criptomoneda. Muchos la llaman "Digital Gold" (oro digital) por ser escasa: hay un límite máximo y no se puede imprimir más.',
+    },
+    ethereum: {
+        title: 'Ethereum (ETH)',
+        content: 'La principal red crypto para aplicaciones e innovación web3. Permite hacer "Smart Contracts" (contratos inteligentes automáticos).',
+    },
+    totalGain: {
+        title: 'Ganancia (Total Profit)',
+        content: 'Monto total ganado por sobre tu inversión inicial (Capital Gain).',
+    },
+    totalLoss: {
+        title: 'Pérdida (Total Loss)',
+        content: 'Disminución del valor del portafolio (Unrealized Loss) frente a la compra. Es pérdida en "papel" a menos que vendas.',
+    },
 }
+

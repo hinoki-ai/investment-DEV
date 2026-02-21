@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "web/dist",
+  "outputDirectory": "prism/web/dist",
   "framework": "vite",
   "installCommand": "npm install",
   "rewrites": [

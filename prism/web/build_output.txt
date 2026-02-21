@@ -2,19 +2,19 @@
 > prism@1.0.0 build
 > tsc && vite build
 
-src/pages/Dashboard.tsx(6,3): error TS6133: 'Brain' is declared but its value is never read.
-src/pages/Dashboard.tsx(79,9): error TS6133: 'completedAnalyses' is declared but its value is never read.
-src/pages/Dashboard.tsx(80,9): error TS6133: 'pendingAnalyses' is declared but its value is never read.
-src/pages/Files.tsx(12,3): error TS6133: 'FolderOpen' is declared but its value is never read.
-src/pages/Files.tsx(13,3): error TS6133: 'HardDrive' is declared but its value is never read.
-src/pages/Files.tsx(88,9): error TS6133: 'totalSize' is declared but its value is never read.
-src/pages/Investments.tsx(13,37): error TS6133: 'Filter' is declared but its value is never read.
-src/pages/Investments.tsx(17,6): error TS6133: 'Briefcase' is declared but its value is never read.
-src/pages/Investments.tsx(18,3): error TS6133: 'Shield' is declared but its value is never read.
-src/pages/Investments.tsx(18,11): error TS6133: 'Zap' is declared but its value is never read.
-src/pages/Investments.tsx(19,3): error TS6133: 'Eye' is declared but its value is never read.
-src/pages/Investments.tsx(19,17): error TS6133: 'Calendar' is declared but its value is never read.
-src/pages/Investments.tsx(26,3): error TS6133: 'ScatterChart' is declared but its value is never read.
-src/pages/Investments.tsx(26,17): error TS6133: 'Scatter' is declared but its value is never read.
-src/pages/Investments.tsx(26,26): error TS6133: 'ZAxis' is declared but its value is never read.
-src/pages/Investments.tsx(29,26): error TS6133: 'formatNumber' is declared but its value is never read.
+vite v5.4.21 building for production...
+transforming...
+✓ 2277 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                         1.80 kB │ gzip:   0.73 kB
+dist/assets/index-CUjEj7_M.css         51.00 kB │ gzip:   9.52 kB
+dist/assets/Download-CgplUdJ3.js        5.64 kB │ gzip:   2.09 kB │ map:    12.49 kB
+dist/assets/Analysis-BEv34wHD.js        7.18 kB │ gzip:   2.08 kB │ map:    16.86 kB
+dist/assets/Chat-BVAnxiHx.js           11.43 kB │ gzip:   3.94 kB │ map:    33.10 kB
+dist/assets/Analytics-Cv5rYD2L.js      15.82 kB │ gzip:   3.65 kB │ map:    38.16 kB
+dist/assets/query-vendor-CZ99OHC2.js   86.01 kB │ gzip:  29.51 kB │ map:   347.15 kB
+dist/assets/react-vendor-CljInxgW.js  154.93 kB │ gzip:  50.77 kB │ map:   688.27 kB
+dist/assets/index-BVHniwSj.js         197.29 kB │ gzip:  44.50 kB │ map:   489.74 kB
+dist/assets/ui-vendor-B6CgC50E.js     459.69 kB │ gzip: 123.72 kB │ map: 1,955.25 kB
+✓ built in 7.93s
