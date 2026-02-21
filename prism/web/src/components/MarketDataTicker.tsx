@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Clock, DollarSign, CircleDollarSign, TrendingUp, Circle, Bitcoin, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Clock, DollarSign, CircleDollarSign, Bitcoin, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../lib/api'
 import HelpTooltip from './HelpTooltip'
@@ -318,18 +318,18 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
 
           {/* Row 4: Gold | Silver */}
           <ColIcon color="hover:text-warning" tooltipKey="gold" valueBlock={`$${marketData.gold ? formatCurrency(marketData.gold) : '—'}`}>
-            <TrendingUp className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-bold">Au</span>
           </ColIcon>
           <ColIcon color="hover:text-blue-400" tooltipKey="silver" valueBlock={`$${marketData.silver ? formatCurrency(marketData.silver) : '—'}`}>
-            <Circle className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-bold">Ag</span>
           </ColIcon>
 
           {/* Row 5: Copper | Lithium */}
           <ColIcon color="hover:text-orange-400" tooltipKey="copper" valueBlock={<>${marketData.copper ? marketData.copper.toFixed(2) : '—'}{marketData.copperKg && <div className="text-[10px] text-text-muted mt-0.5">${marketData.copperKg.toFixed(0)}/kg</div>}</>}>
-            <span className="text-[8px] font-bold">CU</span>
+            <span className="text-[10px] font-bold">Cu</span>
           </ColIcon>
           <ColIcon color="hover:text-teal-400" tooltipKey="lithium" valueBlock={`$${marketData.lithium ? marketData.lithium.toFixed(2) : '—'}`}>
-            <span className="text-[8px] font-bold">Li</span>
+            <span className="text-[10px] font-bold">Li</span>
           </ColIcon>
 
           {/* Row 6: BTC | ETH */}
@@ -513,7 +513,7 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
         {/* Gold */}
         <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-warning/30 transition-colors">
           <div className="flex items-center justify-between">
-            <ExpandedTitle icon={TrendingUp} text="Oro" tooltipKey="gold" className="text-warning" />
+            <ExpandedTitle iconNode={<span className="text-[10px] font-bold text-warning">Au</span>} text="Oro" tooltipKey="gold" className="text-warning" />
             <span className="text-[9px] text-text-muted">/g</span>
           </div>
           <div
@@ -533,7 +533,7 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
         {/* Silver */}
         <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-blue-400/30 transition-colors">
           <div className="flex items-center justify-between">
-            <ExpandedTitle icon={Circle} text="Plata" tooltipKey="silver" className="text-blue-400" />
+            <ExpandedTitle iconNode={<span className="text-[10px] font-bold text-blue-400">Ag</span>} text="Plata" tooltipKey="silver" className="text-blue-400" />
             <span className="text-[9px] text-text-muted">/g</span>
           </div>
           <div
@@ -556,7 +556,7 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
         {/* Copper */}
         <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-orange-400/30 transition-colors">
           <div className="flex items-center justify-between">
-            <ExpandedTitle iconNode={<span className="text-[9px] font-bold text-orange-400">CU</span>} text="Cobre" tooltipKey="copper" />
+            <ExpandedTitle iconNode={<span className="text-[10px] font-bold text-orange-400">Cu</span>} text="Cobre" tooltipKey="copper" />
             <span className="text-[9px] text-text-muted">/lb</span>
           </div>
           <div
@@ -579,7 +579,7 @@ export default function MarketDataTicker({ collapsed, showTime = true }: MarketD
         {/* Lithium (ALB proxy) */}
         <div className="p-2.5 rounded-xl bg-surface/40 border border-border/50 hover:border-teal-400/30 transition-colors">
           <div className="flex items-center justify-between">
-            <ExpandedTitle iconNode={<span className="text-[9px] font-bold text-teal-400">Li</span>} text="Litio" tooltipKey="lithium" />
+            <ExpandedTitle iconNode={<span className="text-[10px] font-bold text-teal-400">Li</span>} text="Litio" tooltipKey="lithium" />
             <span className="text-[9px] text-text-muted">ALB</span>
           </div>
           <div
