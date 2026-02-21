@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { 
-  Smartphone, 
-  Download, 
-  CheckCircle2, 
-  Shield, 
+import {
+  Smartphone,
+  Download,
+  CheckCircle2,
+  Shield,
   ArrowRight,
   FileArchive,
   Calendar,
@@ -66,29 +66,29 @@ export default function DownloadPage() {
   }
 
   const installationSteps = [
-    'Tap the Download APK button below',
-    'Wait for the download to complete',
-    'Open the downloaded file from notifications',
-    'If prompted, allow "Install from unknown sources"',
-    'Tap "Install" and wait for completion',
-    'Open NEXUS and configure your API settings'
+    'Haz tap en el botón de Download APK de abajo',
+    'Wait a que se complete el download',
+    'Abre el downloaded file desde las notificaciones',
+    'Si te sale un prompt, allow "Install from unknown sources"',
+    'Haz tap en "Install" y espera a que termine',
+    'Abre NEXUS y configura tus API settings'
   ]
 
   const features = [
     {
       icon: Smartphone,
       title: 'Direct Upload',
-      description: 'Upload files directly to cloud storage with pre-signed URLs'
+      description: 'Sube tus files directamente al cloud storage con pre-signed URLs'
     },
     {
       icon: Shield,
       title: 'Secure',
-      description: 'Your files never pass through intermediate servers'
+      description: 'Tus files nunca pasan por intermediate servers'
     },
     {
       icon: CheckCircle2,
       title: 'Auto Analysis',
-      description: 'Optionally queue files for AI processing automatically'
+      description: 'Opcionalmente puedes poner los files en queue para AI processing automáticamente'
     }
   ]
 
@@ -103,7 +103,7 @@ export default function DownloadPage() {
           NEXUS Mobile
         </h1>
         <p className="text-text-secondary">
-          Family Investment Tracker for Android
+          Family Investment Tracker para Android
         </p>
       </div>
 
@@ -131,11 +131,10 @@ export default function DownloadPage() {
         <button
           onClick={handleDownload}
           disabled={isDownloading}
-          className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${
-            isDownloading
+          className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 ${isDownloading
               ? 'bg-success/20 text-success cursor-wait'
               : 'bg-cream text-void hover:bg-cream-light'
-          }`}
+            }`}
         >
           {isDownloading ? (
             <>
@@ -151,7 +150,7 @@ export default function DownloadPage() {
         </button>
 
         <p className="mt-4 text-center text-xs text-text-muted">
-          Android 8.0+ requerido • APK firmado • Actualizado: {apkInfo.updated}
+          Android 8.0+ requerido • APK firmado • Updateado: {apkInfo.updated}
         </p>
       </div>
 
@@ -160,7 +159,7 @@ export default function DownloadPage() {
         {features.map((feature, index) => {
           const Icon = feature.icon
           return (
-            <div 
+            <div
               key={index}
               className="flex items-start gap-4 p-4 bg-surface/50 border border-border rounded-xl"
             >
@@ -184,7 +183,7 @@ export default function DownloadPage() {
         </h2>
         <ol className="space-y-3">
           {installationSteps.map((step, index) => (
-            <li 
+            <li
               key={index}
               className="flex items-start gap-3 text-sm text-text-secondary"
             >
@@ -204,7 +203,7 @@ export default function DownloadPage() {
           <code className="text-xs text-cream font-mono">
             https://inv.aramac.dev/download
           </code>
-          <button 
+          <button
             onClick={() => {
               navigator.clipboard.writeText('https://inv.aramac.dev/download')
               setShowToast(true)
@@ -219,12 +218,11 @@ export default function DownloadPage() {
       </div>
 
       {/* Toast Notification */}
-      <div 
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 bg-surface-elevated border border-success/30 rounded-xl shadow-xl transition-all duration-300 ${
-          showToast 
-            ? 'opacity-100 translate-y-0' 
+      <div
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-3 bg-surface-elevated border border-success/30 rounded-xl shadow-xl transition-all duration-300 ${showToast
+            ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-4 pointer-events-none'
-        }`}
+          }`}
       >
         <div className="flex items-center gap-2 text-success">
           <CheckCircle2 className="w-4 h-4" />
